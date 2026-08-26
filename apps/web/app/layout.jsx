@@ -7,9 +7,8 @@ export const metadata = {
 };
 
 const NAV = [
-  { href: '/', label: 'نظرة عامة' },
-  { href: '/flood', label: 'الغَرَق' },
-  { href: '/waste', label: 'الهَدْر' },
+  { href: '/', label: 'الرئيسية' },
+  { href: '/dashboard', label: 'لوحة الرصد' },
   { href: '/method', label: 'المنهجية' },
 ];
 
