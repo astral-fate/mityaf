@@ -1,0 +1,43 @@
+# مَسارب / Masareb — runtime dependencies
+#
+# Authored from scratch: the prior palm pipeline shipped no usable manifest
+# (earthengine-api and geemap existed only as a !pip line inside a Colab notebook).
+#
+# Deliberately EXCLUDES geopandas / rasterio / osmnx / pyproj: none has a cp314
+# wheel, and all geometry work happens either inside Earth Engine (geodesic, in
+# metres) or inside DuckDB's spatial extension (bundles its own PROJ/GEOS/GDAL).
+# That keeps this installable on the stock Python 3.14 with no venv and no
+# compiler.
+
+# --- data + compute ---
+duckdb==1.4.4            # cp314 wheel exists; 1.5.x does not
+pandas>=2.3
+numpy>=2.0
+scipy>=1.15               # ndimage: distance transforms, labelling for terrain
+pyarrow>=17               # parquet / geoparquet interchange
+shapely>=2.1              # segment splitting, buffers, predicates
+
+# --- satellite + weather ---
+earthengine-api>=1.7      # pure python, installs anywhere
+requests>=2.32
+
+# --- api ---
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.9
+pydantic-settings>=2.5
+jinja2>=3.1               # zero-Node fallback dashboard
+
+# --- scheduling ---
+apscheduler>=3.11
+
+# --- ml ---
+scikit-learn>=1.5
+xgboost>=2.1              # Booster.predict(pred_contribs=True) -> TreeSHAP, no `shap` dep
+
+# --- arabic reporting ---
+reportlab>=4.2
+arabic-reshaper>=3.0
+python-bidi>=0.6
+markdown>=3.7
+pillow>=10

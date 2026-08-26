@@ -1,0 +1,26 @@
+{
+  "name": "masareb",
+  "version": "1.0.0",
+  "private": true,
+  "description": "مَسارب — satellite urban-water intelligence for Al Madinah Municipality",
+  "license": "MIT",
+  "workspaces": [
+    "apps/web",
+    "packages/pipeline"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace=@masareb/web",
+    "build": "npm run build --workspace=@masareb/web",
+    "start": "npm run start --workspace=@masareb/web",
+    "lint": "npm run lint --workspace=@masareb/web",
+    "pipeline": "node --env-file-if-exists=.env packages/pipeline/src/cli.js",
+    "pipeline:units": "npm run pipeline -- build-units",
+    "pipeline:weather": "npm run pipeline -- backfill-weather",
+    "pipeline:s2": "npm run pipeline -- backfill-s2",
+    "pipeline:export": "npm run pipeline -- export-static",
+    "pipeline:all": "npm run pipeline -- all"
+  }
+}

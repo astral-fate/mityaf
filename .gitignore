@@ -1,0 +1,50 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# next.js
+.next/
+out/
+build/
+dist/
+
+# vercel
+.vercel
+
+# env — never commit credentials
+.env
+.env*.local
+.env.production
+secrets/
+*-service-account*.json
+*.pem
+
+# pipeline data
+# raw OSM dumps and the local DB are reproducible from the pipeline, so they
+# stay out of git. The precomputed exports in apps/web/public/data ARE tracked:
+# they are what Vercel serves.
+data/raw/
+data/interim/
+data/*.duckdb
+data/*.duckdb.wal
+*.bak.csv
+
+# python (legacy prototype, kept for reference under prototype-python/)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# os / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# logs
+*.log
+npm-debug.log*
+yarn-error.log*

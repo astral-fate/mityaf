@@ -1,0 +1,1700 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>BRD — مَسارب v1.0</title><style>
+@import url("assets/fonts/plex-local.css");
+
+:root{
+  --neon:#50FF4A; --cyan:#00C4D5; --grass:#2A9759; --forest:#06653D;
+  --ink:#010628; --ink-2:#020A2F; --ink-4:#081F64;
+  --sand:#E5CDB0; --sand-mid:#B0865C; --sand-deep:#76683C;
+  --danger:#C0392B; --warn:#B7791F;
+  --text:#15203A; --text-soft:#4A5878; --rule:#DCE3F0; --bg-soft:#F5F8FD;
+  --font:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{direction:rtl}
+body{font-family:var(--font);color:var(--text);font-size:10.5pt;line-height:1.75;
+     background:#fff;-webkit-font-smoothing:antialiased}
+
+@page{size:A4;margin:18mm 16mm}
+@page:first{margin:0}
+
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;display:inline-block}
+
+/* ─── cover ─── */
+.cover{
+  position:relative;width:210mm;height:297mm;margin:0 0 0 0;
+  page-break-after:always;break-after:page;overflow:hidden;
+  background:
+    radial-gradient(760px 560px at 88% -8%,rgba(80,255,74,.16),transparent 62%),
+    radial-gradient(680px 520px at 4% 106%,rgba(0,196,213,.17),transparent 60%),
+    linear-gradient(160deg,var(--ink) 0%,var(--ink-2) 55%,#01041c 100%);
+  color:#fff;padding:36mm 22mm;display:flex;flex-direction:column;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+}
+.cover .eyebrow{font-size:12pt;font-weight:600;color:var(--neon);margin-bottom:10mm;
+  display:flex;align-items:center;gap:5mm}
+.cover .eyebrow::before{content:"";width:16mm;height:1.2mm;border-radius:1mm;
+  background:linear-gradient(90deg,var(--neon),transparent)}
+/* must come after the generic h1 rule wins nothing: cover text is on dark */
+.cover h1{font-size:46pt;font-weight:700;line-height:1.06;letter-spacing:-.02em;
+  color:#fff;border:none;padding:0;margin:0}
+.cover .sub{font-size:15pt;color:#A9B6D4;margin-top:7mm;line-height:1.5}
+.cover .rule{width:38mm;height:1.6mm;border-radius:1mm;margin:12mm 0;
+  background:linear-gradient(90deg,var(--neon),var(--cyan))}
+.cover .meta{margin-top:auto;font-size:10.5pt;color:#8FA0C4;line-height:2}
+.cover .meta b{color:#fff;font-weight:600}
+.cover .foot{position:absolute;bottom:20mm;left:22mm;right:22mm;
+  display:flex;justify-content:space-between;font-size:10pt;color:#6B7A9E;
+  border-top:.3mm solid rgba(169,182,212,.22);padding-top:5mm}
+
+/* ─── headings ─── */
+h1,h2,h3,h4{line-height:1.3;font-weight:700;color:var(--ink)}
+h1{font-size:20pt;margin:0 0 4mm;padding-bottom:3mm;border-bottom:.8mm solid var(--neon)}
+h2{font-size:15pt;margin:9mm 0 3.5mm;padding-right:4mm;border-right:1.2mm solid var(--neon);
+   page-break-after:avoid;break-after:avoid}
+h3{font-size:12pt;margin:6mm 0 2.5mm;color:var(--forest);
+   page-break-after:avoid;break-after:avoid}
+h4{font-size:10.5pt;margin:4mm 0 2mm;color:var(--text-soft)}
+
+p{margin:0 0 3mm}
+strong,b{font-weight:700;color:var(--ink)}
+a{color:var(--grass);text-decoration:none}
+
+hr{border:none;border-top:.3mm solid var(--rule);margin:8mm 0}
+
+ul,ol{margin:0 0 3.5mm;padding-right:6mm}
+li{margin-bottom:1.6mm}
+ul li::marker{color:var(--grass)}
+
+blockquote{border-right:1mm solid var(--cyan);background:var(--bg-soft);
+  padding:3.5mm 5mm;margin:0 0 4mm;color:var(--text-soft);border-radius:0 2mm 2mm 0}
+blockquote strong{color:var(--ink)}
+
+code{font-family:"IBM Plex Sans Arabic",Consolas,monospace;font-size:9.5pt;
+  background:var(--bg-soft);border:.2mm solid var(--rule);border-radius:1mm;
+  padding:.4mm 1.4mm;color:var(--forest);direction:ltr;unicode-bidi:isolate;
+  display:inline-block}
+
+/* ─── tables ─── */
+table{width:100%;border-collapse:collapse;margin:0 0 5mm;font-size:9.5pt;
+  page-break-inside:auto}
+thead{display:table-header-group}
+tr{page-break-inside:avoid;break-inside:avoid}
+th{background:var(--ink);color:#fff;font-weight:600;text-align:right;
+   padding:2.4mm 3mm;font-size:9.5pt;
+   -webkit-print-color-adjust:exact;print-color-adjust:exact}
+th:first-child{border-radius:0 1.5mm 0 0}
+th:last-child{border-radius:1.5mm 0 0 0}
+td{padding:2.2mm 3mm;border-bottom:.2mm solid var(--rule);vertical-align:top;
+   line-height:1.6}
+tbody tr:nth-child(even){background:var(--bg-soft)}
+td:first-child{font-weight:600;color:var(--ink)}
+
+/* requirement id chips: FR-01 / NFR-02 / BR-03 / BP-01 / R-04 ... */
+.rid{display:inline-block;white-space:nowrap;font-weight:700;font-size:9pt;
+  color:var(--forest);background:rgba(42,151,89,.10);
+  border:.2mm solid rgba(42,151,89,.30);border-radius:1.2mm;padding:.2mm 1.3mm;
+  direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+/* the id column must never be the one that wraps */
+td:first-child{white-space:nowrap}
+
+/* MoSCoW priority words */
+.pr-must{color:var(--danger);font-weight:700}
+.pr-should{color:var(--warn);font-weight:700}
+.pr-could{color:var(--text-soft);font-weight:600}
+
+section.doc{page-break-before:auto}
+</style></head><body>
+<div class="cover">
+  <div class="eyebrow">وثيقة متطلبات الأعمال · Business Requirements Document</div>
+  <h1>مَـسـارب</h1>
+  <div class="sub">
+    منصّة رصد المياه الحضرية<br>بالأقمار الصناعية والذكاء الاصطناعي
+  </div>
+  <div class="rule"></div>
+  <div class="meta">
+    الإصدار <b>v1.0</b> &nbsp;·&nbsp; <b>26 أغسطس 2026</b><br>
+    الجهة المستفيدة: <b>أمانة منطقة المدينة المنورة</b><br>
+    السياق: <b>برمجان المنورة 2026</b> — مسار المتابعة الذكية للخدمات
+  </div>
+  <div class="foot">
+    <div>صفر عتاد &nbsp;·&nbsp; تغطية المدينة كاملة &nbsp;·&nbsp; كل <span class="num">5</span> أيام</div>
+    <div>مُعتمدة للتنفيذ</div>
+  </div>
+</div>
+<section class="doc"><hr>
+<h2>&#x200F;1. ضبط الوثيقة · Document Control</h2>
+<table>
+<thead>
+<tr>
+<th>البند</th>
+<th>القيمة</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>اسم المنتج</strong></td>
+<td>مَسارب — Masareb</td>
+</tr>
+<tr>
+<td><strong>الوصف</strong></td>
+<td>منصّة رصد المياه الحضرية بالأقمار الصناعية والذكاء الاصطناعي</td>
+</tr>
+<tr>
+<td><strong>رقم الإصدار</strong></td>
+<td>v1.0</td>
+</tr>
+<tr>
+<td><strong>التاريخ</strong></td>
+<td>26 أغسطس 2026</td>
+</tr>
+<tr>
+<td><strong>الحالة</strong></td>
+<td>مُعتمدة للتنفيذ — Approved for Build</td>
+</tr>
+<tr>
+<td><strong>الجهة المستفيدة</strong></td>
+<td>أمانة منطقة المدينة المنورة</td>
+</tr>
+<tr>
+<td><strong>السياق</strong></td>
+<td>برمجان المنورة 2026 — مسار «المتابعة الذكية للخدمات»</td>
+</tr>
+<tr>
+<td><strong>الجمهور</strong></td>
+<td>لجنة التحكيم · فريق التطوير · الإدارات التشغيلية بالأمانة</td>
+</tr>
+</tbody>
+</table>
+<h3>&#x200F;1.1 سجل التغييرات</h3>
+<table>
+<thead>
+<tr>
+<th>الإصدار</th>
+<th>التاريخ</th>
+<th>التغيير</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v1.0</td>
+<td>2026-08-26</td>
+<td>الإصدار الأول — النطاق الكامل للـMVP</td>
+</tr>
+</tbody>
+</table>
+<h3>&#x200F;1.2 كيف تُقرأ هذه الوثيقة</h3>
+<ul>
+<li><strong><code>BR-xx</code></strong> متطلب أعمال · <strong><code>FR-xx</code></strong> متطلب وظيفي · <strong><code>NFR-xx</code></strong> متطلب غير وظيفي.</li>
+<li>الأولوية بمنهجية <strong>MoSCoW</strong>: <code><span class="pr-must">Must</span></code> إلزامي للـMVP · <code><span class="pr-should">Should</span></code> مهم · <code><span class="pr-could">Could</span></code> تحسين · <code><span class="pr-could">Won't</span></code> خارج النطاق الآن.</li>
+<li><strong>كل متطلب وظيفي له معيار قبول قابل للاختبار.</strong> المتطلب بلا معيار قبول ليس متطلباً بل رغبة.</li>
+<li><strong>كل رقم في هذه الوثيقة له مصدر.</strong> ما لا مصدر له مَوسوم صراحةً <code>[تقدير]</code>.</li>
+</ul>
+<hr>
+<h2>&#x200F;2. الملخص التنفيذي · Executive Summary</h2>
+<p>تواجه أمانة منطقة المدينة المنورة مشكلتين مائيتين متعاكستين في الظاهر، متطابقتين في الجوهر:</p>
+<p><strong>الأولى — الماء الذي يُهدَر.</strong> الري التقليدي للحدائق وأشجار الشوارع يجري دون قياس، فتفيض المياه إلى الأسفلت. النتيجة: هدر مياه محلّاة، وتآكل مبكّر للطرق، واستنزاف ميزانية التشغيل — ورصدها اليوم يعتمد على بلاغ مواطن.</p>
+<p><strong>الثانية — الماء الذي يُحاصَر.</strong> تجمّعات مياه الأمطار في شوارع بعينها. تُنفَّذ مشاريع تصريف بكثافة (<strong>454 ألف متر طولي في 2024</strong> وحدها على مستوى المملكة)، لكن <strong>تحديد أين تُنفَّذ</strong> لا يزال يعتمد على الشكاوى ومحاضر ما بعد الحدث — و<strong>لا توجد أداة مستقلة تقيس ما إذا كان ما بُني قد نجح</strong>.</p>
+<p><strong>الجوهر المشترك:</strong> كلتا الحالتين هي «ماء على سطح غير نفّاذ في مكان غير مقصود». ويفصل بينهما سؤال واحد: <strong>هل أمطرت؟</strong></p>
+<p><strong>الحل:</strong> منصّة واحدة تقرأ سلسلة زمنية واحدة من الأقمار الصناعية المجانية (Sentinel-2 البصري وSentinel-1 الراداري) وتفسّرها بشرطين مختلفين — فتنتج وحدتين تشغيليتين، <strong>بصفر عتاد مُركَّب</strong>، وتغطية للمدينة كاملة كل خمسة أيام، وأرشيف رجعي يعود إلى 2015.</p>
+<p><strong>الطلب:</strong> اعتماد بناء الـMVP وتشغيله على نطاق تجريبي داخل المدينة المنورة، تمهيداً لتجربة ميدانية عبر برنامج «مدينة تك».</p>
+<hr>
+<h2>&#x200F;3. سياق الأعمال · Business Context</h2>
+<h3>&#x200F;3.1 الوضع الوطني لتصريف مياه الأمطار</h3>
+<table>
+<thead>
+<tr>
+<th>المؤشر</th>
+<th>القيمة</th>
+<th>المصدر</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>المواقع المطرية الحرجة</td>
+<td>من <strong>+600 موقع (2022)</strong> إلى <strong>أقل من 300 (2025)</strong></td>
+<td>وزارة البلديات والإسكان</td>
+</tr>
+<tr>
+<td>شبكات تصريف منفّذة 2024</td>
+<td><strong>454,000 متر طولي</strong></td>
+<td>وزارة البلديات والإسكان</td>
+</tr>
+<tr>
+<td>شبكات تصريف منفّذة 2023</td>
+<td><strong>291,000 متر طولي</strong></td>
+<td>وزارة البلديات والإسكان</td>
+</tr>
+<tr>
+<td>الإجمالي التراكمي</td>
+<td><strong>أكثر من 8,000,000 متر طولي</strong></td>
+<td>وزارة البلديات والإسكان</td>
+</tr>
+</tbody>
+</table>
+<p><strong>الملاحظة المحورية:</strong> الإنفاق ضخم ومتسارع — ولا توجد طبقة قياس أثر مستقلة عن تقارير التنفيذ.</p>
+<h3>&#x200F;3.2 تحدٍّ حكومي رسمي مفتوح — CH33</h3>
+<p>منصّة الابتكار بوزارة البلديات والإسكان تطرح تحدياً رسمياً:</p>
+<blockquote>
+<p><strong>«عدم كفاية تغطية شبكة تصريف مياه الأمطار تزيد من تكرار تجمّعات المياه»</strong></p>
+</blockquote>
+<p>والحلول الثلاثة التي تقترحها الوزارة نفسها — حلول تصريف مؤقتة سريعة النشر، أرصفة نفّاذة (تخفّض الحمل 30–40%)، ومستشعرات ذكية — <strong>كلّها عتاد</strong>. وكلّها تطرح السؤال ذاته أولاً: <strong>أين تُوضع؟</strong></p>
+<p><strong>موقع مَسارب:</strong> لسنا بديلاً عن هذه الحلول، بل <strong>طبقة الاستهداف</strong> التي تسبقها وتحدّد مواضعها، فتضاعف عائدها.</p>
+<h3>&#x200F;3.3 السياق المائي الوطني</h3>
+<table>
+<thead>
+<tr>
+<th>المؤشر</th>
+<th>القيمة</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>استهلاك الفرد اليومي</td>
+<td><strong>278 لتراً</strong> (2018) مقابل 227 (2009) — ثالث أعلى معدل عالمياً</td>
+</tr>
+<tr>
+<td>هدف الاستراتيجية الوطنية للمياه 2030</td>
+<td><strong>150 لتراً/فرد/يوم</strong> (خفض 43%)</td>
+</tr>
+<tr>
+<td>الفاقد الحالي في الشبكات</td>
+<td>حتى <strong>40%</strong></td>
+</tr>
+<tr>
+<td>هدف خفض الفاقد</td>
+<td><strong>15%</strong> بحلول 2030</td>
+</tr>
+</tbody>
+</table>
+<p><strong>خطّاف تنظيمي مباشر:</strong> تصنّف وزارة البلديات والإسكان والهيئة السعودية للمياه تدفّق المياه خارج حدود العقار <strong>مخالفة بلدية وتشويهاً بصرياً</strong>، بغرامة تصل إلى <strong>3,000 ريال</strong> عند إغراق الطرق. الرصد اليوم يعتمد على بلاغ عبر «بلدي+» أو الرقم <strong>940</strong>.</p>
+<h3>&#x200F;3.4 السياق المحلي — المدينة المنورة</h3>
+<ul>
+<li><strong>مشروع الثقب الأفقي:</strong> ربط عبّارة المذينب بعبّارة حي مهزور — <strong>1,700 متر طولي</strong>، أقطار حتى <strong>3,000 ملم</strong>.</li>
+<li><strong>البيانات المفتوحة 2024:</strong> شبكة رئيسية 21,812 م · فرعية 19,433 م · 22 عبّارة صندوقية · قنوات 2,275 م.ط.</li>
+<li><strong>الجاهزية التشغيلية:</strong> أكثر من <strong>5,500 كادر</strong> و<strong>1,000 معدّة</strong> و9 منصّات إلكترونية لتغطية أكثر من <strong>900 كم²</strong> عند كل حالة مطرية.</li>
+<li><strong>سيول أغسطس 2024:</strong> أمطار غزيرة وجريان سيول غير مسبوق بالمدينة المنورة.</li>
+<li><strong>المدينة الذكية:</strong> المرتبة <strong>74 عالمياً</strong> و<strong>7 عربياً</strong> في مؤشر IMD للمدن الذكية 2024.</li>
+<li><strong>مشروع 15 مليون شجرة موثّقة رقمياً</strong> — مستشعرات IoT لكل شجرة مزروعة حديثاً.</li>
+</ul>
+<h3>&#x200F;3.5 الفجوة التي تملؤها مَسارب</h3>
+<table>
+<thead>
+<tr>
+<th>الأداة القائمة</th>
+<th>ما تغطّيه</th>
+<th>ما لا تغطّيه</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>مستشعرات IoT (15 مليون شجرة)</td>
+<td>كل شجرة مزروعة حديثاً</td>
+<td>الأشجار القائمة · المسطحات القديمة · الشوارع · الأسفلت</td>
+</tr>
+<tr>
+<td>الدرون الذكي</td>
+<td>التشوّه البصري</td>
+<td>المياه · الرطوبة · الطبوغرافيا · الجريان</td>
+</tr>
+<tr>
+<td>الجولات الميدانية</td>
+<td>نقطة بعينها بدقة</td>
+<td>التغطية الشاملة · الرصد المستمر · التاريخ</td>
+</tr>
+<tr>
+<td>بلاغات بلدي+ و940</td>
+<td>مشاركة مجتمعية ثمينة</td>
+<td>ما لا يراه مواطن · وما لا يُبلَّغ عنه · ردّ فعل بعد الضرر</td>
+</tr>
+<tr>
+<td><strong>مَسارب</strong></td>
+<td><strong>المدينة كاملة — الأخضر والأسفلت معاً، كل 5 أيام، بأثر رجعي إلى 2015</strong></td>
+<td>التفاصيل دون 10 أمتار</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>&#x200F;4. بيان المشكلة · Problem Statements</h2>
+<h3><span class="rid">BP-01</span> — الهدر: مياه الري تفيض إلى الشوارع</h3>
+<p><strong>الوصف:</strong> تُروى المسطحات الخضراء وأشجار الشوارع بجداول ثابتة لا تستجيب لحالة النبات ولا للطقس. الإفراط يُنتج جرياناً سطحياً يخرج من حدود المسطّح إلى الأسفلت المجاور.</p>
+<p><strong>الأثر:</strong>
+- هدر مياه معالَجة/محلّاة عالية التكلفة.
+- تسرّب الماء أسفل طبقة الأسفلت يفكّك طبقة الأساس ويُقصّر عمر الطريق.
+- استنزاف ميزانية التشغيل في مياه لا تصل إلى النبات.
+- <strong>مخالفة تنظيمية</strong> قائمة (غرامة حتى 3,000 ريال).</p>
+<p><strong>سبب الاستمرار:</strong> لا توجد وسيلة رصد مستمرة واسعة النطاق. الاكتشاف يعتمد على مصادفة بصرية أو بلاغ مواطن.</p>
+<h3><span class="rid">BP-02</span> — الغرق: تجمّعات المياه وضعف استهداف التصريف</h3>
+<p><strong>الوصف:</strong> تتجمّع مياه الأمطار في مقاطع شوارع بعينها. تحديد مواقع مشاريع التصريف وترتيب أولوياتها يعتمد على الشكاوى والذاكرة المؤسسية.</p>
+<p><strong>الأثر:</strong>
+- خطر على السلامة العامة وتعطيل الحركة.
+- إنفاق رأسمالي قد لا يُصيب أعلى المواقع احتياجاً.
+- <strong>غياب قياس الأثر:</strong> بعد تشغيل المشروع لا توجد أداة مستقلة تجيب: هل نجح؟
+- توزيع الفرق أثناء الحالة المطرية يتم بالتقدير لا بالبيانات.</p>
+<p><strong>سبب الاستمرار:</strong> بيانات الغرق التاريخية غير مُصنَّفة مكانياً، والقياس الميداني أثناء الحدث خطير ومكلف.</p>
+<hr>
+<h2>&#x200F;5. الأهداف · Objectives</h2>
+<h3>&#x200F;5.1 أهداف الأعمال</h3>
+<table>
+<thead>
+<tr>
+<th>المعرّف</th>
+<th>الهدف</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><span class="rid">BO-01</span></strong></td>
+<td>تحويل اكتشاف هدر مياه الري من <strong>ردّ فعل على بلاغ</strong> إلى <strong>رصد استباقي مستمر</strong></td>
+</tr>
+<tr>
+<td><strong><span class="rid">BO-02</span></strong></td>
+<td>ترتيب أولويات الإنفاق على التصريف بأدلة طبوغرافية ورصدية بدل الشكاوى</td>
+</tr>
+<tr>
+<td><strong><span class="rid">BO-03</span></strong></td>
+<td>إتاحة <strong>قياس أثر مستقل</strong> لمشاريع التصريف المنفّذة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">BO-04</span></strong></td>
+<td>تمكين التمركز المسبق للفرق الميدانية قبل الحالة المطرية بـ24–72 ساعة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">BO-05</span></strong></td>
+<td>خفض تكاليف تشغيل الري وحماية الأصول الطرقية</td>
+</tr>
+<tr>
+<td><strong><span class="rid">BO-06</span></strong></td>
+<td>بناء قدرة قابلة للنقل لأي أمانة أخرى دون تغيير معماري</td>
+</tr>
+</tbody>
+</table>
+<h3>&#x200F;5.2 أهداف قابلة للقياس</h3>
+<table>
+<thead>
+<tr>
+<th>المعرّف</th>
+<th>المؤشر</th>
+<th>خط الأساس</th>
+<th>المستهدف (المرحلة 2)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><span class="rid">MO-01</span></strong></td>
+<td>زمن اكتشاف حالة ريّ مفرط</td>
+<td>حتى ورود بلاغ (غير محدّد)</td>
+<td><strong>≤ 5 أيام</strong> (دورة زيارة القمر)</td>
+</tr>
+<tr>
+<td><strong><span class="rid">MO-02</span></strong></td>
+<td>نسبة الأصول الخضراء تحت الرصد المستمر</td>
+<td>0%</td>
+<td><strong>100%</strong> من الأصول المُعرَّفة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">MO-03</span></strong></td>
+<td>مقاطع شوارع مرتّبة بالمخاطر</td>
+<td>0</td>
+<td><strong>كامل الشبكة داخل النطاق</strong></td>
+</tr>
+<tr>
+<td><strong><span class="rid">MO-04</span></strong></td>
+<td>مشاريع تصريف مُقيَّمة بأثر مستقل</td>
+<td>0</td>
+<td><strong>≥ 10 مشاريع</strong></td>
+</tr>
+<tr>
+<td><strong><span class="rid">MO-05</span></strong></td>
+<td>زمن الإنذار المسبق قبل الحالة المطرية</td>
+<td>0</td>
+<td><strong>24–72 ساعة</strong></td>
+</tr>
+<tr>
+<td><strong><span class="rid">MO-06</span></strong></td>
+<td>التكلفة الحدّية لكل أصل إضافي</td>
+<td>تكلفة مستشعر/وحدة</td>
+<td><strong>≈ صفر</strong></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>&#x200F;6. أصحاب المصلحة · Stakeholders</h2>
+<table>
+<thead>
+<tr>
+<th>الجهة/الشخصية</th>
+<th>الاحتياج</th>
+<th>القرار الذي تتخذه</th>
+<th>ما تراه في المنصّة</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>إدارة الطرق والتصريف</strong> — مهندس تصريف</td>
+<td>معرفة أي مقطع يحتاج تدخّلاً ولماذا</td>
+<td>ترتيب أولويات المشاريع السنوية</td>
+<td>قائمة مقاطع مرتّبة + الأدلة + التوصية + التكلفة التقديرية</td>
+</tr>
+<tr>
+<td><strong>إدارة الحدائق والتشجير</strong> — مشرف تشغيل</td>
+<td>معرفة أي موقع يُفرِط في الري</td>
+<td>تعديل جدول الري · إصلاح تسرّب</td>
+<td>مخالفات الري مرتّبة بالخطورة + سلسلة زمنية + صور قبل/بعد</td>
+</tr>
+<tr>
+<td><strong>مركز الطوارئ والأزمات</strong></td>
+<td>أين تُوزَّع الفرق قبل المطر</td>
+<td>التمركز المسبق للـ5,500 كادر</td>
+<td>إنذار مسبق + قائمة الشوارع المرشّحة + إحداثيات</td>
+</tr>
+<tr>
+<td><strong>إدارة المشاريع</strong></td>
+<td>هل نجح المشروع المنفَّذ</td>
+<td>تكرار نمط التدخّل أو مراجعته</td>
+<td>تقرير «قبل/بعد» بمقارنة مضبوطة على شدّة المطر</td>
+</tr>
+<tr>
+<td><strong>وزارة البلديات والإسكان</strong></td>
+<td>أداة استهداف لتحدي CH33 + مقارنة بين الأمانات</td>
+<td>سياسات الاستثمار البلدي</td>
+<td>لوحة مقارنة معيارية</td>
+</tr>
+<tr>
+<td><strong>الهيئة السعودية للمياه</strong></td>
+<td>رصد تدفّق المياه خارج الحدود</td>
+<td>فرض المخالفة / التوجيه</td>
+<td>كشف آلي بدليل زمني موثَّق</td>
+</tr>
+<tr>
+<td><strong>المواطن والزائر</strong></td>
+<td>شوارع أقل غرقاً واستجابة أسرع</td>
+<td>—</td>
+<td>شفافية في أولويات الإنفاق</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>&#x200F;7. النطاق · Scope</h2>
+<h3>&#x200F;7.1 داخل النطاق (MVP)</h3>
+<ul>
+<li>استيعاب بيانات Sentinel-2 وSentinel-1 وCopernicus DEM وLandsat وOpen-Meteo وOpenStreetMap.</li>
+<li>تعريف آلي لوحدات التحليل: أصول خضراء · أحزمة تماس · مقاطع شوارع · مستجمعات دقيقة.</li>
+<li>كشف الري المفرط والجريان إلى الأسفلت (<strong>الوحدة أ</strong>).</li>
+<li>كشف الغرق التاريخي من الأرشيف الراداري وترتيب المقاطع بالمخاطر (<strong>الوحدة ب</strong>).</li>
+<li>محرّك توصيات مربوط ببنود التنفيذ الفعلية للأمانة.</li>
+<li>تحقّق «قبل/بعد» لمشاريع التصريف المنفّذة.</li>
+<li>نظام تنبيهات (قبل المطر · أثناءه · بعده · دوري).</li>
+<li>لوحة تحكّم عربية RTL مع خرائط حيّة وتقارير PDF.</li>
+<li>واجهة برمجية (API) موثّقة.</li>
+</ul>
+<h3>&#x200F;7.2 خارج النطاق صراحةً — «ما لا ندّعيه»</h3>
+<p>هذا القسم <strong>جزء من المتطلبات، لا تحفّظ عليها</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>خارج النطاق</th>
+<th>السبب</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>إنذار لحظي بالسيل من القمر الصناعي</strong></td>
+<td>دورة إعادة الزيارة أيام، والسيل الومضي ساعات. الإنذار اللحظي مصدره <strong>تنبؤ الطقس</strong> مضروباً في خريطة القابلية</td>
+</tr>
+<tr>
+<td><strong>قياس عمق المياه بالسنتيمتر</strong></td>
+<td>لا مؤشر بصري ولا سعة رادارية تقيس العمق</td>
+</tr>
+<tr>
+<td><strong>النمذجة الهيدروليكية التفصيلية وتصميم الأقطار</strong></td>
+<td>يتطلب مسحاً أرضياً دقيقاً ونماذج HEC-RAS/SWMM — نحن <strong>طبقة فرز واستهداف</strong></td>
+</tr>
+<tr>
+<td><strong>الشوارع السكنية الضيّقة (&lt; 10م) بثقة عالية</strong></td>
+<td>البكسل مختلط ويهيمن عليه الجدار والرصيف</td>
+</tr>
+<tr>
+<td><strong>قياس حجم المياه المهدرة بدقة متر مكعب</strong></td>
+<td>يُقدَّم كنطاق تقديري مَوسوم، لا قياس</td>
+</tr>
+<tr>
+<td><strong>تحديد مواقع شبكة التصريف الدقيقة</strong></td>
+<td>غير منشورة علناً — تُطلب من الأمانة</td>
+</tr>
+<tr>
+<td><strong>الأحكام في المناطق العمياء للرادار</strong></td>
+<td>تُعرَض «غير قابلة للتقييم»، لا «سليمة»</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>&#x200F;8. متطلبات الأعمال · Business Requirements</h2>
+<table>
+<thead>
+<tr>
+<th>المعرّف</th>
+<th>المتطلب</th>
+<th>الأولوية</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><span class="rid">BR-01</span></strong></td>
+<td>يجب أن تعمل المنصّة <strong>دون تركيب أي عتاد ميداني</strong></td>
+<td><span class="pr-must">Must</span></td>
+</tr>
+<tr>
+<td><strong><span class="rid">BR-02</span></strong></td>
+<td>يجب أن تعتمد على <strong>مصادر بيانات مجانية ومضمونة الاستمرار</strong></td>
+<td><span class="pr-must">Must</span></td>
+</tr>
+<tr>
+<td><strong><span class="rid">BR-03</span></strong></td>
+<td>يجب أن تغطي <strong>الأصول الخضراء والشوارع معاً</strong> من خط أنابيب واحد</td>
+<td><span class="pr-must">Must</span></td>
+</tr>
+<tr>
+<td><strong><span class="rid">BR-04</span></strong></td>
+<td>يجب أن تكون كل مخرجاتها <strong>قابلة للتدقيق</strong>: لكل حكم دليل ومصدر وتاريخ</td>
+<td><span class="pr-must">Must</span></td>
+</tr>
+<tr>
+<td><strong><span class="rid">BR-05</span></strong></td>
+<td>يجب أن <strong>تميّز صراحةً</strong> بين «لم يُرصد» و«تعذّر الرصد»</td>
+<td><span class="pr-must">Must</span></td>
+</tr>
+<tr>
+<td><strong><span class="rid">BR-06</span></strong></td>
+<td>يجب أن تكون الواجهة <strong>عربية RTL بالكامل</strong></td>
+<td><span class="pr-must">Must</span></td>
+</tr>
+<tr>
+<td><strong><span class="rid">BR-07</span></strong></td>
+<td>يجب أن تُنتج <strong>توصيات مربوطة ببنود تنفيذ تعرفها الأمانة</strong></td>
+<td><span class="pr-should">Should</span></td>
+</tr>
+<tr>
+<td><strong><span class="rid">BR-08</span></strong></td>
+<td>يجب أن تكون <strong>قابلة للنقل لأي أمانة</strong> بتغيير نطاق جغرافي فقط</td>
+<td><span class="pr-should">Should</span></td>
+</tr>
+<tr>
+<td><strong><span class="rid">BR-09</span></strong></td>
+<td>يجب أن تدعم <strong>تصدير البيانات</strong> بصيغ معيارية للتكامل مع أنظمة GIS</td>
+<td><span class="pr-should">Should</span></td>
+</tr>
+<tr>
+<td><strong><span class="rid">BR-10</span></strong></td>
+<td>يجب أن تُفصح عن <strong>الكود المُعاد استخدامه</strong> من أعمال سابقة</td>
+<td><span class="pr-must">Must</span></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>&#x200F;9. المتطلبات الوظيفية · Functional Requirements</h2>
+<h3>&#x200F;9.1 الاستيعاب وإدارة البيانات</h3>
+<table>
+<thead>
+<tr>
+<th>المعرّف</th>
+<th>المتطلب</th>
+<th>الأولوية</th>
+<th>معيار القبول</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><span class="rid">FR-01</span></strong></td>
+<td>استيعاب سلاسل Sentinel-2 الزمنية لكل وحدة تحليل</td>
+<td><span class="pr-must">Must</span></td>
+<td>جدول <code>observations</code> يحوي صفوفاً لكل وحدة/تاريخ مع NDVI وNDWI وMNDWI وNDMI وNDBI</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-02</span></strong></td>
+<td>استيعاب Sentinel-1 مع <strong>مطابقة المدار</strong></td>
+<td><span class="pr-must">Must</span></td>
+<td>كل صف يحمل <code>rel_orbit</code> و<code>orbit_pass</code>؛ المقارنات تتم داخل نفس المدار حصراً</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-03</span></strong></td>
+<td>استيعاب بيانات الهطول التاريخية والتنبؤية</td>
+<td><span class="pr-must">Must</span></td>
+<td><code>weather_daily</code> يغطي 2015→اليوم؛ <code>forecast_snapshots</code> يُحدَّث كل ساعة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-04</span></strong></td>
+<td>اشتقاق طبقات التضاريس من DEM</td>
+<td><span class="pr-must">Must</span></td>
+<td>ملفات TWI وHAND والانحدار وتراكم الجريان والمنخفضات موجودة ومُسندة للوحدات</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-05</span></strong></td>
+<td>التحديث التزايدي دون إعادة جلب</td>
+<td><span class="pr-must">Must</span></td>
+<td>تشغيل متتالٍ يجلب المشاهد الجديدة فقط ولا يُنشئ صفوفاً مكرّرة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-06</span></strong></td>
+<td>سجل تدقيق لكل تشغيل</td>
+<td><span class="pr-must">Must</span></td>
+<td><code>pipeline_runs</code> يسجّل الحالة وعدد الصفوف والأخطاء والتغطية</td>
+</tr>
+</tbody>
+</table>
+<h3>&#x200F;9.2 وحدات التحليل</h3>
+<table>
+<thead>
+<tr>
+<th>المعرّف</th>
+<th>المتطلب</th>
+<th>الأولوية</th>
+<th>معيار القبول</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><span class="rid">FR-07</span></strong></td>
+<td>تعريف الأصول الخضراء آلياً</td>
+<td><span class="pr-must">Must</span></td>
+<td>≥ 200 أصل مُعرَّف بحدود مضلّعة داخل نطاق الدراسة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-08</span></strong></td>
+<td>اشتقاق <strong>حزام التماس</strong> حول كل أصل</td>
+<td><span class="pr-must">Must</span></td>
+<td>لكل أصل حزام 20م مقتطع على الأسطح غير النفّاذة، مع <code>ring_impervious_frac</code></td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-09</span></strong></td>
+<td>تقطيع شبكة الشوارع إلى مقاطع</td>
+<td><span class="pr-must">Must</span></td>
+<td>مقاطع ≤ 200م لكل الطرق داخل النطاق، لكلٍّ معرّف واسم عربي</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-10</span></strong></td>
+<td>اشتقاق المستجمعات الدقيقة</td>
+<td><span class="pr-should">Should</span></td>
+<td>مضلعات مستجمعات مرتبطة بمقاطع الشوارع</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-11</span></strong></td>
+<td>بوابة جودة ترفض الوحدات سيئة التعريف</td>
+<td><span class="pr-must">Must</span></td>
+<td>الوحدات الراسبة مَوسومة <code>geometry_confidence='low'</code> ومستبعَدة من الأحكام</td>
+</tr>
+</tbody>
+</table>
+<h3>&#x200F;9.3 الوحدة أ — كشف الهدر</h3>
+<table>
+<thead>
+<tr>
+<th>المعرّف</th>
+<th>المتطلب</th>
+<th>الأولوية</th>
+<th>معيار القبول</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><span class="rid">FR-12</span></strong></td>
+<td><strong>بوابة انعدام المطر</strong> قبل أي حكم بالهدر</td>
+<td><span class="pr-must">Must</span></td>
+<td>لا يُنشأ حدث هدر إذا <code>rain_72h_mm ≥ 1.0</code> أو <code>days_since_rain &lt; 3</code></td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-13</span></strong></td>
+<td>عتبات تكيّفية <strong>لكل موقع</strong> لا ثوابت عامة</td>
+<td><span class="pr-must">Must</span></td>
+<td>لكل وحدة خط قاعدي ومتوسط وانحراف معياري محسوبة من تاريخها هي</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-14</span></strong></td>
+<td>كشف الماء على حزام التماس</td>
+<td><span class="pr-must">Must</span></td>
+<td>حدث الهدر يحمل <code>z_ring</code> و<code>mndwi_ring</code> و<code>wet_area_m2</code></td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-15</span></strong></td>
+<td>اشتراط الاستمرارية قبل التأكيد</td>
+<td><span class="pr-must">Must</span></td>
+<td>لا يُرقّى حدث إلى <code>confirmed</code> قبل رصده في <strong>مرورين متتاليين</strong></td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-16</span></strong></td>
+<td>تقدير مَوسوم لحجم المياه الفائضة</td>
+<td><span class="pr-should">Should</span></td>
+<td>يُعاد كـ<code>{value, low, high, confidence:'low', method}</code> — لا رقم مجرّد</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-17</span></strong></td>
+<td>تصنيف نمط الإشارة</td>
+<td><span class="pr-could">Could</span></td>
+<td>تمييز <code>periodic</code> (جدول ري) عن <code>persistent</code> (تسرّب) لتوجيه الإدارة المختصة</td>
+</tr>
+</tbody>
+</table>
+<h3>&#x200F;9.4 الوحدة ب — كشف الغرق وترتيب المخاطر</h3>
+<table>
+<thead>
+<tr>
+<th>المعرّف</th>
+<th>المتطلب</th>
+<th>الأولوية</th>
+<th>معيار القبول</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><span class="rid">FR-18</span></strong></td>
+<td>استخراج أحداث المطر التاريخية</td>
+<td><span class="pr-must">Must</span></td>
+<td><code>rain_events</code> يحوي كل حدث ≥ 5 ملم منذ 2015</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-19</span></strong></td>
+<td>كشف الغرق بالمقارنة الرادارية</td>
+<td><span class="pr-must">Must</span></td>
+<td>لكل حدث: مشهد قبل ومشهد بعد على نفس المدار، مع <code>delta_vv_db</code></td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-20</span></strong></td>
+<td><strong>تفسير إشارة الرادار حسب كثافة البناء</strong></td>
+<td><span class="pr-must">Must</span></td>
+<td>العتبة <code>-3dB</code> في المناطق المفتوحة و<code>+2.5dB</code> (انعكاس ثنائي) في المناطق المبنية</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-21</span></strong></td>
+<td>قناع المناطق العمياء للرادار</td>
+<td><span class="pr-must">Must</span></td>
+<td>الوحدات ذات <code>sar_visibility='blind'</code> تُعرَض «غير قابلة للتقييم» بلا درجة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-22</span></strong></td>
+<td>مؤشر قابلية الغرق يعمل <strong>بلا بيانات مُصنَّفة</strong></td>
+<td><span class="pr-must">Must</span></td>
+<td>مؤشر مرجّح يُنتج ترتيباً كاملاً من اليوم الأول</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-23</span></strong></td>
+<td>تفسير الترتيب لكل مقطع</td>
+<td><span class="pr-must">Must</span></td>
+<td>نقطة نهاية تُرجع مساهمة كل عامل في الدرجة بلغة عربية مفهومة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-24</span></strong></td>
+<td><strong>تغطية الرصد تحكم التصنيف</strong></td>
+<td><span class="pr-must">Must</span></td>
+<td>إذا كانت التغطية &lt; 30% يُفرَض التصنيف <code>insufficient_data</code> ولا يجوز أن يكون <code>stable</code></td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-25</span></strong></td>
+<td>نموذج مُشرَف يُدرَّب على التسميات الذاتية</td>
+<td><span class="pr-could">Could</span></td>
+<td>المرحلة 2 — بتقسيم مكاني وخط أساس ساذج</td>
+</tr>
+</tbody>
+</table>
+<h3>&#x200F;9.5 محرّك التوصيات</h3>
+<table>
+<thead>
+<tr>
+<th>المعرّف</th>
+<th>المتطلب</th>
+<th>الأولوية</th>
+<th>معيار القبول</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><span class="rid">FR-26</span></strong></td>
+<td>توصية لكل مقطع عالي المخاطر</td>
+<td><span class="pr-must">Must</span></td>
+<td>نوع التدخّل + المبرّر بالعربية + نطاق تكلفة تقديري</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-27</span></strong></td>
+<td>ربط التوصيات ببنود تنفيذ الأمانة</td>
+<td><span class="pr-must">Must</span></td>
+<td>القيم من مجموعة: عبّارة صندوقية · شبكة فرعية · ثقب أفقي · قنوات · أرصفة نفّاذة · مصائد · صيانة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-28</span></strong></td>
+<td><strong>إظهار الأدلة والافتراضات</strong> مع كل توصية</td>
+<td><span class="pr-must">Must</span></td>
+<td>كل توصية تحمل <code>evidence[]</code> و<code>assumptions[]</code> ظاهرة في الواجهة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-29</span></strong></td>
+<td>تمييز ما يحتاج مهندساً هيدروليكياً</td>
+<td><span class="pr-must">Must</span></td>
+<td>حقل <code>requires_hydraulic_engineer</code> ظاهر كشارة لا كحاشية</td>
+</tr>
+</tbody>
+</table>
+<h3>&#x200F;9.6 التحقّق «قبل/بعد»</h3>
+<table>
+<thead>
+<tr>
+<th>المعرّف</th>
+<th>المتطلب</th>
+<th>الأولوية</th>
+<th>معيار القبول</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><span class="rid">FR-30</span></strong></td>
+<td>مقارنة سلوك الغرق قبل وبعد تشغيل مشروع</td>
+<td><span class="pr-must">Must</span></td>
+<td>تقرير يحوي عدد الأحداث والتكرار ومتوسط المساحة قبلاً وبعداً</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-31</span></strong></td>
+<td><strong>ضبط المقارنة على شدّة المطر</strong></td>
+<td><span class="pr-must">Must</span></td>
+<td>حقل <code>rain_comparability</code> ∈ <code>matched\|partially_matched\|unmatched</code></td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-32</span></strong></td>
+<td>إعلان النتيجة غير الحاسمة بوضوح</td>
+<td><span class="pr-must">Must</span></td>
+<td><code>effect_direction='inconclusive'</code> مسموح ومطلوب عند عدم كفاية الأدلة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-33</span></strong></td>
+<td>إظهار المقامات الصادقة</td>
+<td><span class="pr-must">Must</span></td>
+<td>«6 من 19 حدثاً» لا «6 أحداث»؛ مع بيان غير القابل للرصد وأسبابه</td>
+</tr>
+</tbody>
+</table>
+<h3>&#x200F;9.7 التنبيهات</h3>
+<table>
+<thead>
+<tr>
+<th>المعرّف</th>
+<th>المتطلب</th>
+<th>الأولوية</th>
+<th>معيار القبول</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><span class="rid">FR-34</span></strong></td>
+<td>إنذار مسبق قبل المطر بـ24–72 ساعة</td>
+<td><span class="pr-must">Must</span></td>
+<td>تنبيه يحمل قائمة المقاطع المرشّحة و<code>lead_time_h</code></td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-35</span></strong></td>
+<td>منع التكرار والإزعاج</td>
+<td><span class="pr-must">Must</span></td>
+<td><code>dedupe_key</code> فريد + فترة تهدئة + اشتراط استمرارية قبل الإرسال</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-36</span></strong></td>
+<td>تعليق تنبيهات الهدر أثناء المطر</td>
+<td><span class="pr-must">Must</span></td>
+<td>قواعد الوحدة أ مُعلَّقة تلقائياً 72 ساعة بعد المطر مع تسجيل السبب</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-37</span></strong></td>
+<td>إيصال عبر قناة فعلية</td>
+<td><span class="pr-must">Must</span></td>
+<td>إرسال حقيقي يصل جهاز المستخدم مع سجل حالة الإيصال</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-38</span></strong></td>
+<td><strong>إغلاق الحلقة بالتحقّق البعدي</strong></td>
+<td><span class="pr-should">Should</span></td>
+<td>التنبيه المسبق يُحدَّث بنتيجة <code>confirmed\|not_observed\|unverifiable</code></td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-39</span></strong></td>
+<td>تنبيه عند تدهور خط الأنابيب نفسه</td>
+<td><span class="pr-should">Should</span></td>
+<td>تنبيه آلي عند هبوط التغطية دون 70%</td>
+</tr>
+</tbody>
+</table>
+<h3>&#x200F;9.8 اللوحة والتقارير</h3>
+<table>
+<thead>
+<tr>
+<th>المعرّف</th>
+<th>المتطلب</th>
+<th>الأولوية</th>
+<th>معيار القبول</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><span class="rid">FR-40</span></strong></td>
+<td>شاشة قيادة موحّدة</td>
+<td><span class="pr-must">Must</span></td>
+<td>مؤشرات + خريطة + قائمة أولويات في شاشة واحدة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-41</span></strong></td>
+<td>خريطة تفاعلية بطبقات قابلة للتبديل</td>
+<td><span class="pr-must">Must</span></td>
+<td>ترسم آلاف المقاطع ملوّنة بالمخاطر دون تجمّد</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-42</span></strong></td>
+<td>طبقات أقمار صناعية حيّة</td>
+<td><span class="pr-must">Must</span></td>
+<td>تُعرَض عبر تبليط خادمي دون تنزيل الصور</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-43</span></strong></td>
+<td>دُرج تفاصيل لكل وحدة</td>
+<td><span class="pr-must">Must</span></td>
+<td>يعرض الأدلة والسمات والتاريخ والتوصية والثقة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-44</span></strong></td>
+<td><strong>صفحة المنهجية والحدود</strong></td>
+<td><span class="pr-must">Must</span></td>
+<td>تعرض المصادر والصيغ والحدود المعروفة و«ما لا ندّعيه»</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-45</span></strong></td>
+<td>تصدير تقارير PDF عربية</td>
+<td><span class="pr-should">Should</span></td>
+<td>تقرير مقطع/موقع قابل للتداول داخل الأمانة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">FR-46</span></strong></td>
+<td>شارة «تقدير» على كل رقم غير مقيس</td>
+<td><span class="pr-must">Must</span></td>
+<td>أي قيمة مشتقّة من نموذج تُعرَض بشارة تقدير قابلة للنقر تُظهر الصيغة</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>&#x200F;10. المتطلبات غير الوظيفية · Non-Functional Requirements</h2>
+<table>
+<thead>
+<tr>
+<th>المعرّف</th>
+<th>الفئة</th>
+<th>المتطلب</th>
+<th>معيار القبول</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><span class="rid">NFR-01</span></strong></td>
+<td>الأداء</td>
+<td>زمن استجابة نقاط النهاية القائمية</td>
+<td><strong>&lt; 500 مللي ثانية</strong> للصفحة الواحدة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">NFR-02</span></strong></td>
+<td>الأداء</td>
+<td>زمن رسم الخريطة الأولي</td>
+<td><strong>&lt; 3 ثوانٍ</strong> حتى أول إطار تفاعلي</td>
+</tr>
+<tr>
+<td><strong><span class="rid">NFR-03</span></strong></td>
+<td>الأداء</td>
+<td>حمولة طبقة الشوارع</td>
+<td><strong>&lt; 1 ميجابايت</strong> مضغوطة عند مستوى المدينة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">NFR-04</span></strong></td>
+<td>التوسّع</td>
+<td>سعة وحدات التحليل</td>
+<td>دعم <strong>≥ 50,000 وحدة</strong> دون تغيير معماري</td>
+</tr>
+<tr>
+<td><strong><span class="rid">NFR-05</span></strong></td>
+<td>التوسّع</td>
+<td>إضافة أمانة جديدة</td>
+<td>بتغيير <strong>نطاق جغرافي</strong> فقط، بلا تعديل كود</td>
+</tr>
+<tr>
+<td><strong><span class="rid">NFR-06</span></strong></td>
+<td>الإتاحة</td>
+<td>تدهور رشيق</td>
+<td>عند تعذّر مصدر خارجي تُعرَض آخر حالة صالحة <strong>مع وسم واضح</strong>، ولا تنهار الواجهة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">NFR-07</span></strong></td>
+<td>التعريب</td>
+<td>دعم RTL كامل</td>
+<td>كل النصوص والجداول والرسوم والخرائط والتقارير بالعربية الصحيحة الاتجاه</td>
+</tr>
+<tr>
+<td><strong><span class="rid">NFR-08</span></strong></td>
+<td>التعريب</td>
+<td>الأرقام والتقويم</td>
+<td>أرقام لاتينية داخل نص عربي دون انعكاس؛ دعم التقويم الهجري</td>
+</tr>
+<tr>
+<td><strong><span class="rid">NFR-09</span></strong></td>
+<td>قابلية التدقيق</td>
+<td>تتبّع المصدر</td>
+<td>كل صف يحمل مصدره وتاريخ استيعابه ومعرّف المشهد</td>
+</tr>
+<tr>
+<td><strong><span class="rid">NFR-10</span></strong></td>
+<td>قابلية التدقيق</td>
+<td>سجل التشغيل</td>
+<td>كل مهمة تكتب سجلاً بحالتها وتغطيتها وأخطائها</td>
+</tr>
+<tr>
+<td><strong><span class="rid">NFR-11</span></strong></td>
+<td>الأمان</td>
+<td>إدارة الأسرار</td>
+<td>لا مفاتيح في المستودع؛ متغيرات بيئة فقط</td>
+</tr>
+<tr>
+<td><strong><span class="rid">NFR-12</span></strong></td>
+<td>الأمان</td>
+<td>نقاط الإدارة</td>
+<td>محمية بمفتاح مشترك على الأقل</td>
+</tr>
+<tr>
+<td><strong><span class="rid">NFR-13</span></strong></td>
+<td>الاستضافة</td>
+<td>إقامة البيانات</td>
+<td>قابلية النشر <strong>داخل المملكة</strong> للمرحلة الإنتاجية</td>
+</tr>
+<tr>
+<td><strong><span class="rid">NFR-14</span></strong></td>
+<td>الصيانة</td>
+<td>مصادر مفتوحة</td>
+<td>تفضيل المصادر المفتوحة (اشتراط البرمجان)</td>
+</tr>
+<tr>
+<td><strong><span class="rid">NFR-15</span></strong></td>
+<td>الاستقلالية</td>
+<td>عدم الارتهان لمزوّد</td>
+<td>مسار بديل موثّق لمزوّد بيانات الأقمار</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>&#x200F;11. متطلبات البيانات · Data Requirements</h2>
+<table>
+<thead>
+<tr>
+<th>المصدر</th>
+<th>الدقة</th>
+<th>التكرار</th>
+<th>الترخيص/التكلفة</th>
+<th>الاستخدام</th>
+<th>البديل عند التعطّل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Sentinel-2 L2A</strong></td>
+<td>10م (20م لنطاقات SWIR)</td>
+<td>5 أيام</td>
+<td>مجاني — Copernicus</td>
+<td>مؤشرات الخضرة والمياه والرطوبة</td>
+<td>Landsat 8/9 (30م)</td>
+</tr>
+<tr>
+<td><strong>Sentinel-1 GRD</strong></td>
+<td>~10م</td>
+<td>6–12 يوماً</td>
+<td>مجاني — Copernicus</td>
+<td>كشف المياه عبر السحب وليلاً</td>
+<td>Copernicus Data Space للمشاهد الحديثة</td>
+</tr>
+<tr>
+<td><strong>Copernicus DEM GLO-30</strong></td>
+<td>30م</td>
+<td>ثابت</td>
+<td>مجاني</td>
+<td>الهيدرولوجيا: TWI · HAND · المستجمعات</td>
+<td>SRTM 30م</td>
+</tr>
+<tr>
+<td><strong>Landsat 8/9 TIRS</strong></td>
+<td>100م (30م)</td>
+<td>16 يوماً</td>
+<td>مجاني</td>
+<td>حرارة السطح — دليل مساند</td>
+<td>يُسقَط المؤشر</td>
+</tr>
+<tr>
+<td><strong>Open-Meteo</strong></td>
+<td>نقطي</td>
+<td>ساعي + تنبؤ</td>
+<td>مجاني بلا مفتاح</td>
+<td><strong>البوابة الفاصلة بين الوحدتين</strong> + الإنذار</td>
+<td>NCM · GPM IMERG</td>
+</tr>
+<tr>
+<td><strong>GPM IMERG</strong></td>
+<td>0.1° (~11كم)</td>
+<td>30 دقيقة</td>
+<td>مجاني</td>
+<td>إجمالي المطر على المدينة فقط</td>
+<td>Open-Meteo</td>
+</tr>
+<tr>
+<td><strong>OpenStreetMap</strong></td>
+<td>متجهات</td>
+<td>مستمر</td>
+<td>ODbL — يتطلب الإسناد</td>
+<td>الشوارع · الحدائق · الأودية</td>
+<td>نسخة مخزّنة محلياً</td>
+</tr>
+<tr>
+<td><strong>البيانات المفتوحة للأمانة</strong></td>
+<td>تجميعية</td>
+<td>سنوي</td>
+<td>مجاني</td>
+<td>الاقتصاديات والسياق</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Google Dynamic World / WorldCover</strong></td>
+<td>10م</td>
+<td>مستمر</td>
+<td>مجاني</td>
+<td>نسبة الأسطح غير النفّاذة</td>
+<td>NDBI من Sentinel-2</td>
+</tr>
+</tbody>
+</table>
+<h3>&#x200F;11.1 قيود بيانية يجب تسجيلها في النظام</h3>
+<table>
+<thead>
+<tr>
+<th>القيد</th>
+<th>التسجيل الإلزامي</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>مؤشرات MNDWI/NDMI/NDBI مشتقّة من نطاقات <strong>20م</strong> لا 10م</td>
+<td>حقل <code>optical_native_scale_m</code></td>
+</tr>
+<tr>
+<td>IMERG لا يعطي تفصيل الأحياء (المدينة = 4–6 بكسل)</td>
+<td>ملاحظة نصية ملازمة لكل قيمة</td>
+</tr>
+<tr>
+<td>DEM هو <strong>نموذج سطح (DSM)</strong> يشمل المباني والأشجار</td>
+<td>حقل <code>dtm_confidence</code> لكل وحدة</td>
+</tr>
+<tr>
+<td>مواقع شبكة التصريف غير منشورة</td>
+<td><code>dist_to_culvert_m</code> يقبل <code>NULL</code> ولا يُخمَّن</td>
+</tr>
+<tr>
+<td>أرشيف Sentinel-1 قد لا يشمل الأشهر الأخيرة</td>
+<td>يُتحقق آلياً وتُعلَن الفجوة</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>&#x200F;12. متطلبات التكامل · Integration Requirements</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>النظام</th>
+<th>الاتجاه</th>
+<th>الغرض</th>
+<th>الحالة</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><span class="rid">INT-01</span></strong></td>
+<td>Google Earth Engine</td>
+<td>قراءة</td>
+<td>معالجة الأقمار الصناعية وتبليط الطبقات</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td><strong><span class="rid">INT-02</span></strong></td>
+<td>Open-Meteo</td>
+<td>قراءة</td>
+<td>الأرشيف والتنبؤ</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td><strong><span class="rid">INT-03</span></strong></td>
+<td>OpenStreetMap Overpass</td>
+<td>قراءة</td>
+<td>الشوارع والحدائق والأودية</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td><strong><span class="rid">INT-04</span></strong></td>
+<td>قناة تنبيه فورية</td>
+<td>كتابة</td>
+<td>إيصال الإنذارات للفرق</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td><strong><span class="rid">INT-05</span></strong></td>
+<td>البيانات المفتوحة للأمانة</td>
+<td>قراءة</td>
+<td>مشاريع التصريف والطرق</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td><strong><span class="rid">INT-06</span></strong></td>
+<td>تصدير GeoJSON/Parquet</td>
+<td>كتابة</td>
+<td>تكامل مع أنظمة GIS بالأمانة</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td><strong><span class="rid">INT-07</span></strong></td>
+<td>بلدي+ / 940</td>
+<td>قراءة</td>
+<td>بلاغات المواطنين كتحقّق أرضي</td>
+<td>المرحلة 2</td>
+</tr>
+<tr>
+<td><strong><span class="rid">INT-08</span></strong></td>
+<td>نظام أوامر العمل بالأمانة</td>
+<td>ثنائي</td>
+<td>إصدار أمر وإغلاق الحلقة</td>
+<td>المرحلة 3</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>&#x200F;13. رحلات المستخدم · User Journeys</h2>
+<h3><span class="rid">UJ-01</span> — مهندس التصريف يرتّب أولويات الإنفاق</h3>
+<p>يفتح شاشة «الغرق» → يصفّي حسب البلدية الفرعية → يرى المقاطع مرتّبة بالمخاطر → ينقر المقطع الأعلى → يقرأ الأدلة (تكرار الغرق المرصود · TWI · الارتفاع فوق الوادي · نسبة الأسطح غير النفّاذة · بُعد أقرب عبّارة) → يقرأ التوصية وافتراضاتها → يصدّر تقرير PDF لدراسة هندسية.
+<strong>القيمة:</strong> يبدأ الدراسة من الساعة العشرين لا من الصفر.</p>
+<h3><span class="rid">UJ-02</span> — مركز الطوارئ يوزّع الفرق قبل المطر</h3>
+<p>يصله تنبيه قبل 48 ساعة يحوي عدد المقاطع الحرجة وأحياءها → يفتح الرابط → يرى الخريطة مصفّاة على تلك المقاطع مع الإحداثيات → يوزّع الفرق والمعدّات مسبقاً → بعد المطر يصله تقرير تحقّق يقارن التنبؤ بما رُصد فعلاً.
+<strong>القيمة:</strong> التمركز المسبق بدل الاستجابة بعد البلاغ.</p>
+<h3><span class="rid">UJ-03</span> — مشرف الحدائق يتلقّى مخالفة ريّ</h3>
+<p>يصله تنبيه بموقع أخضر رُصد فيه ماء على الأسفلت المجاور في أسبوع بلا مطر → يفتح التفاصيل → يرى السلسلة الزمنية والانحراف عن الخط القاعدي وصور قبل/بعد → يحدّد إن كان جدول ري أم تسرّباً → يعدّل الجدول أو يحيل للصيانة → يُغلق الحالة.
+<strong>القيمة:</strong> استهداف دقيق بدل جولة عشوائية.</p>
+<h3><span class="rid">UJ-04</span> — مدير المشاريع يتحقّق من أثر مشروع</h3>
+<p>يفتح شاشة «التحقّق» → يختار مشروعاً منفَّذاً → يرى مقارنة سلوك الغرق قبل التشغيل وبعده مضبوطة على شدّة المطر → يقرأ الحكم (فعّال / تحسّن جزئي / لم يُرصد أثر / غير حاسم) مع المقامات الصادقة.
+<strong>القيمة:</strong> قياس أثر مستقل عن تقرير المقاول.</p>
+<hr>
+<h2>&#x200F;14. مؤشرات النجاح · Success Metrics</h2>
+<table>
+<thead>
+<tr>
+<th>المؤشر</th>
+<th>خط الأساس</th>
+<th>المستهدف</th>
+<th>طريقة القياس</th>
+<th>المالك</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>عدد الأصول الخضراء تحت الرصد</td>
+<td>0</td>
+<td>كامل الأصول المُعرَّفة</td>
+<td>عدّاد النظام</td>
+<td>إدارة الحدائق</td>
+</tr>
+<tr>
+<td>عدد مقاطع الشوارع المرتّبة</td>
+<td>0</td>
+<td>كامل الشبكة داخل النطاق</td>
+<td>عدّاد النظام</td>
+<td>إدارة الطرق</td>
+</tr>
+<tr>
+<td>زمن اكتشاف حالة ريّ مفرط</td>
+<td>بلاغ</td>
+<td>≤ 5 أيام</td>
+<td>فارق تاريخ الرصد عن تاريخ المشهد</td>
+<td>إدارة الحدائق</td>
+</tr>
+<tr>
+<td>زمن الإنذار قبل الحالة المطرية</td>
+<td>0</td>
+<td>24–72 ساعة</td>
+<td><code>lead_time_h</code> في سجل التنبيهات</td>
+<td>مركز الطوارئ</td>
+</tr>
+<tr>
+<td>نسبة تأكّد الإنذارات</td>
+<td>—</td>
+<td>يُقاس ويُعلَن</td>
+<td>مقارنة التنبيه بالتحقّق البعدي</td>
+<td>مركز الطوارئ</td>
+</tr>
+<tr>
+<td>مشاريع مُقيَّمة بأثر مستقل</td>
+<td>0</td>
+<td>≥ 10</td>
+<td>عدد تقارير قبل/بعد</td>
+<td>إدارة المشاريع</td>
+</tr>
+<tr>
+<td>تغطية الرصد</td>
+<td>—</td>
+<td>≥ 70%</td>
+<td><code>coverage_pct</code> في سجل التشغيل</td>
+<td>فريق المنصّة</td>
+</tr>
+<tr>
+<td>دقة الكشف مقابل تحقّق ميداني</td>
+<td>—</td>
+<td>يُقاس في المرحلة 2</td>
+<td>حملة ميدانية 30–50 موقعاً</td>
+<td>مشترك</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>&#x200F;15. الافتراضات والقيود والتبعيات</h2>
+<h3>&#x200F;15.1 الافتراضات</h3>
+<ul>
+<li>استمرار إتاحة برنامج كوبرنيكوس مجاناً (ممول ومتجدّد).</li>
+<li>توفّر اتصال إنترنت لتشغيل مهام الاستيعاب.</li>
+<li>قبول الأمانة بوحدة تحليل «مقطع شارع» و«أصل أخضر» كوحدات تشغيلية.</li>
+</ul>
+<h3>&#x200F;15.2 القيود</h3>
+<ul>
+<li><strong>الدقة المكانية:</strong> 10م بصري (20م لمؤشرات SWIR) و30م تضاريس.</li>
+<li><strong>الفجوة الزمنية:</strong> دورة الزيارة أيام مقابل سيل يستمر ساعات.</li>
+<li><strong>الرادار في الوسط الحضري:</strong> ظل وانعكاس مقلوب يحجبان أجزاءً من الشوارع الضيّقة.</li>
+<li><strong>ندرة البيانات المُصنَّفة:</strong> لا يوجد جرد ميداني للغرق — التسميات تُولَّد ذاتياً من الأرشيف.</li>
+<li><strong>DEM هو DSM:</strong> يشمل المباني والأشجار ويحتاج تصحيحاً تقريبياً.</li>
+</ul>
+<h3>&#x200F;15.3 التبعيات</h3>
+<ul>
+<li>مشروع Google Earth Engine فعّال ومصادَق عليه.</li>
+<li>إتاحة طبقات GIS لشبكة التصريف من الأمانة (لرفع دقة التوصيات).</li>
+<li>تعاون تشغيلي لحملة التحقّق الميداني في المرحلة 2.</li>
+</ul>
+<hr>
+<h2>&#x200F;16. المخاطر · Risk Register</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>المخاطرة</th>
+<th>الاحتمال</th>
+<th>الأثر</th>
+<th>التخفيف</th>
+<th>المالك</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><span class="rid">R-01</span></strong></td>
+<td><strong>ترخيص Google Earth Engine</strong> لا يغطي الاستخدام التشغيلي الحكومي</td>
+<td>مرتفع</td>
+<td>مرتفع</td>
+<td>مسار بديل مُخطَّط إلى Copernicus Data Space + التقدّم لفئة الشراكة</td>
+<td>فريق المنصّة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">R-02</span></strong></td>
+<td>فجوة في أرشيف Sentinel-1 الحديث</td>
+<td>متوسط</td>
+<td>متوسط</td>
+<td>التحقق الآلي من آخر تاريخ + جلب المشاهد الحديثة من مصدر بديل</td>
+<td>فريق المنصّة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">R-03</span></strong></td>
+<td>جودة تعريف الأصول آلياً</td>
+<td>متوسط</td>
+<td>متوسط</td>
+<td>بوابة جودة + وسم <code>geometry_confidence</code> + استيراد حدود رسمية عند توفّرها</td>
+<td>فريق المنصّة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">R-04</span></strong></td>
+<td>إنذارات كاذبة تُفقد الثقة</td>
+<td>متوسط</td>
+<td>مرتفع</td>
+<td>بوابة انعدام المطر + اشتراط الاستمرارية + فترات تهدئة + عتبات تكيّفية</td>
+<td>فريق المنصّة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">R-05</span></strong></td>
+<td>غياب التحقّق الأرضي يُضعف القبول</td>
+<td>مرتفع</td>
+<td>متوسط</td>
+<td>سلّم تحقّق مُعلَن + حملة ميدانية في المرحلة 2</td>
+<td>مشترك</td>
+</tr>
+<tr>
+<td><strong><span class="rid">R-06</span></strong></td>
+<td>عدم توفّر بيانات شبكة التصريف يُضعف التوصيات</td>
+<td>مرتفع</td>
+<td>متوسط</td>
+<td>التوصية تعمل بدونها مع وسم انخفاض الثقة؛ تُطلب رسمياً</td>
+<td>الأمانة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">R-07</span></strong></td>
+<td>حساسية إقامة البيانات والتصنيف</td>
+<td>متوسط</td>
+<td>مرتفع</td>
+<td>استضافة داخل المملكة + عدم تخزين أي بيانات شخصية</td>
+<td>فريق المنصّة</td>
+</tr>
+<tr>
+<td><strong><span class="rid">R-08</span></strong></td>
+<td>الاعتماد على مزوّد واحد للمعالجة</td>
+<td>متوسط</td>
+<td>مرتفع</td>
+<td>تجريد طبقة الاستيعاب خلف واجهة داخلية</td>
+<td>فريق المنصّة</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>&#x200F;17. الحوكمة والامتثال · Governance &amp; Compliance</h2>
+<table>
+<thead>
+<tr>
+<th>البند</th>
+<th>الالتزام</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>نظام حماية البيانات الشخصية (PDPL)</strong></td>
+<td>المنصّة <strong>لا تعالج أي بيانات شخصية</strong>. عند دمج بلاغات المواطنين مستقبلاً تُجرَّد من المعرّفات ولا تُخزَّن أرقام هواتف</td>
+</tr>
+<tr>
+<td><strong>تصنيف البيانات (NDMO/SDAIA)</strong></td>
+<td>تُصنَّف مخرجات المنصّة كبيانات حكومية تشغيلية؛ الاستضافة الإنتاجية <strong>داخل المملكة</strong></td>
+</tr>
+<tr>
+<td><strong>تراخيص المصادر</strong></td>
+<td>Copernicus مفتوح · OpenStreetMap <strong>ODbL — الإسناد إلزامي في الواجهة</strong> · Open-Meteo CC-BY · البيانات المفتوحة للأمانة وفق شروطها</td>
+</tr>
+<tr>
+<td><strong>الملكية الفكرية</strong></td>
+<td>المكدّس مفتوح المصدر بالكامل، بما يوافق تفضيل البرمجان</td>
+</tr>
+<tr>
+<td><strong>الإفصاح عن الكود المُعاد استخدامه</strong></td>
+<td>ملف <code>ATTRIBUTIONS.md</code> يوثّق كل وحدة مُعاد استخدامها من أعمال الفريق السابقة مع نطاق الأسطح وطبيعة التعديل — امتثالاً لقاعدة أصالة الفكرة</td>
+</tr>
+<tr>
+<td><strong>الشفافية المنهجية</strong></td>
+<td>صفحة منهجية عامة داخل المنتج تعرض المصادر والصيغ والحدود</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>&#x200F;18. خارطة الطريق · Roadmap</h2>
+<table>
+<thead>
+<tr>
+<th>المرحلة</th>
+<th>النطاق</th>
+<th>المخرجات</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>المرحلة 1 — البرمجان</strong></td>
+<td>نطاق تجريبي بالمدينة المنورة</td>
+<td>خط أنابيب عامل · الوحدتان · التوصيات · التحقّق قبل/بعد · التنبيهات · اللوحة العربية · واجهة API موثّقة</td>
+</tr>
+<tr>
+<td><strong>المرحلة 2 — تجربة تشغيلية</strong></td>
+<td>كامل المدينة · 4 أسابيع</td>
+<td>تغطية كاملة · نموذج مُشرَف بتقسيم مكاني · <strong>حملة تحقّق ميداني 30–50 موقعاً</strong> · تكامل بلدي+ · تقارير دورية · وثيقة منهجية عربية</td>
+</tr>
+<tr>
+<td><strong>المرحلة 3 — الإنتاج</strong></td>
+<td>متعدّد الأمانات</td>
+<td>استضافة داخل المملكة · قاعدة بيانات مكانية إنتاجية · صلاحيات وأدوار · تكامل أوامر العمل · طبقة تحقّق عالية الدقة عند الحاجة · تقرير أثر سنوي</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>&#x200F;19. معايير القبول · Acceptance Criteria</h2>
+<p>يُعتبر الـMVP مكتملاً عند تحقّق كل ما يلي:</p>
+<ol>
+<li><strong>بيانات حقيقية:</strong> كل المؤشرات والسلاسل الزمنية محسوبة من مشاهد أقمار صناعية فعلية — لا بيانات مُصطنعة في أي مسار عرض.</li>
+<li><strong>الوحدتان تعملان:</strong> إنتاج أحداث هدر وترتيب مخاطر لمقاطع الشوارع، كلٌّ بأدلته.</li>
+<li><strong>البوابة الفاصلة مُطبَّقة:</strong> لا حكم بالهدر إلا بعد التحقق من انعدام المطر.</li>
+<li><strong>الصدق مُشفَّر:</strong> تمييز «لم يُرصد» عن «تعذّر الرصد» في قاعدة البيانات وفي الواجهة، ووسم كل رقم تقديري.</li>
+<li><strong>التحقّق يعمل:</strong> تقرير «قبل/بعد» واحد على الأقل لمشروع منفَّذ، مع إعلان النتيجة ولو كانت غير حاسمة.</li>
+<li><strong>تنبيه حقيقي:</strong> إرسال تنبيه فعلي يصل جهاز المستخدم.</li>
+<li><strong>اللوحة عربية سليمة:</strong> RTL صحيح في النصوص والجداول والرسوم والخرائط.</li>
+<li><strong>الواجهة موثّقة:</strong> توثيق تفاعلي لكل نقاط النهاية.</li>
+<li><strong>قابلية التدقيق:</strong> كل تشغيل مسجَّل بحالته وتغطيته.</li>
+<li><strong>الإفصاح:</strong> ملف الإسناد موجود ومكتمل.</li>
+</ol>
+<hr>
+<h2>&#x200F;20. المسرد · Glossary</h2>
+<table>
+<thead>
+<tr>
+<th>المصطلح</th>
+<th>التعريف</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>NDVI</strong></td>
+<td>مؤشر الفرق الطبيعي للغطاء النباتي — يقيس حيوية النبات</td>
+</tr>
+<tr>
+<td><strong>NDWI / MNDWI</strong></td>
+<td>مؤشرا المياه السطحية؛ الثاني أدق في الوسط الحضري لاعتماده نطاق SWIR</td>
+</tr>
+<tr>
+<td><strong>NDMI</strong></td>
+<td>مؤشر رطوبة المظلّة النباتية</td>
+</tr>
+<tr>
+<td><strong>NDBI</strong></td>
+<td>مؤشر الأسطح المبنية — بديل لنسبة الأسطح غير النفّاذة</td>
+</tr>
+<tr>
+<td><strong>SAR</strong></td>
+<td>الرادار ذو الفتحة الاصطناعية — يخترق السحب ويعمل ليلاً</td>
+</tr>
+<tr>
+<td><strong>الانعكاس الثنائي</strong></td>
+<td>ارتداد رادار مرتفع ينشأ من التقاء سطح الماء بجدار عمودي — يجعل الماء <strong>أسطع</strong> لا أظلم</td>
+</tr>
+<tr>
+<td><strong>TWI</strong></td>
+<td>مؤشر الرطوبة الطبوغرافي — ميل الموقع لتجميع المياه</td>
+</tr>
+<tr>
+<td><strong>HAND</strong></td>
+<td>الارتفاع فوق أقرب مجرى تصريف</td>
+</tr>
+<tr>
+<td><strong>DSM / DTM</strong></td>
+<td>نموذج السطح (يشمل المباني والأشجار) مقابل نموذج الأرض العارية</td>
+</tr>
+<tr>
+<td><strong>حزام التماس</strong></td>
+<td>شريط من الأسطح غير النفّاذة حول المسطّح الأخضر — موضع ظهور الجريان</td>
+</tr>
+<tr>
+<td><strong>الثقب الأفقي</strong></td>
+<td>حفر أفقي موجّه لتمديد خطوط التصريف دون حفر مفتوح للطريق</td>
+</tr>
+<tr>
+<td><strong>العبّارة الصندوقية</strong></td>
+<td>منشأ خرساني مستطيل لعبور المياه أسفل الطريق</td>
+</tr>
+<tr>
+<td><strong>المستجمع الدقيق</strong></td>
+<td>المساحة التي يتجمّع جريانها نحو نقطة بعينها</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>&#x200F;21. ملحق أ — مصفوفة التتبّع · Traceability Matrix</h2>
+<p>ربط المتطلبات بمعايير التحكيم الرسمية وأوزانها:</p>
+<table>
+<thead>
+<tr>
+<th>معيار التحكيم</th>
+<th>الوزن</th>
+<th>المتطلبات التي تخدمه</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>التأثير والأهمية المؤسسية</strong></td>
+<td><strong>30%</strong></td>
+<td><span class="rid">BR-01</span> · <span class="rid">BR-03</span> · <span class="rid">BR-04</span> · <span class="rid">BR-05</span> · <span class="rid">FR-26</span>→<span class="rid">FR-33</span> (التوصيات والتحقّق) · <span class="rid">FR-34</span>→<span class="rid">FR-39</span> (التنبيهات) · <span class="rid">UJ-01</span>→<span class="rid">UJ-04</span> · <span class="rid">MO-01</span>→<span class="rid">MO-06</span></td>
+</tr>
+<tr>
+<td><strong>التنفيذ التقني</strong></td>
+<td><strong>25%</strong></td>
+<td><span class="rid">FR-01</span>→<span class="rid">FR-11</span> (الاستيعاب والوحدات) · <span class="rid">FR-12</span>→<span class="rid">FR-25</span> (الكشف) · <span class="rid">FR-20</span> (تفسير الرادار) · <span class="rid">FR-21</span> (القناع) · <span class="rid">FR-24</span> (حكم التغطية) · <span class="rid">NFR-01</span>→<span class="rid">NFR-06</span></td>
+</tr>
+<tr>
+<td><strong>الابتكار والأصالة</strong></td>
+<td><strong>20%</strong></td>
+<td><span class="rid">BR-03</span> (خط أنابيب واحد لوحدتين) · <span class="rid">FR-08</span> (حزام التماس) · <span class="rid">FR-12</span> (البوابة الفاصلة) · <span class="rid">FR-19</span>→<span class="rid">FR-20</span> · <span class="rid">FR-30</span>→<span class="rid">FR-33</span> (التحقّق المستقل)</td>
+</tr>
+<tr>
+<td><strong>قابلية التطوير والاستدامة</strong></td>
+<td><strong>15%</strong></td>
+<td><span class="rid">BR-02</span> · <span class="rid">BR-08</span> · <span class="rid">BR-09</span> · <span class="rid">NFR-04</span> · <span class="rid">NFR-05</span> · <span class="rid">NFR-13</span> · <span class="rid">NFR-14</span> · <span class="rid">NFR-15</span> · القسم 18</td>
+</tr>
+<tr>
+<td><strong>وضوح العرض والتواصل</strong></td>
+<td><strong>10%</strong></td>
+<td><span class="rid">BR-06</span> · <span class="rid">FR-23</span> (التفسير المفهوم) · <span class="rid">FR-40</span>→<span class="rid">FR-46</span> (اللوحة) · <span class="rid">FR-44</span> (المنهجية) · <span class="rid">NFR-07</span> · <span class="rid">NFR-08</span></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>&#x200F;22. ملحق ب — قاموس البيانات · Data Dictionary</h2>
+<table>
+<thead>
+<tr>
+<th>الجدول</th>
+<th>الغرض</th>
+<th>حقول محورية</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>units</code></td>
+<td>كل وحدات التحليل (أصل أخضر · حزام · مقطع شارع · مستجمع)</td>
+<td><code>unit_id</code> · <code>unit_type</code> · <code>geom</code> · <code>district_ar</code> · السمات الطبوغرافية · <strong><code>dtm_confidence</code></strong> · <strong><code>sar_visibility</code></strong> · <strong><code>geometry_confidence</code></strong> · <code>validation_level</code></td>
+</tr>
+<tr>
+<td><code>observations</code></td>
+<td><strong>السلسلة الزمنية المشتركة</strong> التي تغذّي الوحدتين</td>
+<td><code>unit_id</code> · <code>obs_ts</code> · <code>sensor</code> · المؤشرات البصرية · <code>vv_db</code>/<code>vh_db</code> · <code>rel_orbit</code> · <strong><code>quality_flag</code></strong> · <strong><code>optical_native_scale_m</code></strong> · <code>rain_72h_mm</code> · <code>days_since_rain</code></td>
+</tr>
+<tr>
+<td><code>waste_events</code></td>
+<td>أحداث الري المفرط</td>
+<td><code>event_id</code> · <code>green_unit_id</code> · <code>z_ring</code> · <code>wet_area_m2</code> · <code>days_since_rain</code> · نطاق التقدير وثقته · <strong><code>detection_status</code></strong></td>
+</tr>
+<tr>
+<td><code>rain_events</code></td>
+<td>أحداث المطر التاريخية</td>
+<td><code>rain_event_id</code> · <code>total_mm</code> · عدد المشاهد بعد الحدث · <strong>عدد الوحدات القابلة للرصد</strong></td>
+</tr>
+<tr>
+<td><code>ponding_observations</code></td>
+<td>رصد الغرق لكل مقطع لكل حدث</td>
+<td><code>delta_vv_db</code> · <code>threshold_used_db</code> · <code>interpretation</code> · <code>recession_hours</code> · <strong><code>detection_status</code></strong></td>
+</tr>
+<tr>
+<td><code>segment_risk</code></td>
+<td>ترتيب المخاطر وتفسيره</td>
+<td><code>risk_score</code> · <code>risk_band</code> · السمات · <strong><code>contributions</code></strong> · التوصية · <strong><code>observation_coverage</code></strong></td>
+</tr>
+<tr>
+<td><code>alerts</code></td>
+<td>التنبيهات ودورة حياتها</td>
+<td><code>alert_type</code> · <code>severity</code> · <code>dedupe_key</code> · <code>cooldown_until</code> · <code>delivery_status</code> · <strong><code>outcome</code></strong></td>
+</tr>
+<tr>
+<td><code>projects</code> / <code>project_verifications</code></td>
+<td>المشاريع وتقييم أثرها</td>
+<td><code>commissioned_on</code> · المقامات قبل/بعد · <code>effect_direction</code> · <strong><code>rain_comparability</code></strong></td>
+</tr>
+<tr>
+<td><code>pipeline_runs</code></td>
+<td>سجل تدقيق append-only</td>
+<td><code>job_name</code> · <code>status</code> · <code>n_rows_written</code> · <strong><code>coverage_pct</code></strong> · <code>error</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>قاعدة تصميمية حاكمة:</strong> الحقول المُظلَّلة أعلاه هي <strong>حقول الصدق</strong>. وجودها في المخطط يجعل الإبلاغ الصامت عن صفر مستحيلاً بنيوياً: النظام مُلزَم بالتمييز بين «لم نرصد غرقاً» و«لم نستطع الرصد».</p>
+<hr>
+<p><em>انتهت الوثيقة — مَسارب v1.0</em></p></section></body></html>
