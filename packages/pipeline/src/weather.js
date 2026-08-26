@@ -194,8 +194,7 @@ export async function backfill({ start = '2015-01-01' } = {}) {
   const { rows: top } = await query(
     `SELECT peak_date, total_mm, max_daily_mm FROM rain_events
       ORDER BY total_mm DESC LIMIT 6`);
-  console.log('
-  largest rain events on record:');
+  console.log('\n  largest rain events on record:');
   for (const e of top) {
     console.log(`    ${iso(new Date(e.peak_date))}   total ${String(e.total_mm).padStart(6)} mm   ` +
                 `peak day ${String(e.max_daily_mm).padStart(5)} mm`);

@@ -18,6 +18,10 @@ const INK_STYLE = {
   layers: [{ id: 'bg', type: 'background', paint: { 'background-color': '#010628' } }],
 };
 
+// A segment with no score yet. `coalesce` to a sentinel rather than comparing
+// against null, which MapLibre's `==` rejects.
+const UNSCORED = ['<', ['coalesce', ['get', 's'], -1], 0];
+
 const RISK_RAMP = [
   'interpolate', ['linear'], ['coalesce', ['get', 's'], 0],
   0, '#2A9759', 35, '#50FF4A', 55, '#FFC857', 75, '#FF6B5A', 100, '#FF3B2A',
@@ -43,6 +47,10 @@ export default function MapView({ mode = 'flood', scored = false }) {
       attributionControl: false,
     });
     mapRef.current = map;
+
+    // Without this, an invalid paint expression fails validation and the layer
+    // simply never draws - with no visible symptom at all.
+    map.on('error', (e) => console.error('[maplibre]', e?.error?.message ?? e));
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-left');
     map.addControl(
@@ -76,7 +84,7 @@ export default function MapView({ mode = 'flood', scored = false }) {
             type: 'line',
             source: 'segments',
             paint: {
-              'line-color': ['case', ['==', ['get', 's'], null], '#1B7FA8', RISK_RAMP],
+              'line-color': ['case', UNSCORED, '#1B7FA8', RISK_RAMP],
               'line-width': [
                 'interpolate', ['linear'], ['zoom'],
                 10, ['max', 1.2, ['*', ['coalesce', ['get', 's'], 0], 0.05]],
@@ -95,7 +103,7 @@ export default function MapView({ mode = 'flood', scored = false }) {
               // An unscored network is still the real street network and worth
               // seeing. Render it in a legible steel-cyan rather than a dark
               // grey that disappears into the background.
-              'line-color': ['case', ['==', ['get', 's'], null], '#4FB3D9', RISK_RAMP],
+              'line-color': ['case', UNSCORED, '#4FB3D9', RISK_RAMP],
               'line-width': [
                 'interpolate', ['exponential', 1.35], ['zoom'],
                 10, 0.7,
@@ -104,9 +112,8 @@ export default function MapView({ mode = 'flood', scored = false }) {
                 16, ['+', 3.4, ['*', ['coalesce', ['get', 's'], 0], 0.07]],
               ],
               'line-opacity': mode === 'waste' ? 0.3 : 0.82,
-              'line-cap': 'round',
-              'line-join': 'round',
             },
+            layout: { 'line-cap': 'round', 'line-join': 'round' },
           });
         }
 
@@ -121,7 +128,7 @@ export default function MapView({ mode = 'flood', scored = false }) {
             filter: ['==', ['get', 't'], 'ring'],
             paint: {
               // honesty: a ring under ~10 pixels cannot support a claim
-              'fill-color': ['case', ['==', ['get', 'small'], true], '#6B7A9E', '#00C4D5'],
+              'fill-color': ['case', ['coalesce', ['get', 'small'], false], '#6B7A9E', '#00C4D5'],
               'fill-opacity': mode === 'waste' ? 0.5 : 0.2,
             },
           });
@@ -169,7 +176,14 @@ export default function MapView({ mode = 'flood', scored = false }) {
       }
     });
 
+    // MapLibre measures the container once, at construction. Inside a CSS grid
+    // the final height lands after that, which left a 300 px canvas in a 698 px
+    // box. Keep the canvas matched to its container.
+    const ro = new ResizeObserver(() => map.resize());
+    ro.observe(container.current);
+
     return () => {
+      ro.disconnect();
       map.remove();
       mapRef.current = null;
     };
