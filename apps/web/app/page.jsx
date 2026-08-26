@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'مَسارب — منصّة رصد المياه الحضرية بالأقمار الصناعية',
+  title: 'مِطياف — منصّة رصد المياه الحضرية بالأقمار الصناعية',
 };
 
 const STATS = [
@@ -211,7 +211,7 @@ export default function Landing() {
             OpenStreetMap contributors (ODbL) · Open-Meteo (CC-BY) · البيانات المفتوحة لأمانة
             منطقة المدينة المنورة.
           </p>
-          <p className="dim2">مَسارب · برمجان المنورة <span className="num">2026</span></p>
+          <p className="dim2">مِطياف · برمجان المنورة <span className="num">2026</span></p>
         </div>
       </footer>
     </main>

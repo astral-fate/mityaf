@@ -1,8 +1,8 @@
 {
-  "name": "masareb",
+  "name": "mityaf",
   "version": "1.0.0",
   "private": true,
-  "description": "مَسارب — satellite urban-water intelligence for Al Madinah Municipality",
+  "description": "مِطياف — satellite urban-water intelligence for Al Madinah Municipality",
   "license": "MIT",
   "workspaces": [
     "apps/web",
@@ -12,10 +12,10 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "dev": "npm run dev --workspace=@masareb/web",
-    "build": "npm run build --workspace=@masareb/web",
-    "start": "npm run start --workspace=@masareb/web",
-    "lint": "npm run lint --workspace=@masareb/web",
+    "dev": "npm run dev --workspace=@mityaf/web",
+    "build": "npm run build --workspace=@mityaf/web",
+    "start": "npm run start --workspace=@mityaf/web",
+    "lint": "npm run lint --workspace=@mityaf/web",
     "pipeline": "node --env-file-if-exists=.env packages/pipeline/src/cli.js",
     "pipeline:units": "npm run pipeline -- build-units",
     "pipeline:weather": "npm run pipeline -- backfill-weather",

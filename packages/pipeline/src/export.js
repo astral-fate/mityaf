@@ -5,201 +5,192 @@
  * background scheduler, so it cannot run this pipeline live. It does not need
  * to: satellite revisit is 5 days, which makes the whole thing inherently batch.
  * The pipeline precomputes here, writes JSON into the web app's public/, and
- * Vercel serves it from the edge. That is faster than a live API would be.
+ * Vercel serves it from the edge — faster than a live API would be, and it keeps
+ * database and satellite credentials entirely off the web host.
  *
- * Map payloads are kept deliberately thin: the segments layer carries only what
- * the paint expression reads, because 30k LineStrings with full properties is
- * megabytes of wire for nothing.
+ * Map payloads are kept deliberately thin. Geometry is simplified server-side by
+ * PostGIS: at a 10 m pixel scale, vertices finer than ~3 m carry no information
+ * and only cost wire bytes.
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { collections, connect } from './db.js';
 import { config } from './config.js';
+import { query } from './db.js';
 
 const OUT = () => path.resolve(process.cwd(), 'apps/web/public/data');
 
-const round = (n, dp = 5) =>
-  n === null || n === undefined ? n : Math.round(n * 10 ** dp) / 10 ** dp;
-
-/** Drop coordinate precision — 5 dp is ~1 m, far finer than a 10 m pixel. */
-function thinGeometry(geom, dp = 5) {
-  const walk = (c) =>
-    typeof c[0] === 'number' ? [round(c[0], dp), round(c[1], dp)] : c.map(walk);
-  return { ...geom, coordinates: walk(geom.coordinates) };
-}
+// ~3 m in degrees at this latitude
+const SIMPLIFY_DEG = 3 / 111_000;
 
 async function writeJson(name, data) {
   const dir = OUT();
   await fs.mkdir(dir, { recursive: true });
-  const file = path.join(dir, name);
   const body = JSON.stringify(data);
-  await fs.writeFile(file, body, 'utf8');
-  const kb = (Buffer.byteLength(body) / 1024).toFixed(0);
-  console.log(`  ${name.padEnd(26)} ${String(kb).padStart(6)} KB`);
-  return Number(kb);
+  await fs.writeFile(path.join(dir, name), body, 'utf8');
+  const kb = Buffer.byteLength(body) / 1024;
+  console.log(`  ${name.padEnd(24)} ${kb.toFixed(0).padStart(7)} KB`);
+  return kb;
 }
+
+/** Build a FeatureCollection from rows that carry a `gj` GeoJSON string. */
+const toFeatureCollection = (rows, propsOf) => ({
+  type: 'FeatureCollection',
+  features: rows.map((r) => ({
+    type: 'Feature',
+    geometry: JSON.parse(r.gj),
+    properties: propsOf(r),
+  })),
+});
 
 // ── layers ─────────────────────────────────────────────────────────────────
-async function exportSegments(d) {
-  const risk = await d
-    .collection(collections.segmentRisk)
-    .find({})
-    .project({ segmentUnitId: 1, riskScore: 1, riskBand: 1, _id: 0 })
-    .toArray();
-  const byId = new Map(risk.map((r) => [r.segmentUnitId, r]));
+async function exportSegments() {
+  const { rows } = await query(
+    `SELECT u.unit_id,
+            u.name_ar,
+            ST_AsGeoJSON(ST_Simplify(u.geom, $1), 5) AS gj,
+            r.risk_score,
+            r.risk_band
+       FROM units u
+       LEFT JOIN segment_risk r ON r.segment_unit_id = u.unit_id
+      WHERE u.unit_type = 'segment' AND u.active`,
+    [SIMPLIFY_DEG],
+  );
 
-  const units = await d
-    .collection(collections.units)
-    .find({ unitType: 'segment', active: true })
-    .project({ unitId: 1, geometry: 1, nameAr: 1, highwayClass: 1, _id: 0 })
-    .toArray();
-
-  const features = units.map((u) => {
-    const r = byId.get(u.unitId);
-    return {
-      type: 'Feature',
-      geometry: thinGeometry(u.geometry),
-      properties: {
-        // id + score only: everything else comes from the detail endpoint
-        id: u.unitId,
-        s: r ? Math.round(r.riskScore * 100) : null,
-        b: r?.riskBand ?? 'insufficient_data',
-      },
-    };
-  });
-
-  return writeJson('segments.geojson', { type: 'FeatureCollection', features });
+  // id + score only; everything else comes from the detail payload
+  return writeJson(
+    'segments.geojson',
+    toFeatureCollection(rows, (r) => ({
+      id: r.unit_id,
+      name: r.name_ar,
+      s: r.risk_score === null ? null : Math.round(r.risk_score * 100),
+      b: r.risk_band ?? 'insufficient_data',
+    })),
+  );
 }
 
-async function exportGreen(d) {
-  const units = await d
-    .collection(collections.units)
-    .find({ unitType: { $in: ['green', 'ring'] }, active: true })
-    .project({ unitId: 1, unitType: 1, parentUnitId: 1, nameAr: 1, geometry: 1,
-               areaM2: 1, qaFlags: 1, _id: 0 })
-    .toArray();
+async function exportGreen() {
+  const { rows } = await query(
+    `SELECT unit_id, unit_type, parent_unit_id, name_ar, area_m2, qa_flags,
+            ST_AsGeoJSON(ST_Simplify(geom, $1), 5) AS gj
+       FROM units
+      WHERE unit_type IN ('green','ring') AND active`,
+    [SIMPLIFY_DEG],
+  );
 
-  const features = units.map((u) => ({
-    type: 'Feature',
-    geometry: thinGeometry(u.geometry),
-    properties: {
-      id: u.unitId,
-      t: u.unitType,
-      parent: u.parentUnitId ?? null,
-      name: u.nameAr ?? null,
-      area: u.areaM2 ?? null,
+  return writeJson(
+    'green.geojson',
+    toFeatureCollection(rows, (r) => ({
+      id: r.unit_id,
+      t: r.unit_type,
+      parent: r.parent_unit_id,
+      name: r.name_ar,
+      area: r.area_m2 === null ? null : Math.round(r.area_m2),
       // honesty travels with the geometry: the UI greys these out
-      small: Boolean(u.qaFlags?.ringTooSmall),
+      small: Boolean(r.qa_flags?.ringTooSmall),
+    })),
+  );
+}
+
+async function exportWasteEvents() {
+  const { rows } = await query(
+    `SELECT w.*, u.name_ar AS unit_name_ar
+       FROM waste_events w
+       LEFT JOIN units u ON u.unit_id = w.green_unit_id
+      ORDER BY w.severity_score DESC NULLS LAST
+      LIMIT 500`,
+  );
+  return writeJson('waste-events.json', { items: rows, count: rows.length });
+}
+
+async function exportSegmentDetails() {
+  const { rows } = await query(
+    `SELECT r.*,
+            u.name_ar, u.highway_class, u.length_m,
+            u.dtm_confidence, u.sar_visibility,
+            ST_X(u.centroid) AS lon, ST_Y(u.centroid) AS lat
+       FROM segment_risk r
+       JOIN units u ON u.unit_id = r.segment_unit_id
+      ORDER BY r.risk_score DESC
+      LIMIT 300`,
+  );
+  const items = rows.map((r) => ({
+    segmentUnitId: r.segment_unit_id,
+    riskScore: r.risk_score,
+    riskBand: r.risk_band,
+    riskRank: r.risk_rank,
+    observationCoverage: r.observation_coverage,
+    recommendedActionAr: r.recommended_action_ar,
+    estCostSar: r.est_cost_sar,
+    requiresHydraulicEngineer: r.requires_hydraulic_engineer,
+    topDrivers: r.top_drivers,
+    unit: {
+      nameAr: r.name_ar,
+      highwayClass: r.highway_class,
+      lengthM: r.length_m,
+      dtmConfidence: r.dtm_confidence,
+      sarVisibility: r.sar_visibility,
+      centroid: [r.lon, r.lat],
     },
   }));
-
-  return writeJson('green.geojson', { type: 'FeatureCollection', features });
-}
-
-async function exportWasteEvents(d) {
-  const events = await d
-    .collection(collections.wasteEvents)
-    .find({})
-    .sort({ severityScore: -1 })
-    .limit(500)
-    .project({ _id: 0 })
-    .toArray();
-  return writeJson('waste-events.json', { items: events, count: events.length });
-}
-
-async function exportSegmentDetails(d) {
-  const risk = await d
-    .collection(collections.segmentRisk)
-    .find({})
-    .sort({ riskScore: -1 })
-    .limit(300)
-    .project({ _id: 0 })
-    .toArray();
-
-  const ids = risk.map((r) => r.segmentUnitId);
-  const units = await d
-    .collection(collections.units)
-    .find({ unitId: { $in: ids } })
-    .project({ unitId: 1, nameAr: 1, highwayClass: 1, lengthM: 1, centroid: 1,
-               dtmConfidence: 1, sarVisibility: 1, _id: 0 })
-    .toArray();
-  const byId = new Map(units.map((u) => [u.unitId, u]));
-
-  const items = risk.map((r) => ({ ...r, unit: byId.get(r.segmentUnitId) ?? null }));
   return writeJson('segments-top.json', { items, count: items.length });
 }
 
-async function exportRain(d) {
-  const events = await d
-    .collection(collections.rainEvents)
-    .find({})
-    .sort({ peakDate: -1 })
-    .project({ _id: 0 })
-    .toArray();
-
-  const recent = await d
-    .collection(collections.weatherDaily)
-    .find({})
-    .sort({ date: -1 })
-    .limit(120)
-    .project({ _id: 0 })
-    .toArray();
-
+async function exportRain() {
+  const { rows: events } = await query(
+    `SELECT rain_event_id AS "rainEventId", start_date AS "startDate",
+            end_date AS "endDate", peak_date AS "peakDate",
+            total_mm AS "totalMm", max_daily_mm AS "maxDailyMm"
+       FROM rain_events ORDER BY peak_date DESC`,
+  );
+  const { rows: recent } = await query(
+    `SELECT date, precipitation_sum_mm AS "precipitationSumMm",
+            rain_72h_mm AS "rain72hMm", days_since_rain AS "daysSinceRain"
+       FROM weather_daily ORDER BY date DESC LIMIT 120`,
+  );
   return writeJson('rain.json', { events, recent: recent.reverse() });
 }
 
-async function exportMeta(d) {
-  const counts = await d
-    .collection(collections.units)
-    .aggregate([{ $group: { _id: '$unitType', n: { $sum: 1 } } }])
-    .toArray();
-
-  const lastRuns = await d
-    .collection(collections.pipelineRuns)
-    .find({})
-    .sort({ startedAt: -1 })
-    .limit(12)
-    .project({ _id: 0 })
-    .toArray();
-
-  const [obsCount, wasteCount, pondCount] = await Promise.all([
-    d.collection(collections.observations).countDocuments(),
-    d.collection(collections.wasteEvents).countDocuments(),
-    d.collection(collections.pondingObservations).countDocuments(),
-  ]);
-
-  const latestObs = await d
-    .collection(collections.observations)
-    .find({})
-    .sort({ obsDate: -1 })
-    .limit(1)
-    .project({ obsDate: 1, sensor: 1, _id: 0 })
-    .toArray();
+async function exportMeta() {
+  const { rows: counts } = await query(
+    `SELECT unit_type, count(*)::int AS n FROM units WHERE active GROUP BY unit_type`,
+  );
+  const { rows: runs } = await query(
+    `SELECT run_id, job_name, status, duration_s, counts, started_at
+       FROM pipeline_runs ORDER BY started_at DESC LIMIT 10`,
+  );
+  const { rows: totals } = await query(
+    `SELECT (SELECT count(*)::int FROM observations)          AS observations,
+            (SELECT count(*)::int FROM waste_events)          AS waste_events,
+            (SELECT count(*)::int FROM ponding_observations)  AS ponding,
+            (SELECT max(obs_date) FROM observations)          AS latest_obs`,
+  );
+  const { rows: km } = await query(
+    `SELECT round(sum(length_m)/1000)::int AS km FROM units WHERE unit_type='segment' AND active`,
+  );
 
   return writeJson('meta.json', {
     generatedAt: new Date().toISOString(),
     aoi: config.aoi,
-    units: Object.fromEntries(counts.map((c) => [c._id, c.n])),
-    observations: obsCount,
-    wasteEvents: wasteCount,
-    pondingObservations: pondCount,
-    latestObservation: latestObs[0] ?? null,
-    pipelineRuns: lastRuns,
-    // surfaced in the UI so a viewer always knows how fresh the data is
+    units: Object.fromEntries(counts.map((c) => [c.unit_type, c.n])),
+    networkKm: km[0]?.km ?? null,
+    observations: totals[0].observations,
+    wasteEvents: totals[0].waste_events,
+    pondingObservations: totals[0].ponding,
+    latestObservation: totals[0].latest_obs,
+    pipelineRuns: runs,
     dataMode: 'precomputed',
   });
 }
 
 export async function exportStatic() {
-  const d = await connect();
   console.log(`  writing to ${OUT()}`);
   let total = 0;
-  total += await exportMeta(d);
-  total += await exportGreen(d);
-  total += await exportSegments(d);
-  total += await exportSegmentDetails(d);
-  total += await exportWasteEvents(d);
-  total += await exportRain(d);
+  total += await exportMeta();
+  total += await exportGreen();
+  total += await exportSegments();
+  total += await exportSegmentDetails();
+  total += await exportWasteEvents();
+  total += await exportRain();
   console.log(`\n  total payload: ${(total / 1024).toFixed(1)} MB uncompressed ` +
               `(gzip on the wire is roughly a quarter of that)`);
   return total;

@@ -8,37 +8,42 @@
  *            beside a park on a rainless day is not.
  *   segment  street centrelines split to ~200 m
  *
- * All geometry is Turf on WGS84 with metre units — geodesic, no projection step,
- * so the CRS axis-order class of bug cannot occur here.
+ * Geometry is built with Turf on WGS84 in metre units (geodesic, no projection
+ * step) and measured in Postgres with ::geography casts. Neither path has a
+ * projection to get backwards, so the CRS axis-order class of bug cannot occur.
  */
 import * as turf from '@turf/turf';
 import { config } from './config.js';
-import { collections, connect } from './db.js';
+import { bulkUpsert, query } from './db.js';
 import { ROAD_HALF_WIDTH_M, fetchLayer, inAoi, waysToRecords } from './osm.js';
 
 const U = config.units;
 
-const centroidOf = (geometry) => turf.centroid({ type: 'Feature', geometry, properties: {} }).geometry;
+const centroidOf = (geometry) =>
+  turf.centroid({ type: 'Feature', geometry, properties: {} }).geometry;
 
-async function bulkUpsert(name, docs) {
-  if (!docs.length) return 0;
-  const d = await connect();
-  const ops = docs.map((doc) => ({
-    updateOne: { filter: { unitId: doc.unitId }, update: { $set: doc }, upsert: true },
-  }));
-  // chunk so a single bulk op never gets unwieldy
-  let n = 0;
-  for (let i = 0; i < ops.length; i += 1000) {
-    const res = await d.collection(name).bulkWrite(ops.slice(i, i + 1000), { ordered: false });
-    n += (res.upsertedCount ?? 0) + (res.modifiedCount ?? 0);
-  }
-  return docs.length;
+/** Geometry columns are bound as GeoJSON text and parsed server-side. */
+const geomCol = (geometry) => ({ sql: 'ST_SetSRID(ST_GeomFromGeoJSON(?), 4326)', value: JSON.stringify(geometry) });
+
+const UNIT_COLUMNS = [
+  'unit_id', 'unit_type', 'parent_unit_id', 'name_ar', 'name_en',
+  'source', 'source_ref', 'geom', 'centroid', 'area_m2', 'length_m',
+  'highway_class', 'half_width_m', 'geometry_confidence', 'qa_flags', 'active',
+];
+
+async function insertUnits(rows) {
+  return bulkUpsert({
+    table: 'units',
+    columns: UNIT_COLUMNS,
+    rows,
+    conflictTarget: ['unit_id'],
+  });
 }
 
 // ── green ──────────────────────────────────────────────────────────────────
 export async function buildGreen() {
   const recs = waysToRecords(await fetchLayer('green'));
-  const docs = [];
+  const rows = [];
 
   for (const r of recs) {
     if (!r.closed || r.coords.length < 4) continue;
@@ -52,25 +57,30 @@ export async function buildGreen() {
     // a 30 m2 "park" is a mapping artefact; over 20 ha is usually a land-use
     // blob rather than an irrigated asset
     if (areaM2 < U.greenMinAreaM2 || areaM2 > U.greenMaxAreaM2) continue;
-    if (!inAoi(centroidOf(poly.geometry).coordinates)) continue;
+    const centroid = centroidOf(poly.geometry);
+    if (!inAoi(centroid.coordinates)) continue;
 
-    docs.push({
-      unitId: `grn_${r.osmId}`,
-      unitType: 'green',
-      nameAr: r.nameAr,
-      nameEn: r.nameEn,
+    rows.push({
+      unit_id: `grn_${r.osmId}`,
+      unit_type: 'green',
+      parent_unit_id: null,
+      name_ar: r.nameAr,
+      name_en: r.nameEn,
       source: 'osm',
-      sourceRef: String(r.osmId),
-      geometry: poly.geometry,
-      centroid: centroidOf(poly.geometry),
-      areaM2: Math.round(areaM2),
-      geometryConfidence: 'high',
-      validationLevel: 'unvalidated',
+      source_ref: String(r.osmId),
+      geom: geomCol(poly.geometry),
+      centroid: geomCol(centroid),
+      area_m2: Math.round(areaM2),
+      length_m: null,
+      highway_class: null,
+      half_width_m: null,
+      geometry_confidence: 'high',
+      qa_flags: '{}',
       active: true,
     });
   }
 
-  const n = await bulkUpsert(collections.units, docs);
+  const n = await insertUnits(rows);
   console.log(`  green   : ${recs.length} candidates -> ${n} kept ` +
               `(${U.greenMinAreaM2}-${U.greenMaxAreaM2} m2, inside AOI)`);
   return n;
@@ -78,17 +88,15 @@ export async function buildGreen() {
 
 // ── rings ──────────────────────────────────────────────────────────────────
 export async function buildRings() {
-  const d = await connect();
-  const greens = await d
-    .collection(collections.units)
-    .find({ unitType: 'green' })
-    .project({ unitId: 1, nameAr: 1, geometry: 1 })
-    .toArray();
+  const { rows: greens } = await query(
+    `SELECT unit_id, name_ar, ST_AsGeoJSON(geom) AS gj FROM units WHERE unit_type='green'`,
+  );
 
-  const docs = [];
+  const parsed = greens.map((g) => ({ ...g, geometry: JSON.parse(g.gj) }));
+  const rows = [];
   let tooSmall = 0;
 
-  for (const g of greens) {
+  for (const g of parsed) {
     const feat = { type: 'Feature', geometry: g.geometry, properties: {} };
     // inner edge 2 m out skips the mixed pixel straddling the grass edge;
     // outer edge at 20 m keeps us on the immediately adjacent surface
@@ -106,8 +114,8 @@ export async function buildRings() {
 
     // subtract any neighbouring green, so a ring never reports another park's
     // irrigation as this park's spill
-    for (const other of greens) {
-      if (other.unitId === g.unitId) continue;
+    for (const other of parsed) {
+      if (other.unit_id === g.unit_id) continue;
       const of = { type: 'Feature', geometry: other.geometry, properties: {} };
       try {
         if (!turf.booleanIntersects(ring, of)) continue;
@@ -123,24 +131,28 @@ export async function buildRings() {
     const small = areaM2 < U.ringTooSmallM2;
     if (small) tooSmall++;
 
-    docs.push({
-      unitId: `rng_${g.unitId.slice(4)}`,
-      unitType: 'ring',
-      parentUnitId: g.unitId,
-      nameAr: g.nameAr,
+    rows.push({
+      unit_id: `rng_${g.unit_id.slice(4)}`,
+      unit_type: 'ring',
+      parent_unit_id: g.unit_id,
+      name_ar: g.name_ar,
+      name_en: null,
       source: 'derived_buffer',
-      geometry: ring.geometry,
-      centroid: centroidOf(ring.geometry),
-      areaM2: Math.round(areaM2),
-      geometryConfidence: 'high',
+      source_ref: null,
+      geom: geomCol(ring.geometry),
+      centroid: geomCol(centroidOf(ring.geometry)),
+      area_m2: Math.round(areaM2),
+      length_m: null,
+      highway_class: null,
+      half_width_m: null,
+      geometry_confidence: 'high',
       // honesty: a ring under ~10 Sentinel-2 pixels cannot support a claim
-      qaFlags: small ? { ringTooSmall: true } : {},
-      validationLevel: 'unvalidated',
+      qa_flags: JSON.stringify(small ? { ringTooSmall: true } : {}),
       active: true,
     });
   }
 
-  const n = await bulkUpsert(collections.units, docs);
+  const n = await insertUnits(rows);
   console.log(`  rings   : ${n} built (${tooSmall} flagged ringTooSmall, < ${U.ringTooSmallM2} m2)`);
   return n;
 }
@@ -174,44 +186,42 @@ export function splitWay(coords) {
 
 export async function buildSegments() {
   const recs = waysToRecords(await fetchLayer('streets'));
-  const docs = [];
+  const rows = [];
   let split = 0;
 
   for (const r of recs) {
     if (r.closed) continue; // roundabouts / service loops are not useful units
     const hw = r.highway ?? 'unclassified';
-    const halfWidthM = ROAD_HALF_WIDTH_M[hw] ?? 6;
 
     for (const { index, feature, lengthM } of splitWay(r.coords)) {
       split++;
       const centroid = centroidOf(feature.geometry);
-      // clip to AOI — Overpass returned whole ways, including highways that run
-      // far outside the city
+      // Overpass returns WHOLE ways that touch the bbox, so a highway heading
+      // for Makkah arrives in full. Clip by centroid or we rank other cities.
       if (!inAoi(centroid.coordinates)) continue;
 
-      docs.push({
-        unitId: `seg_${r.osmId}_${String(index).padStart(2, '0')}`,
-        unitType: 'segment',
-        nameAr: r.nameAr,
-        nameEn: r.nameEn,
+      rows.push({
+        unit_id: `seg_${r.osmId}_${String(index).padStart(2, '0')}`,
+        unit_type: 'segment',
+        parent_unit_id: null,
+        name_ar: r.nameAr,
+        name_en: r.nameEn,
         source: 'osm',
-        sourceRef: String(r.osmId),
-        geometry: feature.geometry,
-        centroid,
-        lengthM: Math.round(lengthM * 10) / 10,
-        highwayClass: hw,
-        halfWidthM,
-        geometryConfidence: 'high',
-        // honesty defaults until terrain and SAR visibility are computed
-        dtmConfidence: 'unknown',
-        sarVisibility: 'unknown',
-        validationLevel: 'unvalidated',
+        source_ref: String(r.osmId),
+        geom: geomCol(feature.geometry),
+        centroid: geomCol(centroid),
+        area_m2: null,
+        length_m: Math.round(lengthM * 10) / 10,
+        highway_class: hw,
+        half_width_m: ROAD_HALF_WIDTH_M[hw] ?? 6,
+        geometry_confidence: 'high',
+        qa_flags: '{}',
         active: true,
       });
     }
   }
 
-  const n = await bulkUpsert(collections.units, docs);
+  const n = await insertUnits(rows);
   console.log(`  segments: ${recs.length} ways -> ${split} split -> ${n} inside AOI`);
   return n;
 }
@@ -221,19 +231,19 @@ export async function buildAll() {
   await buildRings();
   await buildSegments();
 
-  const d = await connect();
-  const summary = await d
-    .collection(collections.units)
-    .aggregate([
-      { $group: { _id: '$unitType', n: { $sum: 1 },
-                  avg: { $avg: { $ifNull: ['$areaM2', '$lengthM'] } } } },
-      { $sort: { n: -1 } },
-    ])
-    .toArray();
+  const { rows } = await query(
+    `SELECT unit_type,
+            count(*)::int              AS n,
+            round(avg(COALESCE(area_m2, length_m)))::int AS avg_size,
+            round(sum(length_m)/1000)::int              AS km
+       FROM units WHERE active GROUP BY unit_type ORDER BY n DESC`,
+  );
 
-  console.log('\n  totals by unitType:');
-  for (const s of summary) {
-    console.log(`    ${String(s._id).padEnd(10)} ${String(s.n).padStart(6)}   avg size ${Math.round(s.avg).toLocaleString()}`);
+  console.log('\n  totals by unit_type:');
+  for (const r of rows) {
+    const km = r.km ? `  ${r.km.toLocaleString()} km` : '';
+    console.log(`    ${String(r.unit_type).padEnd(10)} ${String(r.n).padStart(6)}   ` +
+                `avg size ${Number(r.avg_size).toLocaleString()}${km}`);
   }
-  return summary;
+  return rows;
 }

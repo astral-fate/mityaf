@@ -18,7 +18,7 @@ const ENDPOINTS = [
 ];
 
 const HEADERS = {
-  'User-Agent': 'Masareb/1.0 (urban water monitoring, Al Madinah Municipality)',
+  'User-Agent': 'Mityaf/1.0 (urban water monitoring, Al Madinah Municipality)',
   Accept: 'application/json',
   'Content-Type': 'application/x-www-form-urlencoded',
 };

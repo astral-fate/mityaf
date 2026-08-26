@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 /**
- * Masareb pipeline CLI.
+ * Mityaf pipeline CLI.
  *
  *   node src/cli.js <command>
  *
  * Commands:
- *   doctor            check env, MongoDB, Earth Engine, and the S1 archive gap
+ *   doctor            check env, Postgres/PostGIS, Earth Engine, S1 archive gap
  *   build-units       OSM -> green assets, spill rings, street segments
  *   backfill-weather  Open-Meteo daily archive -> rain events
  *   backfill-s2       Sentinel-2 index time series over every unit
  *   export-static     write precomputed JSON into apps/web/public/data
  *   all               units -> weather -> s2 -> export
  */
-import { close, connect, ensureIndexes, withRun } from './db.js';
+import { close, initSchema, ping, query, withRun } from './db.js';
 import { config } from './config.js';
 import * as gee from './gee.js';
 import * as units from './units.js';
@@ -24,18 +24,19 @@ const cmd = process.argv[2] ?? 'help';
 
 // ── doctor ─────────────────────────────────────────────────────────────────
 async function doctor() {
-  console.log('mongo   :', config.mongoUri.replace(/\/\/.*@/, '//***@'));
+  const masked = (config.databaseUrl ?? '(unset)').replace(/\/\/[^@]*@/, '//***@');
+  console.log('postgres:', masked);
   try {
-    const d = await connect();
-    await d.command({ ping: 1 });
-    const counts = await d
-      .collection('units')
-      .aggregate([{ $group: { _id: '$unitType', n: { $sum: 1 } } }])
-      .toArray();
-    console.log('          connected. units:',
-      counts.length ? counts.map((c) => `${c._id}=${c.n}`).join(' ') : '(empty)');
+    await initSchema();
+    const v = await ping();
+    console.log('          ', v.v.split(',')[0]);
+    console.log('           PostGIS', v.postgis.split(' ')[0]);
+    const { rows } = await query(
+      `SELECT unit_type, count(*)::int AS n FROM units GROUP BY unit_type ORDER BY n DESC`);
+    console.log('           units:',
+      rows.length ? rows.map((r) => `${r.unit_type}=${r.n}`).join(' ') : '(empty)');
   } catch (err) {
-    console.log('          FAILED:', String(err).slice(0, 120));
+    console.log('           FAILED:', String(err.message ?? err).slice(0, 160));
   }
 
   console.log('gee     : project', config.geeProject);
@@ -78,13 +79,13 @@ const commands = {
 
   'build-units': () =>
     withRun('build_units', { aoi: config.aoi }, async () => {
-      await ensureIndexes();
+      await initSchema();
       await units.buildAll();
     }),
 
   'backfill-weather': () =>
     withRun('backfill_weather', { start: '2015-01-01' }, async (run) => {
-      await ensureIndexes();
+      await initSchema();
       const r = await weather.backfill({});
       run.add({ rowsWritten: r.days, events: r.events });
     }),
@@ -108,8 +109,8 @@ const commands = {
 
   help: () => {
     console.log(
-      `Masareb pipeline\n\n` +
-      `  doctor            check env, MongoDB, Earth Engine, S1 archive gap\n` +
+      `Mityaf pipeline\n\n` +
+      `  doctor            check env, Postgres/PostGIS, Earth Engine, S1 archive gap\n` +
       `  build-units       OSM -> green assets, spill rings, street segments\n` +
       `  backfill-weather  Open-Meteo archive -> rain events\n` +
       `  backfill-s2       Sentinel-2 index time series over every unit\n` +

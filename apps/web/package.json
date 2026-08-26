@@ -1,5 +1,5 @@
 {
-  "name": "@masareb/web",
+  "name": "@mityaf/web",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -13,7 +13,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "maplibre-gl": "^5.1.0",
-    "mongodb": "^6.12.0"
+    "pg": "^8.13.1"
   },
   "devDependencies": {
     "eslint": "^9",

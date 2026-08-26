@@ -1,4 +1,4 @@
-export const metadata = { title: 'المنهجية — مَسارب' };
+export const metadata = { title: 'المنهجية — مِطياف' };
 
 const SOURCES = [
   ['Sentinel-2', '10 م (20 م لنطاقات SWIR)', '~5 أيام', 'مؤشرات الخضرة والمياه والرطوبة'],

@@ -1,4 +1,4 @@
-# Masareb — Technical Dossier
+# Mityaf — Technical Dossier
 
 **An end-to-end explanation of the problem, the prior art, the alternatives, and what we built.**
 
@@ -676,4 +676,4 @@ The Sentinel-2 backfill, terrain derivation and both detectors are written but n
 
 ---
 
-*Masareb — built for برمجان المنورة 2026, المتابعة الذكية للخدمات track.*
+*Mityaf — built for برمجان المنورة 2026, المتابعة الذكية للخدمات track.*

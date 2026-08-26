@@ -7,9 +7,11 @@ const num = (v, d) => (v === undefined || v === '' ? d : Number(v));
 const bool = (v, d) => (v === undefined || v === '' ? d : v === 'true' || v === '1');
 
 export const config = {
-  // ── MongoDB ──
-  mongoUri: process.env.MONGODB_URI ?? 'mongodb://127.0.0.1:27017',
-  mongoDb: process.env.MONGODB_DB ?? 'masareb',
+  // ── Postgres (Neon) ──
+  // Use the POOLED connection string from Neon for the pipeline: it opens and
+  // closes many short-lived connections, which is exactly what the pooler is for.
+  databaseUrl: process.env.DATABASE_URL ?? null,
+  pgPoolMax: Number(process.env.PG_POOL_MAX ?? 10),
 
   // ── Earth Engine ──
   // Auth uses a service-account key. The official @google/earthengine npm client

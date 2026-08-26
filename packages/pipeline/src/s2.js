@@ -9,33 +9,27 @@
  * Every observation is joined to the rain context on write, because the
  * rainless gate is what decides whether a wet reading means waste or ponding.
  */
-import { collections, connect } from './db.js';
+import { bulkUpsert, query } from './db.js';
 import { config } from './config.js';
 import * as gee from './gee.js';
 
 /** Rain context for a date, from the already-ingested archive. */
 async function rainIndex() {
-  const d = await connect();
-  const rows = await d
-    .collection(collections.weatherDaily)
-    .find({})
-    .project({ date: 1, rain72hMm: 1, daysSinceRain: 1, precipitationSumMm: 1, _id: 0 })
-    .toArray();
+  const { rows } = await query(
+    'SELECT date, rain_72h_mm, days_since_rain FROM weather_daily');
   const map = new Map();
   for (const r of rows) {
-    map.set(r.date.toISOString().slice(0, 10), r);
+    map.set(new Date(r.date).toISOString().slice(0, 10), r);
   }
   return map;
 }
 
 export async function backfillS2({ run = null, months = 12, unitTypes = ['green', 'ring'] } = {}) {
-  const d = await connect();
-
-  const units = await d
-    .collection(collections.units)
-    .find({ unitType: { $in: unitTypes }, active: true })
-    .project({ unitId: 1, geometry: 1, _id: 0 })
-    .toArray();
+  const { rows: unitRows } = await query(
+    `SELECT unit_id AS "unitId", ST_AsGeoJSON(geom) AS gj
+       FROM units WHERE unit_type = ANY($1) AND active`,
+    [unitTypes]);
+  const units = unitRows.map((u) => ({ unitId: u.unitId, geometry: JSON.parse(u.gj) }));
 
   if (!units.length) {
     console.log('  no units — run build-units first');
@@ -81,8 +75,8 @@ export async function backfillS2({ run = null, months = 12, unitTypes = ['green'
             // honesty: MNDWI/NDMI/NDBI come from B11/B8A, native 20 m — not 10 m
             opticalNativeScaleM: 20,
             qualityFlag: 'ok',
-            rain72hMm: ctx.rain72hMm ?? null,
-            daysSinceRain: ctx.daysSinceRain ?? null,
+            rain72hMm: ctx?.rain_72h_mm ?? null,
+            daysSinceRain: ctx?.days_since_rain ?? null,
             ingestedAt: new Date(),
           });
         }
@@ -93,19 +87,22 @@ export async function backfillS2({ run = null, months = 12, unitTypes = ['green'
     }
 
     if (docs.length) {
-      const ops = docs.map((doc) => ({
-        updateOne: {
-          filter: { unitId: doc.unitId, sensor: doc.sensor, obsTs: doc.obsTs },
-          update: { $set: doc },
-          upsert: true,
-        },
-      }));
-      for (let j = 0; j < ops.length; j += 1000) {
-        await d.collection(collections.observations).bulkWrite(ops.slice(j, j + 1000), {
-          ordered: false,
-        });
-      }
-      written += docs.length;
+      written += await bulkUpsert({
+        table: 'observations',
+        columns: ['unit_id', 'obs_ts', 'obs_date', 'sensor', 'ndvi', 'ndwi', 'savi',
+                  'mndwi', 'ndmi', 'ndbi', 'wet_pixel_frac', 'optical_native_scale_m',
+                  'quality_flag', 'rain_72h_mm', 'days_since_rain'],
+        rows: docs.map((o) => ({
+          unit_id: o.unitId, obs_ts: o.obsTs, obs_date: o.obsDate, sensor: o.sensor,
+          ndvi: o.ndvi, ndwi: o.ndwi, savi: o.savi,
+          mndwi: o.mndwi, ndmi: o.ndmi, ndbi: o.ndbi,
+          wet_pixel_frac: o.wetPixelFrac,
+          optical_native_scale_m: o.opticalNativeScaleM,
+          quality_flag: o.qualityFlag,
+          rain_72h_mm: o.rain72hMm, days_since_rain: o.daysSinceRain,
+        })),
+        conflictTarget: ['unit_id', 'sensor', 'obs_ts'],
+      });
     }
 
     if ((i + 1) % 5 === 0 || i === dates.length - 1) {

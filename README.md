@@ -1,12 +1,12 @@
 <div align="center">
 
-# مَسارب · Masareb
+# مِطياف · Mityaf
 
 **Satellite urban-water intelligence for Al Madinah Municipality**
 
 One satellite time series. Two problems. Zero installed hardware.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/astral-fate/masareb)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/astral-fate/mityaf)
 
 </div>
 
@@ -43,7 +43,7 @@ It does not need to. Satellite revisit is 5 days, which makes this workload *inh
 │  packages/pipeline   Node CLI — runs locally, in Docker, or CI │
 │                                                                │
 │   OSM Overpass ──┐                                             │
-│   Open-Meteo ────┼──▶ MongoDB ──▶ detectors ──▶ static export  │
+│   Open-Meteo ────┼──▶ Postgres ──▶ detectors ──▶ static export │
 │   Earth Engine ──┘    (Atlas)                        │         │
 │     Sentinel-2/1                                     │         │
 │     Copernicus DEM                                   ▼         │
@@ -57,27 +57,33 @@ It does not need to. Satellite revisit is 5 days, which makes this workload *inh
 └───────────────────────────────────────────────────────────────┘
 ```
 
-**Stack:** MongoDB · Express-style Next.js route handlers · React (Next.js App Router) · Node 20.
-Geometry is [Turf.js](https://turfjs.org) on WGS84 with metre units — geodesic, no projection step, so the CRS axis-order class of bug cannot occur.
+**Stack:** Postgres + PostGIS on [Neon](https://neon.tech) · Next.js route handlers · React (App Router) · Node 20.
+Geometry is [Turf.js](https://turfjs.org) on WGS84 with metre units, measured in Postgres via `::geography` casts — both geodesic, neither with a projection step, so the CRS axis-order class of bug cannot occur.
 
 ---
 
 ## Quick start
 
 ```bash
-git clone https://github.com/astral-fate/masareb
-cd masareb
+git clone https://github.com/astral-fate/mityaf
+cd mityaf
 npm install
 cp .env.example .env      # then fill in MONGODB_URI
 ```
 
-### 1. Start MongoDB
+### 1. Point at a Postgres database
 
-```bash
-docker run -d --name masareb-mongo -p 27017:27017 mongo:7
+Create a free project at [neon.tech](https://neon.tech), copy the **pooled** connection string (its host contains `-pooler`), and put it in `.env`:
+
+```
+DATABASE_URL=postgresql://user:pass@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require
 ```
 
-Or use a free [MongoDB Atlas](https://www.mongodb.com/atlas) cluster and set `MONGODB_URI`.
+PostGIS is enabled automatically on the first run. A local Postgres works too:
+
+```bash
+docker run -d --name mityaf-pg -p 5432:5432 -e POSTGRES_PASSWORD=dev postgis/postgis:16-3.4
+```
 
 ### 2. Check your environment
 
@@ -85,7 +91,7 @@ Or use a free [MongoDB Atlas](https://www.mongodb.com/atlas) cluster and set `MO
 npm run pipeline -- doctor
 ```
 
-Reports MongoDB connectivity, Earth Engine auth, and — importantly — **whether the Sentinel-1 archive has fallen behind Sentinel-2**. See [Known limitations](#known-limitations).
+Reports Postgres/PostGIS connectivity, Earth Engine auth, and — importantly — **whether the Sentinel-1 archive has fallen behind Sentinel-2**. See [Known limitations](#known-limitations).
 
 ### 3. Build the data
 
@@ -136,7 +142,7 @@ This is an npm-workspaces monorepo, so **set the Root Directory to `apps/web`** 
 
 **Via the dashboard** (recommended — gives you deploy-on-push):
 
-1. [vercel.com/new](https://vercel.com/new) → import `astral-fate/masareb`
+1. [vercel.com/new](https://vercel.com/new) → import `astral-fate/mityaf`
 2. **Root Directory** → `apps/web`
 3. Framework preset → Next.js *(auto-detected)*
 4. Deploy
@@ -153,8 +159,7 @@ vercel --prod
 
 | Variable | Needed for |
 |---|---|
-| `MONGODB_URI` | live queries instead of precomputed JSON |
-| `MONGODB_DB` | as above |
+| `DATABASE_URL` | live queries instead of precomputed JSON |
 
 Satellite credentials are deliberately **not** set on Vercel: the pipeline runs elsewhere and commits its output, so Earth Engine keys never touch the web host.
 
@@ -172,14 +177,14 @@ git commit -m "ci: enable scheduled pipeline"
 git push
 ```
 
-Then add these repository secrets (`gh secret set NAME`): `MONGODB_URI`, `MONGODB_DB`, `GEE_PROJECT`, `GEE_SERVICE_ACCOUNT_KEY`.
+Then add these repository secrets (`gh secret set NAME`): `DATABASE_URL`, `GEE_PROJECT`, `GEE_SERVICE_ACCOUNT_KEY`.
 
 ---
 
 ## Repository layout
 
 ```
-masareb/
+mityaf/
 ├── apps/web/                 Next.js dashboard → deploys to Vercel
 │   ├── app/                  App Router pages + route handlers
 │   ├── components/           map, KPI cards, detail drawer
@@ -187,7 +192,8 @@ masareb/
 ├── packages/pipeline/        Node batch pipeline
 │   └── src/
 │       ├── config.js         every threshold, in one auditable place
-│       ├── db.js             MongoDB collections, indexes, run audit
+│       ├── db.js             Postgres pool, bulk upsert, run audit
+│       ├── schema.sql        PostGIS DDL with the honesty constraints
 │       ├── osm.js            Overpass ingestion
 │       ├── units.js          green assets, spill rings, street segments
 │       ├── weather.js        rain archive + the module discriminator
@@ -231,7 +237,7 @@ Stated here because they are design constraints, not bugs:
 
 ## Attribution
 
-Reuses the Earth Engine authentication pattern, incremental-update discipline and adaptive per-site threshold logic from the team's earlier `palm-satellite-paper` pipeline, disclosed per hackathon originality rules. Everything else — the urban water domain, the spill-ring method, the ponding module, street segmentation, the recommendation engine, the MongoDB schema and the web application — is new.
+Reuses the Earth Engine authentication pattern, incremental-update discipline and adaptive per-site threshold logic from the team's earlier `palm-satellite-paper` pipeline, disclosed per hackathon originality rules. Everything else — the urban water domain, the spill-ring method, the ponding module, street segmentation, the recommendation engine, the database schema and the web application — is new.
 
 Data: Copernicus Sentinel-1/2 and DEM (ESA) · Landsat (USGS/NASA) · [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, ODbL · [Open-Meteo](https://open-meteo.com), CC-BY · Al Madinah Municipality open data.
 

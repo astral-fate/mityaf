@@ -8,7 +8,7 @@
  * Measured on the Madinah record: only 2.3% of days are wet, so the rainless
  * gate is open almost always and Module A can run on nearly every pass.
  */
-import { collections, connect } from './db.js';
+import { bulkUpsert, query } from './db.js';
 import { config } from './config.js';
 
 const ARCHIVE_URL = 'https://archive-api.open-meteo.com/v1/archive';
@@ -145,32 +145,60 @@ export function discriminatorState(rain72hMm, daysSinceRain) {
 }
 
 export async function backfill({ start = '2015-01-01' } = {}) {
-  const d = await connect();
-
   const rows = addRainContext(await fetchArchive({ start }));
   console.log(`  archive : ${rows.length.toLocaleString()} days  ` +
               `${iso(rows[0].date)} -> ${iso(rows[rows.length - 1].date)}`);
 
-  await d.collection(collections.weatherDaily).deleteMany({});
-  await d.collection(collections.weatherDaily).insertMany(rows, { ordered: false });
+  await bulkUpsert({
+    table: 'weather_daily',
+    columns: ['date', 'precipitation_sum_mm', 'precipitation_hours',
+              'temperature_2m_max', 'temperature_2m_min', 'shortwave_radiation_sum',
+              'et0_fao', 'rain_72h_mm', 'days_since_rain'],
+    rows: rows.map((r) => ({
+      date: iso(r.date),
+      precipitation_sum_mm: r.precipitationSumMm,
+      precipitation_hours: r.precipitationHours,
+      temperature_2m_max: r.temperature2mMax,
+      temperature_2m_min: r.temperature2mMin,
+      shortwave_radiation_sum: r.shortwaveRadiationSum,
+      et0_fao: r.et0Fao,
+      rain_72h_mm: r.rain72hMm,
+      days_since_rain: r.daysSinceRain,
+    })),
+    conflictTarget: ['date'],
+  });
 
   const events = extractRainEvents(rows);
-  await d.collection(collections.rainEvents).deleteMany({});
   if (events.length) {
-    await d.collection(collections.rainEvents).insertMany(events, { ordered: false });
+    await bulkUpsert({
+      table: 'rain_events',
+      columns: ['rain_event_id', 'start_date', 'end_date', 'peak_date', 'total_mm', 'max_daily_mm'],
+      rows: events.map((e) => ({
+        rain_event_id: e.rainEventId,
+        start_date: iso(e.startDate),
+        end_date: iso(e.endDate),
+        peak_date: iso(e.peakDate),
+        total_mm: e.totalMm,
+        max_daily_mm: e.maxDailyMm,
+      })),
+      conflictTarget: ['rain_event_id'],
+    });
   }
   console.log(`  events  : ${events.length} rain events >= ${config.rain.eventMinMm} mm`);
 
   const wetDays = rows.filter((r) => (r.precipitationSumMm ?? 0) >= 1.0).length;
   const pct = ((100 * wetDays) / rows.length).toFixed(1);
   console.log(`  wet days: ${wetDays.toLocaleString()} of ${rows.length.toLocaleString()} ` +
-              `(${pct}%) — the rainless gate is cheap here`);
+              `(${pct}%) - the rainless gate is cheap here`);
 
-  const top = [...events].sort((a, b) => b.totalMm - a.totalMm).slice(0, 6);
-  console.log('\n  largest rain events on record:');
+  const { rows: top } = await query(
+    `SELECT peak_date, total_mm, max_daily_mm FROM rain_events
+      ORDER BY total_mm DESC LIMIT 6`);
+  console.log('
+  largest rain events on record:');
   for (const e of top) {
-    console.log(`    ${iso(e.peakDate)}   total ${String(e.totalMm).padStart(6)} mm   ` +
-                `peak day ${String(e.maxDailyMm).padStart(5)} mm`);
+    console.log(`    ${iso(new Date(e.peak_date))}   total ${String(e.total_mm).padStart(6)} mm   ` +
+                `peak day ${String(e.max_daily_mm).padStart(5)} mm`);
   }
 
   return { days: rows.length, events: events.length };

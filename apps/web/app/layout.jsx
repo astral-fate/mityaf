@@ -1,7 +1,7 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'مَسارب · Masareb',
+  title: 'مِطياف · Mityaf',
   description:
     'منصّة رصد المياه الحضرية بالأقمار الصناعية والذكاء الاصطناعي — أمانة منطقة المدينة المنورة',
 };
@@ -28,7 +28,7 @@ export default function RootLayout({ children }) {
             ))}
           </div>
           <div className="brandmark">
-            <span>مَسارب · أمانة منطقة المدينة المنورة</span>
+            <span>مِطياف · أمانة منطقة المدينة المنورة</span>
             <span className="dot" />
           </div>
         </nav>
