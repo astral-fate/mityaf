@@ -151,7 +151,19 @@ The satellite keys are **not** needed on Vercel: the pipeline runs elsewhere and
 
 ### Keeping data fresh
 
-The pipeline is batch, so refresh it on a schedule with GitHub Actions and let the resulting commit trigger a Vercel deploy. See `.github/workflows/pipeline.yml`.
+The pipeline is batch, so refresh it on a schedule with GitHub Actions and let the resulting commit trigger a Vercel deploy.
+
+The workflow is ready at **`ci/pipeline.yml`**. It lives there rather than in `.github/workflows/` because pushing a workflow file needs the `workflow` OAuth scope. To enable it:
+
+```bash
+gh auth refresh -s workflow          # one-time, opens a browser
+mkdir -p .github/workflows
+git mv ci/pipeline.yml .github/workflows/pipeline.yml
+git commit -m "ci: enable scheduled pipeline"
+git push
+```
+
+Then add these repository secrets (`gh secret set NAME`): `MONGODB_URI`, `MONGODB_DB`, `GEE_PROJECT`, `GEE_SERVICE_ACCOUNT_KEY`.
 
 ---
 
