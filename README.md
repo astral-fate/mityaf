@@ -132,22 +132,31 @@ Server-side Earth Engine needs a **service account**, not your personal login:
 
 ## Deploy to Vercel
 
+This is an npm-workspaces monorepo, so **set the Root Directory to `apps/web`** — that one setting is the whole trick. Vercel then auto-detects Next.js, installs from the workspace root, and reads `apps/web/vercel.json`.
+
+**Via the dashboard** (recommended — gives you deploy-on-push):
+
+1. [vercel.com/new](https://vercel.com/new) → import `astral-fate/masareb`
+2. **Root Directory** → `apps/web`
+3. Framework preset → Next.js *(auto-detected)*
+4. Deploy
+
+**Via CLI:**
+
 ```bash
 npm i -g vercel
 vercel link
 vercel --prod
 ```
 
-Or connect the GitHub repo in the Vercel dashboard — every push to `main` deploys.
-
-**Environment variables** to set in Vercel → Project Settings:
+**Environment variables** — none are required. The app reads precomputed JSON from `public/data`, so it deploys and renders with no configuration at all. Optionally:
 
 | Variable | Needed for |
 |---|---|
-| `MONGODB_URI` | live queries (optional — the app falls back to precomputed JSON) |
+| `MONGODB_URI` | live queries instead of precomputed JSON |
 | `MONGODB_DB` | as above |
 
-The satellite keys are **not** needed on Vercel: the pipeline runs elsewhere and commits its output. Keeping GEE credentials off the web host is deliberate.
+Satellite credentials are deliberately **not** set on Vercel: the pipeline runs elsewhere and commits its output, so Earth Engine keys never touch the web host.
 
 ### Keeping data fresh
 
