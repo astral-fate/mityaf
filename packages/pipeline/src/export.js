@@ -72,7 +72,8 @@ async function exportSegments() {
 
 async function exportGreen() {
   const { rows } = await query(
-    `SELECT unit_id, unit_type, parent_unit_id, name_ar, district_ar, area_m2, qa_flags,
+    `SELECT unit_id, unit_type, parent_unit_id, name_ar, display_name_ar,
+            asset_kind, asset_kind_ar, district_ar, area_m2, qa_flags,
             ST_AsGeoJSON(ST_Simplify(geom, $1), 5) AS gj
        FROM units
       WHERE unit_type IN ('green','ring') AND active`,
@@ -85,8 +86,13 @@ async function exportGreen() {
       id: r.unit_id,
       t: r.unit_type,
       district: r.district_ar,
+      kind: r.asset_kind,
+      kindAr: r.asset_kind_ar,
+      // a sand pitch reading NDVI 0.09 is working as designed, and must
+      // not be counted beside a park that lost its planting
+      expectsVeg: r.asset_kind !== 'pitch',
       parent: r.parent_unit_id,
-      name: r.name_ar,
+      name: r.display_name_ar ?? r.name_ar,
       area: r.area_m2 === null ? null : Math.round(r.area_m2),
       // honesty travels with the geometry: the UI greys these out
       small: Boolean(r.qa_flags?.ringTooSmall),
@@ -237,6 +243,117 @@ async function exportGreenHealth() {
   });
 }
 
+/**
+ * One file per green asset: its full index history plus its verdict.
+ *
+ * Split per asset rather than shipped as one blob because the detail page
+ * needs exactly one of them. A combined file would be roughly 324 x 140
+ * readings that every visitor downloads to look at a single park.
+ */
+async function exportGreenSeries() {
+  const { rows: units } = await query(
+    `SELECT u.unit_id, u.name_ar, u.district_ar, u.area_m2,
+            ST_AsGeoJSON(u.geom, 6) AS gj,
+            ST_X(ST_PointOnSurface(u.geom)) AS lon,
+            ST_Y(ST_PointOnSurface(u.geom)) AS lat,
+            h.status, h.ndvi_median, h.ndvi_max, h.ndmi_median,
+            h.ndvi_slope_yr, h.ndmi_slope_yr, h.ndmi_reliable,
+            h.n_observations, h.reason_ar, h.assessed_on
+       FROM units u
+       LEFT JOIN LATERAL (
+         SELECT * FROM green_health g
+          WHERE g.green_unit_id = u.unit_id
+          ORDER BY g.assessed_on DESC LIMIT 1
+       ) h ON TRUE
+      WHERE u.unit_type = 'green' AND u.active`);
+
+  const { rows: obs } = await query(
+    `SELECT o.unit_id, o.obs_date, o.ndvi, o.ndmi, o.ndwi, o.mndwi,
+            o.rain_72h_mm, o.days_since_rain
+       FROM observations o
+       JOIN units u ON u.unit_id = o.unit_id
+      WHERE u.unit_type = 'green' AND o.sensor = 'S2' AND o.quality_flag = 'ok'
+      ORDER BY o.unit_id, o.obs_date`);
+
+  const series = new Map();
+  for (const o of obs) {
+    if (!series.has(o.unit_id)) series.set(o.unit_id, []);
+    series.get(o.unit_id).push({
+      d: String(o.obs_date).slice(0, 10),
+      ndvi: o.ndvi === null ? null : Number(o.ndvi.toFixed(4)),
+      ndmi: o.ndmi === null ? null : Number(o.ndmi.toFixed(4)),
+      mndwi: o.mndwi === null ? null : Number(o.mndwi.toFixed(4)),
+      rain72: o.rain_72h_mm,
+    });
+  }
+
+  const dir = path.join(OUT(), 'green');
+  await fs.mkdir(dir, { recursive: true });
+  let bytes = 0;
+  for (const u of units) {
+    const payload = {
+      id: u.unit_id,
+      name: u.name_ar,
+      district: u.district_ar,
+      areaM2: u.area_m2,
+      centroid: [u.lon, u.lat],
+      geometry: JSON.parse(u.gj),
+      health: u.status ? {
+        status: u.status,
+        assessedOn: u.assessed_on,
+        ndviMedian: u.ndvi_median,
+        ndviMax: u.ndvi_max,
+        ndmiMedian: u.ndmi_median,
+        ndviSlopeYr: u.ndvi_slope_yr,
+        ndmiSlopeYr: u.ndmi_slope_yr,
+        ndmiReliable: u.ndmi_reliable,
+        nObservations: u.n_observations,
+        reasonAr: u.reason_ar,
+      } : null,
+      series: series.get(u.unit_id) ?? [],
+    };
+    const file = path.join(dir, `${u.unit_id}.json`);
+    const text = JSON.stringify(payload);
+    await fs.writeFile(file, text, 'utf8');
+    bytes += Buffer.byteLength(text);
+  }
+  console.log(`  green/*.json           ${Math.round(bytes / 1024)} KB across ${units.length} files`);
+  return Math.round(bytes / 1024);
+}
+
+/** Classified citizen reports and the alerts they cluster into. */
+async function exportSocial() {
+  const { rows } = await query(
+    `SELECT report_id, source, synthetic, author, text_raw, created_at,
+            category, district_ar, urgency, level, matched_terms, explanation_ar
+       FROM social_reports ORDER BY created_at DESC LIMIT 500`);
+
+  const posts = rows.map((r) => ({
+    id: r.report_id,
+    source: r.source,
+    synthetic: r.synthetic,
+    author: r.author,
+    text: r.text_raw,
+    createdAt: r.created_at,
+    category: r.category,
+    district: r.district_ar,
+    urgency: r.urgency,
+    level: r.level,
+    matched: r.matched_terms?.matched ?? [],
+    intensifiers: r.matched_terms?.intensifiers ?? [],
+    explanationAr: r.explanation_ar,
+  }));
+
+  return writeJson('social.json', {
+    posts,
+    count: posts.length,
+    // Stated at the top level so the UI can label the whole feed without
+    // inspecting every row.
+    anySynthetic: posts.some((p) => p.synthetic),
+    allSynthetic: posts.length > 0 && posts.every((p) => p.synthetic),
+  });
+}
+
 async function exportRain() {
   const { rows: events } = await query(
     `SELECT rain_event_id AS "rainEventId", start_date AS "startDate",
@@ -295,6 +412,8 @@ export async function exportStatic() {
   total += await exportRain();
   total += await exportDistricts();
   total += await exportGreenHealth();
+  total += await exportGreenSeries();
+  total += await exportSocial();
   console.log(`\n  total payload: ${(total / 1024).toFixed(1)} MB uncompressed ` +
               `(gzip on the wire is roughly a quarter of that)`);
   return total;

@@ -175,6 +175,10 @@
   border-inline-end: 1px solid var(--lp-line);
   background: var(--lp-ground-2);
 }
+/* Flex children default to shrinking below their content. In a scrolling
+   column that makes translucent cards overlap each other, which reads on
+   screen as a blurred double-exposure rather than as a layout bug. */
+.dash-side > * { flex: 0 0 auto; }
 .dash-side::-webkit-scrollbar { width: 8px; }
 .dash-side::-webkit-scrollbar-thumb { background: var(--lp-line-2); border-radius: 4px; }
 

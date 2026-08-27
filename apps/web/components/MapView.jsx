@@ -105,8 +105,11 @@ export default function MapView({
     const map = new maplibregl.Map({
       container: container.current,
       style: INK_STYLE,
-      bounds: [[AOI.minLon, AOI.minLat], [AOI.maxLon, AOI.maxLat]],
-      fitBoundsOptions: { padding: 28 },
+      // Fit the imagery, not the AOI. The mosaic covers 24.405..24.529 while
+      // the AOI runs 24.36..24.58, so fitting the AOI left the basemap as a
+      // rectangle floating in black with the network hanging off its edges.
+      bounds: [[HERO_BOUNDS[0][0], HERO_BOUNDS[2][1]], [HERO_BOUNDS[1][0], HERO_BOUNDS[0][1]]],
+      fitBoundsOptions: { padding: 10 },
       attributionControl: false,
     });
     mapRef.current = map;

@@ -11,6 +11,8 @@
  *   backfill-weather  Open-Meteo daily archive -> rain events
  *   backfill-s2       Sentinel-2 index time series over every unit
  *   build-health      NDVI/NDMI history -> a health verdict per green asset
+ *   ingest-social     citizen reports -> Arabic classification -> district alerts
+ *   label-assets      OSM tags -> what each green asset actually is
  *   export-static     write precomputed JSON into apps/web/public/data
  *   all               units -> weather -> s2 -> export
  */
@@ -20,6 +22,8 @@ import * as gee from './gee.js';
 import * as units from './units.js';
 import { buildDistricts } from './districts.js';
 import { buildHealth } from './health.js';
+import { ingestSocial } from './social-ingest.js';
+import { labelAssets } from './asset-kind.js';
 import * as weather from './weather.js';
 import { exportStatic } from './export.js';
 import { backfillS2 } from './s2.js';
@@ -82,6 +86,20 @@ async function doctor() {
 // ── main ───────────────────────────────────────────────────────────────────
 const commands = {
   doctor,
+
+  'label-assets': () =>
+    withRun('label_assets', {}, async (run) => {
+      await initSchema();
+      const r = await labelAssets();
+      run.add({ labelled: r.labelled, named: r.named });
+    }),
+
+  'ingest-social': () =>
+    withRun('ingest_social', {}, async (run) => {
+      await initSchema();
+      const r = await ingestSocial({});
+      run.add({ posts: r.posts, alerts: r.alerts, source: r.source });
+    }),
 
   'build-health': () =>
     withRun('build_health', {}, async (run) => {

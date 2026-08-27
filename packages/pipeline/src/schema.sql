@@ -22,6 +22,11 @@ CREATE TABLE IF NOT EXISTS units (
   name_ar              TEXT,
   name_en              TEXT,
   district_ar          TEXT,
+  -- what the thing IS, from OSM tags: a park, a pitch and a roadside
+  -- planting strip need different interventions when vegetation fails
+  asset_kind           TEXT,
+  asset_kind_ar        TEXT,
+  display_name_ar      TEXT,
   source               TEXT NOT NULL,
   source_ref           TEXT,
   geom                 geometry(Geometry, 4326) NOT NULL,
@@ -65,6 +70,9 @@ CREATE INDEX IF NOT EXISTS ix_units_centroid ON units USING GIST (centroid);
 -- unit_type domain needs an explicit migration. Dropping and re-adding is
 -- idempotent and cheap; the constraint is revalidated against current rows.
 ALTER TABLE units DROP CONSTRAINT IF EXISTS units_unit_type_check;
+ALTER TABLE units ADD COLUMN IF NOT EXISTS asset_kind TEXT;
+ALTER TABLE units ADD COLUMN IF NOT EXISTS asset_kind_ar TEXT;
+ALTER TABLE units ADD COLUMN IF NOT EXISTS display_name_ar TEXT;
 ALTER TABLE units ADD CONSTRAINT units_unit_type_check
   CHECK (unit_type IN ('green','ring','segment','catchment','district'));
 
@@ -115,6 +123,28 @@ CREATE INDEX IF NOT EXISTS ix_obs_date      ON observations (obs_date DESC);
 -- ───────────────────────── WASTE EVENTS (Module A) ─────────────────────────
 -- Vegetation health per green asset. One verdict per asset per assessment
 -- date, so the history of the judgement is kept, not just the latest call.
+-- Citizen reports. `synthetic` is NOT NULL on purpose: every row must state
+-- whether it came from a real feed or the demo corpus, so nothing downstream
+-- can present sample data as live by omission.
+CREATE TABLE IF NOT EXISTS social_reports (
+  report_id       TEXT PRIMARY KEY,
+  source          TEXT NOT NULL CHECK (source IN ('x','sample','balady','940')),
+  synthetic       BOOLEAN NOT NULL DEFAULT FALSE,
+  author          TEXT,
+  text_raw        TEXT NOT NULL,
+  created_at      TIMESTAMPTZ NOT NULL,
+  category        TEXT NOT NULL,
+  district_ar     TEXT,
+  urgency         INTEGER NOT NULL DEFAULT 0,
+  level           TEXT NOT NULL CHECK (level IN ('low','medium','high','critical')),
+  -- the terms that actually fired, so an officer can audit the verdict
+  matched_terms   JSONB DEFAULT '{}'::jsonb,
+  explanation_ar  TEXT,
+  ingested_at     TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS ix_social_district ON social_reports (district_ar, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_social_level    ON social_reports (level, created_at DESC);
+
 CREATE TABLE IF NOT EXISTS green_health (
   green_unit_id   TEXT NOT NULL REFERENCES units(unit_id) ON DELETE CASCADE,
   assessed_on     DATE NOT NULL,

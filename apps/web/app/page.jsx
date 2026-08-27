@@ -268,11 +268,11 @@ export default function Landing() {
       <section className="lp-sec alt">
         <div className="lp-wrap">
           <p className="lp-eyebrow">الواجهة</p>
-          <h2 className="lp-h2">قائمة عمل، لا خريطة ملوّنة</h2>
+          <h2 className="lp-h2">من الصورة إلى قرار الصيانة</h2>
           <p className="lp-lede">
-            اللقطات أدناه تُظهر بنية الواجهة، وقيمها الرقمية توضيحية إلى أن يُربط مفتاح
-            Google&nbsp;Earth&nbsp;Engine. أمّا الأعداد المذكورة في الصفحة — ٣٢٤ أصلاً و٣٠٬٣٣٧
-            مقطعاً و٣٠ حدثاً مطرياً منذ ٢٠١٥ — فمبنيّة فعلاً في قاعدة البيانات.
+            المنصّة تعمل الآن على بيانات أقمار حيّة. صُنِّفت حالة <strong>٣٢٤ أصلاً أخضر</strong>
+            من سلسلة زمنية فعلية لمؤشرات Sentinel-2، وبُنيت شبكة <strong>٣٠٬٣٣٧ مقطع شارع</strong>
+            موزّعة على <strong>٩١ حيّاً</strong>، مع أرشيف <strong>٣٠ حدثاً مطرياً</strong> منذ ٢٠١٥.
           </p>
 
           <div className="lp-screens">
