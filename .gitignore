@@ -48,3 +48,6 @@ Thumbs.db
 *.log
 npm-debug.log*
 yarn-error.log*
+
+# research data cache (DEM tiles, OSM dumps)
+research/cache/
