@@ -35,6 +35,12 @@ export const NAV = [
     ],
   },
   {
+    id: 'reports',
+    title: 'بلاغات المجتمع',
+    icon: 'alert',
+    href: '/dashboard/reports',
+  },
+  {
     id: 'analysis',
     title: 'التحليل',
     icon: 'chart',
@@ -66,4 +72,5 @@ export const ICONS = {
   chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2',
   drop: 'M12 3s6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 6-10 6-10z',
   search: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3',
+  alert: 'M12 3 2 20h20zM12 10v4M12 17.5v.5',
 };

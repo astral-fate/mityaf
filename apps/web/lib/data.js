@@ -33,6 +33,7 @@ export const loadWasteEvents = () => loadJson('waste-events.json');
 export const loadRain = () => loadJson('rain.json');
 export const loadDistricts = () => loadJson('districts.geojson');
 export const loadHealth = () => loadJson('green-health.json');
+export const loadSocial = () => loadJson('social.json');
 
 /** Colour ramp shared by the map paint expression and the list rows. */
 export function riskColor(score) {
