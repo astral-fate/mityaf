@@ -47,6 +47,7 @@ async function exportSegments() {
   const { rows } = await query(
     `SELECT u.unit_id,
             u.name_ar,
+            u.district_ar,
             ST_AsGeoJSON(ST_Simplify(u.geom, $1), 5) AS gj,
             r.risk_score,
             r.risk_band
@@ -62,6 +63,7 @@ async function exportSegments() {
     toFeatureCollection(rows, (r) => ({
       id: r.unit_id,
       name: r.name_ar,
+      d: r.district_ar,
       s: r.risk_score === null ? null : Math.round(r.risk_score * 100),
       b: r.risk_band ?? 'insufficient_data',
     })),
@@ -70,7 +72,7 @@ async function exportSegments() {
 
 async function exportGreen() {
   const { rows } = await query(
-    `SELECT unit_id, unit_type, parent_unit_id, name_ar, area_m2, qa_flags,
+    `SELECT unit_id, unit_type, parent_unit_id, name_ar, district_ar, area_m2, qa_flags,
             ST_AsGeoJSON(ST_Simplify(geom, $1), 5) AS gj
        FROM units
       WHERE unit_type IN ('green','ring') AND active`,
@@ -82,6 +84,7 @@ async function exportGreen() {
     toFeatureCollection(rows, (r) => ({
       id: r.unit_id,
       t: r.unit_type,
+      district: r.district_ar,
       parent: r.parent_unit_id,
       name: r.name_ar,
       area: r.area_m2 === null ? null : Math.round(r.area_m2),
@@ -93,19 +96,45 @@ async function exportGreen() {
 
 async function exportWasteEvents() {
   const { rows } = await query(
-    `SELECT w.*, u.name_ar AS unit_name_ar
+    `SELECT w.*, u.name_ar AS unit_name_ar, u.district_ar
        FROM waste_events w
        LEFT JOIN units u ON u.unit_id = w.green_unit_id
       ORDER BY w.severity_score DESC NULLS LAST
       LIMIT 500`,
   );
-  return writeJson('waste-events.json', { items: rows, count: rows.length });
+
+  // Shaped to match the flood detections rather than passed through raw. The
+  // dashboard reads x.unit?.nameAr and x.greenUnitId for both kinds; handing
+  // it snake_case here meant every waste row rendered a blank title, which
+  // nothing revealed because the table is still empty.
+  const items = rows.map((r) => ({
+    eventId: r.event_id,
+    greenUnitId: r.green_unit_id,
+    ringUnitId: r.ring_unit_id,
+    detectedOn: r.detected_on,
+    severity: r.severity,
+    severityScore: r.severity_score,
+    zRing: r.z_ring,
+    wetAreaM2: r.wet_area_m2,
+    rain72hMm: r.rain_72h_mm,
+    daysSinceRain: r.days_since_rain,
+    estExcessM3: r.est_excess_m3,
+    estExcessM3Low: r.est_excess_m3_low,
+    estExcessM3High: r.est_excess_m3_high,
+    estimateConfidence: r.estimate_confidence,
+    detectionStatus: r.detection_status,
+    signature: r.signature,
+    explanationAr: r.explanation_ar,
+    recommendationAr: r.recommendation_ar,
+    unit: { nameAr: r.unit_name_ar, districtAr: r.district_ar },
+  }));
+  return writeJson('waste-events.json', { items, count: items.length });
 }
 
 async function exportSegmentDetails() {
   const { rows } = await query(
     `SELECT r.*,
-            u.name_ar, u.highway_class, u.length_m,
+            u.name_ar, u.district_ar, u.highway_class, u.length_m,
             u.dtm_confidence, u.sar_visibility,
             ST_X(u.centroid) AS lon, ST_Y(u.centroid) AS lat
        FROM segment_risk r
@@ -125,6 +154,7 @@ async function exportSegmentDetails() {
     topDrivers: r.top_drivers,
     unit: {
       nameAr: r.name_ar,
+      districtAr: r.district_ar,
       highwayClass: r.highway_class,
       lengthM: r.length_m,
       dtmConfidence: r.dtm_confidence,
@@ -133,6 +163,45 @@ async function exportSegmentDetails() {
     },
   }));
   return writeJson('segments-top.json', { items, count: items.length });
+}
+
+/**
+ * District cells plus a per-district roll-up.
+ *
+ * The counts ride along with the geometry rather than being recomputed in the
+ * browser: the filter list needs them before any segment has been fetched,
+ * and 30k features is the wrong thing to load just to count them.
+ */
+async function exportDistricts() {
+  const { rows } = await query(
+    `SELECT d.unit_id,
+            d.name_ar,
+            d.qa_flags,
+            ST_AsGeoJSON(ST_Simplify(d.geom, $1), 5) AS gj,
+            (SELECT count(*)::int FROM units u
+              WHERE u.unit_type = 'segment' AND u.district_ar = d.name_ar) AS n_segments,
+            (SELECT count(*)::int FROM units u
+              WHERE u.unit_type = 'green' AND u.district_ar = d.name_ar) AS n_green,
+            round((d.area_m2 / 1e6)::numeric, 2) AS area_km2
+       FROM units d
+      WHERE d.unit_type = 'district' AND d.active
+      ORDER BY d.name_ar`,
+    [SIMPLIFY_DEG],
+  );
+
+  return writeJson(
+    'districts.geojson',
+    toFeatureCollection(rows, (r) => ({
+      id: r.unit_id,
+      name: r.name_ar,
+      seg: r.n_segments,
+      green: r.n_green,
+      km2: Number(r.area_km2),
+      // stated on every feature, so nothing downstream can present a derived
+      // boundary as an official one by omission
+      derived: r.qa_flags?.boundarySource === 'voronoi',
+    })),
+  );
 }
 
 async function exportRain() {
@@ -191,6 +260,7 @@ export async function exportStatic() {
   total += await exportSegmentDetails();
   total += await exportWasteEvents();
   total += await exportRain();
+  total += await exportDistricts();
   console.log(`\n  total payload: ${(total / 1024).toFixed(1)} MB uncompressed ` +
               `(gzip on the wire is roughly a quarter of that)`);
   return total;

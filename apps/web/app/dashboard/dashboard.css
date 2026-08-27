@@ -6,15 +6,35 @@
    at the smallest thing on screen.
    ============================================================ */
 
-.dash {
-  position: fixed;
-  inset: 60px 0 0;            /* under the sticky topnav */
-  display: grid;
-  grid-template-columns: 372px minmax(0, 1fr);
+/* rail + view. The shell owns the viewport; the views just fill it. */
+.dash-shell {
+  position: fixed; inset: 60px 0 0;   /* under the sticky topnav */
+  display: grid; grid-template-columns: 78px minmax(0, 1fr);
   background: var(--lp-ground);
 }
+.rail {
+  display: flex; flex-direction: column; gap: 4px; padding: 10px 8px;
+  border-inline-end: 1px solid var(--lp-line); background: var(--lp-ground);
+}
+.rail-item {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  padding: 11px 4px; border-radius: 11px; text-decoration: none;
+  color: var(--lp-fg-3); font-size: 10.5px; font-weight: 600; text-align: center;
+  border: 1px solid transparent; transition: color .15s ease, background .15s ease;
+}
+.rail-item:hover { color: var(--lp-fg-2); background: rgba(255, 255, 255, .04); }
+.rail-item.on { color: var(--lp-signal); background: rgba(80, 255, 74, .1); border-color: rgba(80, 255, 74, .26); }
+.rail-item:focus-visible { outline: 2px solid var(--lp-water); outline-offset: 2px; }
+
+.dash, .stats {
+  display: grid; grid-template-columns: 372px minmax(0, 1fr);
+  min-width: 0; min-height: 0;
+}
 @media (max-width: 900px) {
-  .dash { position: static; inset: auto; grid-template-columns: 1fr; height: auto; }
+  .dash-shell { position: static; inset: auto; grid-template-columns: 1fr; }
+  .rail { flex-direction: row; border-inline-end: none; border-block-end: 1px solid var(--lp-line); }
+  .rail-item { flex: 1; flex-direction: row; justify-content: center; }
+  .dash, .stats { grid-template-columns: 1fr; }
   .dash-side { max-height: none; }
   .dash-map { height: 68vh; }
 }
@@ -265,3 +285,75 @@
   border: 1px dashed var(--lp-line-2); background: rgba(255, 255, 255, .02);
 }
 .dnote b { color: var(--lp-fg-2); font-weight: 600; }
+
+
+/* ── filters ─────────────────────────────────────────────── */
+.fbar { display: flex; flex-direction: column; gap: 12px; padding: 13px;
+        border: 1px solid var(--lp-line); border-radius: 13px; background: var(--lp-surface); }
+.fbar-row { display: flex; flex-direction: column; gap: 6px; }
+.fbar-row.dates { flex-direction: row; align-items: center; gap: 8px; }
+.fbar-lab { font-size: 11px; font-weight: 600; color: var(--lp-fg-3); }
+.fbar-sel, .fbar-date {
+  width: 100%; padding: 8px 10px; border-radius: 9px; font: inherit; font-size: 12.5px;
+  background: rgba(255, 255, 255, .04); border: 1px solid var(--lp-line-2); color: var(--lp-fg);
+}
+.fbar-date { flex: 1; min-width: 0; color-scheme: dark; }
+.fbar-dash { color: var(--lp-fg-3); font-size: 12px; }
+.fbar-sel:focus-visible, .fbar-date:focus-visible { outline: 2px solid var(--lp-water); outline-offset: 1px; }
+.fbar-presets { display: flex; flex-wrap: wrap; gap: 5px; }
+.fbar-preset {
+  padding: 6px 10px; border-radius: 8px; cursor: pointer; font: inherit; font-size: 11px;
+  background: rgba(255, 255, 255, .04); border: 1px solid var(--lp-line); color: var(--lp-fg-3);
+}
+.fbar-preset:hover { color: var(--lp-fg); border-color: var(--lp-line-2); }
+.fbar-preset[aria-pressed="true"] { color: var(--lp-water); border-color: rgba(47, 216, 239, .4); }
+.fbar-clear {
+  padding: 8px; border-radius: 9px; cursor: pointer; font: inherit; font-size: 11.5px; font-weight: 600;
+  background: rgba(240, 138, 90, .1); border: 1px solid rgba(240, 138, 90, .3); color: var(--sev-2);
+}
+
+.dl-btn {
+  padding: 12px; border-radius: 11px; cursor: pointer; font: inherit;
+  font-size: 13px; font-weight: 600; font-family: var(--font-display);
+  background: var(--lp-signal); color: #032a06; border: none;
+}
+.dl-btn:hover:not(:disabled) { box-shadow: 0 6px 22px rgba(80, 255, 74, .32); }
+.dl-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ── statistics ──────────────────────────────────────────── */
+.stats-body { overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.stat-card { padding: 15px 16px; border-radius: 13px; border: 1px solid var(--lp-line); background: var(--lp-surface); }
+.stat-card .v { font-family: var(--font-display); font-size: 26px; font-weight: 600;
+                letter-spacing: -.02em; color: var(--lp-sand); font-variant-numeric: tabular-nums; }
+.stat-card .l { font-size: 11.5px; color: var(--lp-fg-3); margin-top: 5px; }
+
+.stat-block { border: 1px solid var(--lp-line); border-radius: 13px; background: var(--lp-surface); overflow: hidden; }
+.stat-h { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+          padding: 12px 15px; border-bottom: 1px solid var(--lp-line); }
+.stat-h h2 { font-family: var(--font-display); font-size: 15px; font-weight: 600; }
+.stat-h .c { font-size: 12px; color: var(--lp-fg-3); font-variant-numeric: tabular-nums; }
+.stat-empty { padding: 26px 15px; text-align: center; font-size: 12.5px; color: var(--lp-fg-3); }
+.spark { width: 100%; height: 130px; padding: 10px 6px 0; }
+
+.sortby { display: flex; gap: 3px; }
+.sortby button {
+  padding: 5px 9px; border-radius: 7px; cursor: pointer; font: inherit; font-size: 11px;
+  background: none; border: 1px solid transparent; color: var(--lp-fg-3);
+}
+.sortby button:hover { color: var(--lp-fg-2); background: rgba(255, 255, 255, .05); }
+.sortby button[aria-pressed="true"] { color: var(--lp-water); border-color: rgba(47, 216, 239, .35); }
+
+.tbl-scroll { overflow-x: auto; max-height: 46vh; overflow-y: auto; }
+.stbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.stbl th {
+  position: sticky; top: 0; z-index: 1; text-align: start; font-weight: 600;
+  padding: 9px 14px; color: var(--lp-fg-3); font-size: 11px;
+  background: var(--lp-surface); border-bottom: 1px solid var(--lp-line-2);
+}
+.stbl td { padding: 9px 14px; border-bottom: 1px solid var(--lp-line); color: var(--lp-fg-2); }
+.stbl td.k { color: var(--lp-fg); font-weight: 600; }
+.stbl td.num { font-variant-numeric: tabular-nums; direction: ltr; text-align: start; }
+.stbl tr:last-child td { border-bottom: none; }
+.stat-foot { padding: 11px 15px; font-size: 11px; line-height: 1.6; color: var(--lp-fg-3);
+             border-top: 1px solid var(--lp-line); }

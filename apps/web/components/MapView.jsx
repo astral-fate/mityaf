@@ -82,6 +82,7 @@ export default function MapView({
   scored = false,
   layers = { satellite: true, risk: true, green: true, rings: true },
   userLayers = [],
+  district = null,
   fitTo = null,
   onSelect,
 }) {
@@ -362,6 +363,17 @@ export default function MapView({
       }
     }
   }, [userLayers, status]);
+
+  // Narrowing to a district is a filter, not a refetch: the geometry is
+  // already on the GPU and setFilter costs nothing next to re-parsing 6.8 MB.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || dataStatus !== 'ready') return;
+    const f = district ? ['==', ['get', 'd'], district] : null;
+    for (const id of ['segments-line', 'segments-glow']) {
+      if (map.getLayer(id)) map.setFilter(id, f);
+    }
+  }, [district, dataStatus]);
 
   // Fly to a layer the moment it is imported: dropping a file and seeing the
   // map stay where it was reads as "nothing happened".

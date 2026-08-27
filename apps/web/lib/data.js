@@ -31,6 +31,7 @@ export const loadGreen = () => loadJson('green.geojson');
 export const loadTopSegments = () => loadJson('segments-top.json');
 export const loadWasteEvents = () => loadJson('waste-events.json');
 export const loadRain = () => loadJson('rain.json');
+export const loadDistricts = () => loadJson('districts.geojson');
 
 /** Colour ramp shared by the map paint expression and the list rows. */
 export function riskColor(score) {

@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
-import './dashboard.css';
+
 import DropZone from '@/components/DropZone';
+import FilterBar from '@/components/FilterBar';
 import {
   fmt, loadGreen, loadMeta, loadRain, loadTopSegments, loadWasteEvents, riskColor,
 } from '@/lib/data';
+import { useFilters } from '@/lib/useFilters';
 
 // MapLibre touches window on import, so it must never be server-rendered
 const MapView = dynamic(() => import('@/components/MapView'), {
@@ -22,6 +24,7 @@ const LAYER_CHIPS = [
 ];
 
 export default function Dashboard() {
+  const { filters, update, clear, active } = useFilters();
   const [meta, setMeta] = useState(null);
   const [top, setTop] = useState([]);
   const [waste, setWaste] = useState([]);
@@ -78,8 +81,15 @@ export default function Dashboard() {
   const hasDetections = top.length > 0 || waste.length > 0;
   const wet = rain72 >= 1;
 
+  // Both branches narrow by district. If only the map filtered, the panel
+  // would list segments the operator can no longer see.
+  const inDistrict = (d) => !filters.district || d === filters.district;
+
   const rows = hasDetections
-    ? (mode === 'waste' ? waste : top).slice(0, 60).map((x) => ({
+    ? (mode === 'waste' ? waste : top)
+        .filter((x) => inDistrict(x.unit?.districtAr))
+        .slice(0, 60)
+        .map((x) => ({
         id: x.greenUnitId ?? x.segmentUnitId,
         title: x.unit?.nameAr || x.greenUnitId || x.segmentUnitId,
         sub: mode === 'waste'
@@ -87,13 +97,16 @@ export default function Dashboard() {
           : `تغطية رصد ${fmt((x.observationCoverage ?? 0) * 100)}٪`,
         score: Math.round(((x.severityScore ?? x.riskScore) ?? 0) * 100),
       }))
-    : green.slice(0, 60).map((g, i) => ({
-        id: g.id,
-        title: g.name || `أصل أخضر ${g.id}`,
-        sub: `${fmt(g.area)} م² · حزام تماس مُعرَّف`,
-        score: null,
-        rank: i + 1,
-      }));
+    : green
+        .filter((g) => inDistrict(g.district))
+        .slice(0, 60)
+        .map((g, i) => ({
+          id: g.id,
+          title: g.name || `أصل أخضر ${g.id}`,
+          sub: `${fmt(g.area)} م² · حزام تماس مُعرَّف`,
+          score: null,
+          rank: i + 1,
+        }));
 
   const toggle = (k) => setLayers((s) => ({ ...s, [k]: !s[k] }));
 
@@ -101,6 +114,8 @@ export default function Dashboard() {
     <main className="dash">
       {/* ── the dispatch panel ─────────────────────────────── */}
       <aside className="dash-side">
+        <FilterBar filters={filters} update={update} clear={clear} active={active} />
+
         {/* the discriminator, as the primary control */}
         <div className="dash-modes" role="group" aria-label="شرط المطر">
           <button
@@ -302,6 +317,7 @@ export default function Dashboard() {
           scored={hasDetections}
           layers={layers}
           userLayers={userLayers}
+          district={filters.district}
           fitTo={fitTo}
           onSelect={setSel}
         />
