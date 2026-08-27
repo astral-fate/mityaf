@@ -55,3 +55,8 @@ research/cache/
 # large intermediate imagery (rebuild with tools/fetch_imagery.py)
 apps/web/public/img/madinah-s2.jpg
 apps/web/public/img/madinah-s2-raw.jpg
+
+# service-account keys — never commit
+key.json
+*-key.json
+*.b64
