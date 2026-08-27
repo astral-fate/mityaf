@@ -204,6 +204,37 @@ async function exportDistricts() {
   );
 }
 
+/**
+ * The latest health verdict per green asset.
+ *
+ * DISTINCT ON keeps only the most recent assessment per asset — the table
+ * stores every assessment date so the judgement has a history, but the
+ * dashboard only ever wants the current call.
+ */
+async function exportGreenHealth() {
+  const { rows } = await query(
+    `SELECT DISTINCT ON (green_unit_id)
+            green_unit_id, assessed_on, status, ndvi_median, ndvi_slope_yr,
+            ndmi_slope_yr, ndmi_reliable, n_observations, reason_ar
+       FROM green_health
+      ORDER BY green_unit_id, assessed_on DESC`,
+  );
+  return writeJson('green-health.json', {
+    items: rows.map((r) => ({
+      greenUnitId: r.green_unit_id,
+      assessedOn: r.assessed_on,
+      status: r.status,
+      ndviMedian: r.ndvi_median,
+      ndviSlopeYr: r.ndvi_slope_yr,
+      ndmiSlopeYr: r.ndmi_slope_yr,
+      ndmiReliable: r.ndmi_reliable,
+      nObservations: r.n_observations,
+      reasonAr: r.reason_ar,
+    })),
+    count: rows.length,
+  });
+}
+
 async function exportRain() {
   const { rows: events } = await query(
     `SELECT rain_event_id AS "rainEventId", start_date AS "startDate",
@@ -261,6 +292,7 @@ export async function exportStatic() {
   total += await exportWasteEvents();
   total += await exportRain();
   total += await exportDistricts();
+  total += await exportGreenHealth();
   console.log(`\n  total payload: ${(total / 1024).toFixed(1)} MB uncompressed ` +
               `(gzip on the wire is roughly a quarter of that)`);
   return total;

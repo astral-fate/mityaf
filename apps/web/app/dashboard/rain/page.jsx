@@ -1,0 +1,122 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import DataTable from '@/components/DataTable';
+import FilterBar from '@/components/FilterBar';
+import { fmt, loadRain } from '@/lib/data';
+import { inWindow, useFilters } from '@/lib/useFilters';
+
+/**
+ * The rain archive.
+ *
+ * These events are not background colour — they are the labels. Every
+ * before/after verification and every ponding detection is anchored to one of
+ * these dates, so being able to find and inspect them is part of the product,
+ * not a nicety.
+ */
+export default function Rain() {
+  const { filters, update, clear, active } = useFilters();
+  const [rain, setRain] = useState(null);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    loadRain().then((r) => { setRain(r); setLoaded(true); });
+  }, []);
+
+  const events = useMemo(
+    () => (rain?.events ?? []).filter((e) => inWindow(e.peakDate, filters)),
+    [rain, filters],
+  );
+
+  const stats = useMemo(() => {
+    if (!events.length) return { total: 0, max: 0, biggest: null };
+    const biggest = events.reduce((a, b) => (b.totalMm > a.totalMm ? b : a));
+    return {
+      total: events.reduce((a, e) => a + e.totalMm, 0),
+      max: biggest.totalMm,
+      biggest,
+    };
+  }, [events]);
+
+  const columns = useMemo(() => [
+    {
+      key: 'peak', title: 'تاريخ الذروة', sortable: true, cellClass: 'num',
+      value: (e) => String(e.peakDate), search: (e) => String(e.peakDate).slice(0, 10),
+      render: (e) => <span className="dt-strong num">{String(e.peakDate).slice(0, 10)}</span>,
+    },
+    {
+      key: 'total', title: 'الإجمالي ملم', sortable: true, cellClass: 'num',
+      value: (e) => e.totalMm,
+      render: (e) => (
+        <span style={{ color: e.totalMm > 25 ? 'var(--sev-2)' : 'var(--lp-water)', fontWeight: 700 }}>
+          {fmt(e.totalMm, 1)}
+        </span>
+      ),
+    },
+    {
+      key: 'max', title: 'أعلى يوم ملم', sortable: true, cellClass: 'num',
+      value: (e) => e.maxDailyMm, render: (e) => fmt(e.maxDailyMm, 1),
+    },
+    {
+      key: 'span', title: 'المدة', sortable: false, cellClass: 'num',
+      render: (e) => {
+        const days = Math.round(
+          (new Date(e.endDate) - new Date(e.startDate)) / 864e5) + 1;
+        return `${days} يوم`;
+      },
+    },
+    {
+      key: 'id', title: 'المعرّف', sortable: false,
+      search: (e) => e.rainEventId,
+      render: (e) => <span className="dt-sub num">{e.rainEventId}</span>,
+    },
+  ], []);
+
+  return (
+    <main className="pg with-side">
+      <aside className="pg-side">
+        <FilterBar filters={filters} update={update} clear={clear} active={active} />
+        <div className="card2">
+          <div className="card2-h"><h2>في المدى المحدَّد</h2></div>
+          <div className="card2-b">
+            <div className="kv"><span>عدد الأحداث</span><b className="num">{fmt(events.length)}</b></div>
+            <div className="kv"><span>مجموع الهطول</span><b className="num">{fmt(stats.total, 1)} ملم</b></div>
+            <div className="kv"><span>أكبر حدث</span><b className="num">{fmt(stats.max, 1)} ملم</b></div>
+            {stats.biggest && (
+              <div className="kv"><span>تاريخه</span><b className="num">{String(stats.biggest.peakDate).slice(0, 10)}</b></div>
+            )}
+          </div>
+        </div>
+        <p className="dnote">
+          المصدر: أرشيف Open-Meteo اليومي عند مركز نطاق الدراسة. الحدث يُعرَّف بتجاوز عتبة
+          الهطول التراكمي المحدّدة في إعدادات خط الأنابيب.
+        </p>
+      </aside>
+
+      <div className="pg-main">
+        <header className="pg-head">
+          <div>
+            <h1>الأحداث المطرية</h1>
+            <p>
+              <span className="num">{fmt(rain?.events?.length ?? 0)}</span> حدثاً منذ ٢٠١٥ —
+              كل تحقّق «قبل/بعد» مرتبط بأحدها
+            </p>
+          </div>
+        </header>
+        <div className="pg-body">
+          {loaded ? (
+            <DataTable
+              rows={events}
+              columns={columns}
+              getKey={(e) => e.rainEventId}
+              searchPlaceholder="ابحث بالتاريخ…"
+              emptyMessage="لا أحداث مطرية داخل المدى المحدَّد."
+            />
+          ) : (
+            <div className="pg-loading">جارٍ التحميل…</div>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}
