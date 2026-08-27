@@ -448,8 +448,6 @@ export default function Landing() {
               <div className="v">39٪</div>
               <div className="k">وزن الشكل الحضري في القرار — أعلى من أي متغيّر تضاريسي</div>
             </div>
-              <div className="k">وزن الشكل الحضري في القرار — أعلى من أي متغيّر تضاريسي</div>
-            </div>
           </div>
 
           <div
