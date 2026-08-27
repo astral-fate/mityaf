@@ -15,6 +15,64 @@ import { bboxArray, config } from './config.js';
 let ready = false;
 let lastError = null;
 
+/**
+ * Accept the key as raw JSON or base64.
+ *
+ * Base64 exists because the raw form is easy to corrupt in transit: the
+ * private key contains \n escapes, and anything that expands them — a quoted
+ * value in a .env file, a dashboard field that reflows long lines — produces
+ * a literal newline inside a JSON string, which is not legal JSON. Base64
+ * survives all of that.
+ */
+function parseKey(raw) {
+  if (typeof raw !== 'string') return raw;
+  const trimmed = raw.trim();
+  const json = trimmed.startsWith('{')
+    ? trimmed
+    : Buffer.from(trimmed, 'base64').toString('utf8');
+  let key;
+  try {
+    key = JSON.parse(json);
+  } catch {
+    throw new Error(
+      'GEE_SERVICE_ACCOUNT_KEY is not valid JSON or base64. The usual cause is ' +
+      'wrapping the raw JSON in quotes in .env — Node expands \\n inside a ' +
+      'double-quoted value, which breaks the private key. Leave it unquoted, ' +
+      'or use `base64 -w0 key.json`.',
+    );
+  }
+  for (const field of ['client_email', 'private_key']) {
+    if (!key[field]) throw new Error(`Service-account key is missing "${field}".`);
+  }
+  return key;
+}
+
+/**
+ * Turn an Earth Engine failure into the thing you actually have to go fix.
+ * These four are the whole failure surface of a fresh service account, and
+ * the raw messages name none of them.
+ */
+export function explain(err) {
+  const m = String(err?.message ?? err);
+  if (/invalid_grant|Invalid JWT|invalid signature/i.test(m)) {
+    return 'the key was rejected — it may be deleted, disabled, or from another project';
+  }
+  if (/not been used in project|is disabled|SERVICE_DISABLED|earthengine\.googleapis\.com/i.test(m)) {
+    return 'the Earth Engine API is not enabled on this project (step 2 in .env.example)';
+  }
+  if (/serviceusage\.services\.use|Service Usage Consumer|caller does not have permission/i.test(m)) {
+    return 'the service account is missing Service Usage Consumer (step 4)';
+  }
+  if (/not registered|register.*Earth Engine|EE_NOT_REGISTERED/i.test(m)) {
+    return 'the Cloud project is not registered for Earth Engine (step 1)';
+  }
+  if (/permission|forbidden|403/i.test(m)) {
+    return 'permission denied — most likely Resource Viewer was granted instead of ' +
+      'Resource Writer, which authenticates fine but cannot run computations';
+  }
+  return null;
+}
+
 export const isReady = () => ready;
 export const initError = () => lastError;
 
@@ -25,13 +83,14 @@ export async function init() {
   const raw = config.geeServiceAccountKey;
   if (!raw) {
     lastError =
-      'GEE_SERVICE_ACCOUNT_KEY is not set. Create a service account in the GEE ' +
-      'project, register it at signup.earthengine.google.com/#!/service_accounts, ' +
-      'and put the key JSON in that env var.';
+      'GEE_SERVICE_ACCOUNT_KEY is not set. See .env.example for the five console ' +
+      'steps; the short version is that the Cloud project must be registered for ' +
+      'Earth Engine and the service account needs Resource Writer plus Service ' +
+      'Usage Consumer.';
     throw new Error(lastError);
   }
 
-  const key = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  const key = parseKey(raw);
 
   await new Promise((resolve, reject) => {
     ee.data.authenticateViaPrivateKey(

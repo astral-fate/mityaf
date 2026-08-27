@@ -70,6 +70,8 @@ async function doctor() {
       sorted.map(([k, v]) => `${k}=${v}`).join(' ') || '(none)');
   } catch (err) {
     console.log('          FAILED:', String(err).slice(0, 200));
+    const why = gee.explain(err);
+    if (why) console.log('          likely cause:', why);
   }
 }
 
