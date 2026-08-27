@@ -64,6 +64,12 @@ blockquote p {{ margin: 0; }}
 ul, ol {{ padding-inline-start: 18pt; margin: 0 0 8pt; }}
 li {{ margin-bottom: 3pt; }}
 em {{ color: #4a5a52; }}
+
+/* Figures are rendered at 1300-2100 px for the deck; without this they run off
+   the page and the right-hand columns are simply lost. */
+img {{ display: block; max-width: 100%; height: auto; margin: 10pt auto 4pt;
+      border-radius: 4pt; page-break-inside: avoid; }}
+p > img + em, img + p em {{ font-size: 9pt; }}
 </style></head><body>{body}</body></html>"""
 
 
