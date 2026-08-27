@@ -113,6 +113,27 @@ CREATE INDEX IF NOT EXISTS ix_obs_unit_date ON observations (unit_id, obs_date D
 CREATE INDEX IF NOT EXISTS ix_obs_date      ON observations (obs_date DESC);
 
 -- ───────────────────────── WASTE EVENTS (Module A) ─────────────────────────
+-- Vegetation health per green asset. One verdict per asset per assessment
+-- date, so the history of the judgement is kept, not just the latest call.
+CREATE TABLE IF NOT EXISTS green_health (
+  green_unit_id   TEXT NOT NULL REFERENCES units(unit_id) ON DELETE CASCADE,
+  assessed_on     DATE NOT NULL,
+  status          TEXT NOT NULL
+      CHECK (status IN ('healthy','water_stress','sparse','declining','dead',
+                        'insufficient_data')),
+  ndvi_median     DOUBLE PRECISION,
+  ndvi_slope_yr   DOUBLE PRECISION,
+  ndmi_slope_yr   DOUBLE PRECISION,
+  -- NDMI is 20 m native: a small garden is one mixed pixel, and the water
+  -- stress verdict is withheld when this is false rather than guessed
+  ndmi_reliable   BOOLEAN DEFAULT FALSE,
+  n_observations  INTEGER NOT NULL,
+  reason_ar       TEXT,
+  created_at      TIMESTAMPTZ DEFAULT now(),
+  PRIMARY KEY (green_unit_id, assessed_on)
+);
+CREATE INDEX IF NOT EXISTS ix_health_status ON green_health (status, assessed_on DESC);
+
 CREATE TABLE IF NOT EXISTS waste_events (
   event_id             TEXT PRIMARY KEY,
   green_unit_id        TEXT NOT NULL REFERENCES units(unit_id) ON DELETE CASCADE,

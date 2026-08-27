@@ -10,6 +10,7 @@
  *   build-districts   OSM district centres -> Voronoi cells -> stamp every unit
  *   backfill-weather  Open-Meteo daily archive -> rain events
  *   backfill-s2       Sentinel-2 index time series over every unit
+ *   build-health      NDVI/NDMI history -> a health verdict per green asset
  *   export-static     write precomputed JSON into apps/web/public/data
  *   all               units -> weather -> s2 -> export
  */
@@ -18,6 +19,7 @@ import { config } from './config.js';
 import * as gee from './gee.js';
 import * as units from './units.js';
 import { buildDistricts } from './districts.js';
+import { buildHealth } from './health.js';
 import * as weather from './weather.js';
 import { exportStatic } from './export.js';
 import { backfillS2 } from './s2.js';
@@ -80,6 +82,13 @@ async function doctor() {
 // ── main ───────────────────────────────────────────────────────────────────
 const commands = {
   doctor,
+
+  'build-health': () =>
+    withRun('build_health', {}, async (run) => {
+      await initSchema();
+      const r = await buildHealth({});
+      run.add({ assets: r.assets });
+    }),
 
   'build-districts': () =>
     withRun('build_districts', { aoi: config.aoi }, async (run) => {
