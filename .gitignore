@@ -60,3 +60,7 @@ apps/web/public/img/madinah-s2-raw.jpg
 key.json
 *-key.json
 *.b64
+
+# multi-city research caches (rebuild with research/build_city.py)
+research/cache/
+research/out/*.csv
