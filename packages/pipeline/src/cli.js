@@ -7,6 +7,7 @@
  * Commands:
  *   doctor            check env, Postgres/PostGIS, Earth Engine, S1 archive gap
  *   build-units       OSM -> green assets, spill rings, street segments
+ *   build-districts   OSM district centres -> Voronoi cells -> stamp every unit
  *   backfill-weather  Open-Meteo daily archive -> rain events
  *   backfill-s2       Sentinel-2 index time series over every unit
  *   export-static     write precomputed JSON into apps/web/public/data
@@ -16,6 +17,7 @@ import { close, initSchema, ping, query, withRun } from './db.js';
 import { config } from './config.js';
 import * as gee from './gee.js';
 import * as units from './units.js';
+import { buildDistricts } from './districts.js';
 import * as weather from './weather.js';
 import { exportStatic } from './export.js';
 import { backfillS2 } from './s2.js';
@@ -78,6 +80,13 @@ async function doctor() {
 // ── main ───────────────────────────────────────────────────────────────────
 const commands = {
   doctor,
+
+  'build-districts': () =>
+    withRun('build_districts', { aoi: config.aoi }, async (run) => {
+      await initSchema();
+      const r = await buildDistricts({ refresh: process.argv.includes('--refresh') });
+      run.add({ districts: r.districts, unitsStamped: r.assigned });
+    }),
 
   'build-units': () =>
     withRun('build_units', { aoi: config.aoi }, async () => {

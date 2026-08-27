@@ -37,25 +37,27 @@ const HERO_BOUNDS = [
  */
 const INK_STYLE = {
   version: 8,
-  sources: {
-    satellite: { type: 'image', url: '/img/madinah-hero.jpg', coordinates: HERO_BOUNDS },
-  },
-  layers: [
-    { id: 'bg', type: 'background', paint: { 'background-color': '#04081a' } },
-    {
-      id: 'satellite',
-      type: 'raster',
-      source: 'satellite',
-      paint: {
-        // Desert reflectance is bright; pull it back so the overlay reads as
-        // the foreground and not as clutter on top of a photograph.
-        'raster-opacity': 0.5,
-        'raster-saturation': -0.25,
-        'raster-contrast': 0.12,
-        'raster-fade-duration': 0,
-      },
-    },
-  ],
+  sources: {},
+  layers: [{ id: 'bg', type: 'background', paint: { 'background-color': '#04081a' } }],
+};
+
+/**
+ * The basemap is attached after `load`, never inside the initial style.
+ *
+ * MapLibre withholds the `load` event until every source in the initial style
+ * has resolved. Putting a 1.4 MB image there meant a slow or failed fetch left
+ * the map permanently "loading" behind a dark sheet, with no error anywhere —
+ * the map was fine, the readiness signal was not. Attaching afterwards makes
+ * the basemap best-effort: it appears when it appears, and its absence costs
+ * nothing but the photograph.
+ */
+const SATELLITE_PAINT = {
+  // Desert reflectance is bright; pull it back so the overlay reads as the
+  // foreground and not as clutter on top of a photograph.
+  'raster-opacity': 0.5,
+  'raster-saturation': -0.25,
+  'raster-contrast': 0.12,
+  'raster-fade-duration': 0,
 };
 
 // A segment with no score yet. `coalesce` to a sentinel rather than comparing
@@ -79,12 +81,19 @@ export default function MapView({
   mode = 'flood',
   scored = false,
   layers = { satellite: true, risk: true, green: true, rings: true },
+  userLayers = [],
+  fitTo = null,
   onSelect,
 }) {
   const container = useRef(null);
   const mapRef = useRef(null);
   const selectRef = useRef(onSelect);
+  const addedRef = useRef(new Set());
+  // Two signals, deliberately separate: `status` is whether the map itself is
+  // alive, `dataStatus` is whether our layers arrived. Collapsing them is what
+  // let a slow 6.3 MB fetch masquerade as a broken map.
   const [status, setStatus] = useState('loading');
+  const [dataStatus, setDataStatus] = useState('idle');
   const [counts, setCounts] = useState({ seg: 0, green: 0 });
 
   selectRef.current = onSelect;
@@ -116,14 +125,24 @@ export default function MapView({
     );
 
     map.on('load', async () => {
+      // The map is usable now. Anything below is enrichment, and none of it
+      // may hold the ready signal hostage.
+      setStatus('ready');
+
+      map.addSource('satellite', {
+        type: 'image', url: '/img/madinah-hero.jpg', coordinates: HERO_BOUNDS,
+      });
+      map.addLayer({ id: 'satellite', type: 'raster', source: 'satellite', paint: SATELLITE_PAINT });
+
       try {
+        setDataStatus('loading');
         const [segments, green] = await Promise.all([loadSegments(), loadGreen()]);
         const nSeg = segments?.features?.length ?? 0;
         const nGreen = green?.features?.filter((f) => f.properties?.t === 'green').length ?? 0;
         setCounts({ seg: nSeg, green: nGreen });
 
         if (!nSeg && !nGreen) {
-          setStatus('empty');
+          setDataStatus('empty');
           return;
         }
 
@@ -220,10 +239,10 @@ export default function MapView({
           });
         }
 
-        setStatus('ready');
+        setDataStatus('ready');
       } catch (err) {
         console.error('[map] failed to load layers', err);
-        setStatus('error');
+        setDataStatus('error');
       }
     });
 
@@ -272,18 +291,104 @@ export default function MapView({
     else map.once('load', apply);
   }, [layers, status]);
 
+  /**
+   * Sync imported layers onto the map.
+   *
+   * A vector import gets three paint layers filtered by geometry type rather
+   * than one guessed from the first feature — a drainage export routinely
+   * carries lines for the pipes and points for the inlets in the same file,
+   * and picking one would silently drop the other.
+   */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+
+    const wanted = new Set(userLayers.map((l) => l.id));
+
+    for (const id of [...addedRef.current]) {
+      if (wanted.has(id)) continue;
+      for (const suffix of ['-fill', '-line', '-circle', '-raster']) {
+        if (map.getLayer(id + suffix)) map.removeLayer(id + suffix);
+      }
+      if (map.getSource(id)) map.removeSource(id);
+      addedRef.current.delete(id);
+    }
+
+    for (const l of userLayers) {
+      const vis = l.visible === false ? 'none' : 'visible';
+
+      if (!addedRef.current.has(l.id)) {
+        if (l.kind === 'raster') {
+          map.addSource(l.id, { type: 'image', url: l.url, coordinates: l.coordinates });
+          map.addLayer({
+            id: `${l.id}-raster`, type: 'raster', source: l.id,
+            paint: { 'raster-opacity': l.opacity, 'raster-fade-duration': 0 },
+          });
+        } else {
+          map.addSource(l.id, { type: 'geojson', data: l.data });
+          map.addLayer({
+            id: `${l.id}-fill`, type: 'fill', source: l.id,
+            filter: ['in', ['geometry-type'], ['literal', ['Polygon', 'MultiPolygon']]],
+            paint: { 'fill-color': l.color, 'fill-opacity': l.opacity * 0.3 },
+          });
+          map.addLayer({
+            id: `${l.id}-line`, type: 'line', source: l.id,
+            filter: ['in', ['geometry-type'], ['literal', ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon']]],
+            paint: { 'line-color': l.color, 'line-width': 2.1, 'line-opacity': l.opacity },
+            layout: { 'line-cap': 'round', 'line-join': 'round' },
+          });
+          map.addLayer({
+            id: `${l.id}-circle`, type: 'circle', source: l.id,
+            filter: ['in', ['geometry-type'], ['literal', ['Point', 'MultiPoint']]],
+            paint: {
+              'circle-radius': 4.5, 'circle-color': l.color,
+              'circle-opacity': l.opacity,
+              'circle-stroke-width': 1, 'circle-stroke-color': 'rgba(4,8,26,.85)',
+            },
+          });
+        }
+        addedRef.current.add(l.id);
+      }
+
+      const set = (suffix, prop, val) => {
+        if (map.getLayer(l.id + suffix)) map.setPaintProperty(l.id + suffix, prop, val);
+      };
+      set('-raster', 'raster-opacity', l.opacity);
+      set('-fill', 'fill-opacity', l.opacity * 0.3);
+      set('-line', 'line-opacity', l.opacity);
+      set('-circle', 'circle-opacity', l.opacity);
+      for (const suffix of ['-fill', '-line', '-circle', '-raster']) {
+        if (map.getLayer(l.id + suffix)) map.setLayoutProperty(l.id + suffix, 'visibility', vis);
+      }
+    }
+  }, [userLayers, status]);
+
+  // Fly to a layer the moment it is imported: dropping a file and seeing the
+  // map stay where it was reads as "nothing happened".
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !fitTo) return;
+    const [w, s, e, n] = fitTo;
+    map.fitBounds([[w, s], [e, n]], { padding: 60, maxZoom: 16, duration: 900 });
+  }, [fitTo]);
+
   return (
     <div className="map-shell">
       <div ref={container} className="map-canvas" />
 
-      {status === 'loading' && (
-        <div className="map-overlay">جارٍ تحميل طبقات المدينة…</div>
+      {/* A chip, not a sheet. The map is already drawn underneath and
+          covering it to say "loading" hides the very thing that proves it works. */}
+      {(status === 'loading' || dataStatus === 'loading') && (
+        <div className="map-chip">جارٍ تحميل طبقات المدينة…</div>
       )}
-      {status === 'error' && (
-        <div className="map-overlay err">تعذّر تحميل طبقات الخريطة</div>
+      {dataStatus === 'error' && (
+        <div className="map-chip err">تعذّر تحميل طبقات الخريطة — الخريطة تعمل بدونها</div>
+      )}
+      {dataStatus === 'empty' && (
+        <div className="map-chip err">لا توجد طبقات مبنيّة بعد — شغّل خط الأنابيب</div>
       )}
 
-      {status === 'ready' && (
+      {dataStatus === 'ready' && (
         <div className="legend">
           {scored ? (
             <>

@@ -205,11 +205,46 @@
 }
 .dash-map .legend-count { color: var(--lp-fg-3); }
 
-.map-overlay {
-  position: absolute; inset: 0; z-index: 4; display: grid; place-items: center;
-  background: rgba(4, 8, 26, .82); color: var(--lp-fg-2); font-size: 13px;
+/* Status reads as a chip in the corner, never a sheet over the map.
+   An 82%-opaque "loading" cover hid the very thing that proves the map works,
+   and any state that failed to clear looked like a broken page. */
+.map-chip {
+  position: absolute; z-index: 6; inset-block-start: 58px; inset-inline-start: 12px;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 13px; border-radius: 999px;
+  background: rgba(4, 8, 26, .82); backdrop-filter: blur(10px);
+  border: 1px solid var(--lp-line-2); color: var(--lp-fg-2); font-size: 11.5px;
 }
-.map-overlay.err { color: var(--sev-2); }
+.map-chip.err { color: var(--sev-2); border-color: rgba(240, 138, 90, .4); }
+
+/* imported layers */
+.dzone {
+  margin: 11px; padding: 20px 14px; border-radius: 12px; cursor: pointer;
+  border: 1.5px dashed var(--lp-line-2); background: rgba(255, 255, 255, .02);
+  display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
+  color: var(--lp-fg-3); transition: border-color .18s ease, background .18s ease, color .18s ease;
+}
+.dzone:hover, .dzone:focus-visible { border-color: var(--lp-water); color: var(--lp-water); background: rgba(47, 216, 239, .05); }
+.dzone.over { border-color: var(--lp-signal); color: var(--lp-signal); background: rgba(80, 255, 74, .07); border-style: solid; }
+.dzone.busy { cursor: progress; }
+.dzone b { font-size: 13px; color: var(--lp-fg); font-weight: 600; }
+.dzone small { font-size: 11px; color: var(--lp-fg-3); }
+.dzone-hint { padding: 0 14px 12px; font-size: 11px; line-height: 1.6; color: var(--lp-fg-3); }
+.dzone-err {
+  margin: 0 11px 11px; padding: 9px 12px; border-radius: 9px; font-size: 11.5px; line-height: 1.6;
+  color: var(--sev-2); background: rgba(240, 138, 90, .09); border: 1px solid rgba(240, 138, 90, .3);
+}
+
+.ulayer { padding: 10px 12px; border-top: 1px solid var(--lp-line); display: flex; flex-direction: column; gap: 7px; }
+.ulayer-top { display: flex; align-items: center; gap: 8px; }
+.ulayer-sw { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.ulayer-nm { flex: 1; min-width: 0; font-size: 12px; font-weight: 600; color: var(--lp-fg);
+             overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ulayer-btn { background: none; border: none; cursor: pointer; color: var(--lp-fg-3); padding: 2px 5px;
+              border-radius: 5px; font-size: 13px; line-height: 1; }
+.ulayer-btn:hover { color: var(--lp-fg); background: rgba(255, 255, 255, .07); }
+.ulayer-meta { font-size: 10.5px; color: var(--lp-fg-3); }
+.ulayer input[type="range"] { width: 100%; accent-color: var(--lp-water); height: 3px; }
 
 /* rain rail, along the bottom of the panel */
 .drain { display: flex; gap: 6px; overflow-x: auto; padding: 10px; }

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import './dashboard.css';
+import DropZone from '@/components/DropZone';
 import {
   fmt, loadGreen, loadMeta, loadRain, loadTopSegments, loadWasteEvents, riskColor,
 } from '@/lib/data';
@@ -10,7 +11,7 @@ import {
 // MapLibre touches window on import, so it must never be server-rendered
 const MapView = dynamic(() => import('@/components/MapView'), {
   ssr: false,
-  loading: () => <div className="map-overlay">جارٍ تحميل الخريطة…</div>,
+  loading: () => <div className="map-chip">جارٍ تحميل الخريطة…</div>,
 });
 
 const LAYER_CHIPS = [
@@ -32,6 +33,16 @@ export default function Dashboard() {
   const [layers, setLayers] = useState({
     satellite: true, risk: true, green: true, rings: true,
   });
+  const [userLayers, setUserLayers] = useState([]);
+  const [fitTo, setFitTo] = useState(null);
+
+  const addLayer = (l) => {
+    setUserLayers((s) => [...s, l]);
+    if (l.bbox) setFitTo(l.bbox);
+  };
+  const patchLayer = (id, patch) =>
+    setUserLayers((s) => s.map((l) => (l.id === id ? { ...l, ...patch } : l)));
+  const dropLayer = (id) => setUserLayers((s) => s.filter((l) => l.id !== id));
 
   useEffect(() => {
     (async () => {
@@ -170,6 +181,54 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* the Amanah's own layers, dropped straight in */}
+        <DropZone onAdd={addLayer} />
+
+        {userLayers.length > 0 && (
+          <div className="dcard">
+            <div className="dcard-h">
+              <span>الطبقات المستوردة</span>
+              <span className="c num">{userLayers.length}</span>
+            </div>
+            {userLayers.map((l) => (
+              <div className="ulayer" key={l.id}>
+                <div className="ulayer-top">
+                  <span className="ulayer-sw" style={{ background: l.color }} />
+                  <span className="ulayer-nm" title={l.name}>{l.name}</span>
+                  <button
+                    type="button" className="ulayer-btn"
+                    onClick={() => patchLayer(l.id, { visible: !l.visible })}
+                    aria-label={l.visible ? 'إخفاء' : 'إظهار'}
+                  >
+                    {l.visible ? '◉' : '○'}
+                  </button>
+                  <button
+                    type="button" className="ulayer-btn"
+                    onClick={() => l.bbox && setFitTo([...l.bbox])}
+                    aria-label="تكبير إلى الطبقة"
+                  >
+                    ⌖
+                  </button>
+                  <button
+                    type="button" className="ulayer-btn"
+                    onClick={() => dropLayer(l.id)} aria-label="إزالة"
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className="ulayer-meta">
+                  {l.detail} · <span className="num">{l.sizeMb.toFixed(1)}</span> ميغابايت
+                </div>
+                <input
+                  type="range" min="0.1" max="1" step="0.05" value={l.opacity}
+                  aria-label={`شفافية ${l.name}`}
+                  onChange={(e) => patchLayer(l.id, { opacity: Number(e.target.value) })}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* priority list */}
         <div className="dcard">
           <div className="dcard-h">
@@ -238,7 +297,14 @@ export default function Dashboard() {
 
       {/* ── the map ────────────────────────────────────────── */}
       <div className="dash-map">
-        <MapView mode={mode} scored={hasDetections} layers={layers} onSelect={setSel} />
+        <MapView
+          mode={mode}
+          scored={hasDetections}
+          layers={layers}
+          userLayers={userLayers}
+          fitTo={fitTo}
+          onSelect={setSel}
+        />
 
         <div className="map-topbar">
           <span className="map-pill">

@@ -17,7 +17,7 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE TABLE IF NOT EXISTS units (
   unit_id              TEXT PRIMARY KEY,
   unit_type            TEXT NOT NULL
-      CHECK (unit_type IN ('green','ring','segment','catchment')),
+      CHECK (unit_type IN ('green','ring','segment','catchment','district')),
   parent_unit_id       TEXT,
   name_ar              TEXT,
   name_en              TEXT,
@@ -61,6 +61,13 @@ CREATE TABLE IF NOT EXISTS units (
 );
 CREATE INDEX IF NOT EXISTS ix_units_geom     ON units USING GIST (geom);
 CREATE INDEX IF NOT EXISTS ix_units_centroid ON units USING GIST (centroid);
+-- CREATE TABLE IF NOT EXISTS leaves an existing table alone, so widening the
+-- unit_type domain needs an explicit migration. Dropping and re-adding is
+-- idempotent and cheap; the constraint is revalidated against current rows.
+ALTER TABLE units DROP CONSTRAINT IF EXISTS units_unit_type_check;
+ALTER TABLE units ADD CONSTRAINT units_unit_type_check
+  CHECK (unit_type IN ('green','ring','segment','catchment','district'));
+
 CREATE INDEX IF NOT EXISTS ix_units_type     ON units (unit_type, active);
 CREATE INDEX IF NOT EXISTS ix_units_parent   ON units (parent_unit_id);
 

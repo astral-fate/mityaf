@@ -52,6 +52,17 @@ const QUERIES = {
     way["waterway"](${bbox});
     out geom;
   `,
+  // Madinah carries its districts as named POINTS — 91 of them, no polygons
+  // anywhere in OSM. Boundaries have to be derived; see districts.js.
+  districts: (bbox) => `
+    [out:json][timeout:180];
+    (
+      node["place"~"^(suburb|quarter|neighbourhood)$"](${bbox});
+      way["place"~"^(suburb|quarter|neighbourhood)$"](${bbox});
+      relation["place"~"^(suburb|quarter|neighbourhood)$"](${bbox});
+    );
+    out tags center;
+  `,
 };
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
