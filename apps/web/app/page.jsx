@@ -304,14 +304,19 @@ export default function Landing() {
               <div className="lp-screen-body">
                 <div className="lp-ev" style={{ gap: '10px' }}>
                   {[
-                    ['مؤشر الرطوبة الطبوغرافي', '8.4'],
-                    ['الارتفاع فوق أقرب مصرف', '1.2 م'],
-                    ['نسبة الأسطح غير النفّاذة', '81٪'],
-                    ['مساحة الجريان الوارد', '2.1 هكتار'],
-                    ['غرق مرصود من الأرشيف', '6 / 19'],
-                    ['تغطية الرصد', '74٪'],
-                  ].map(([k, v]) => (
-                    <div key={k}><span>{k}</span><b className="num">{v}</b></div>
+                    ['مؤشر الرطوبة الطبوغرافي', '8.4', ''],
+                    ['الارتفاع فوق أقرب مصرف', '1.2', 'م'],
+                    ['نسبة الأسطح غير النفّاذة', '81٪', ''],
+                    ['مساحة الجريان الوارد', '2.1', 'هكتار'],
+                    ['غرق مرصود من الأرشيف', '6 / 19', ''],
+                    ['تغطية الرصد', '74٪', ''],
+                  ].map(([k, n, u]) => (
+                    <div key={k}>
+                      <span>{k}</span>
+                      {/* the isolate goes on the numeral; a unit inside it
+                          would be dragged to the wrong side of the number */}
+                      <b><span className="num">{n}</span>{u ? ` ${u}` : ''}</b>
+                    </div>
                   ))}
                 </div>
                 <p className="lp-rec" style={{ marginTop: '4px' }}>

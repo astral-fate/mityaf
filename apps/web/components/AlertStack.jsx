@@ -228,9 +228,9 @@ export default function AlertStack() {
             <div className="ttl">مقطع شارع ٤٠٠ م — حوض تصريف شرق المدينة</div>
             <div className="lp-ev">
               <div><span>درجة الأولوية</span><b className="num">0.87</b></div>
-              <div><span>مساحة الجريان الوارد</span><b className="num">2.1 هكتار</b></div>
-              <div><span>أقرب عبّارة معروفة</span><b className="num">340 م</b></div>
-              <div><span>غرق مرصود من الأرشيف</span><b className="num">6 من 19 حدثاً</b></div>
+              <div><span>مساحة الجريان الوارد</span><b><span className="num">2.1</span> هكتار</b></div>
+              <div><span>أقرب عبّارة معروفة</span><b><span className="num">340</span> م</b></div>
+              <div><span>غرق مرصود من الأرشيف</span><b><span className="num">6</span> من <span className="num">19</span> حدثاً</b></div>
               <div><span>تغطية الرصد</span><b className="num">74٪</b></div>
             </div>
             <p className="lp-rec">
