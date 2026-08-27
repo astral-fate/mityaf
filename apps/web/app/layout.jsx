@@ -1,4 +1,5 @@
 import './globals.css';
+import SiteNav from '../components/SiteNav';
 
 export const metadata = {
   title: 'مِطياف · Mityaf',
@@ -6,33 +7,13 @@ export const metadata = {
     'منصّة رصد المياه الحضرية بالأقمار الصناعية والذكاء الاصطناعي — أمانة منطقة المدينة المنورة',
 };
 
-const NAV = [
-  { href: '/', label: 'الرئيسية' },
-  { href: '/dashboard', label: 'لوحة الرصد' },
-  { href: '/method', label: 'المنهجية' },
-];
-
 export default function RootLayout({ children }) {
   return (
     <html lang="ar" dir="rtl">
       <body>
         <div className="glow-backdrop" />
         <div className="grid-overlay" />
-
-        <nav className="topnav">
-          <div className="navlinks">
-            {NAV.map((n) => (
-              <a key={n.href} href={n.href}>
-                {n.label}
-              </a>
-            ))}
-          </div>
-          <div className="brandmark">
-            <span>مِطياف · أمانة منطقة المدينة المنورة</span>
-            <span className="dot" />
-          </div>
-        </nav>
-
+        <SiteNav />
         {children}
       </body>
     </html>
