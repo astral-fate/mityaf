@@ -1,0 +1,232 @@
+/* ============================================================
+   مِطياف — operations console
+   Layout follows the dispatch-hub pattern: the map is the page, and a docked
+   panel carries every control and readout. The previous version boxed the map
+   into 62vh below a row of KPI cards, which made the one thing worth looking
+   at the smallest thing on screen.
+   ============================================================ */
+
+.dash {
+  position: fixed;
+  inset: 60px 0 0;            /* under the sticky topnav */
+  display: grid;
+  grid-template-columns: 372px minmax(0, 1fr);
+  background: var(--lp-ground);
+}
+@media (max-width: 900px) {
+  .dash { position: static; inset: auto; grid-template-columns: 1fr; height: auto; }
+  .dash-side { max-height: none; }
+  .dash-map { height: 68vh; }
+}
+
+/* ── the docked panel ── */
+.dash-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  overflow-y: auto;
+  border-inline-end: 1px solid var(--lp-line);
+  background: var(--lp-ground-2);
+}
+.dash-side::-webkit-scrollbar { width: 8px; }
+.dash-side::-webkit-scrollbar-thumb { background: var(--lp-line-2); border-radius: 4px; }
+
+/* ── mode toggle: the discriminator, as a control ── */
+.dash-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid var(--lp-line);
+  border-radius: 12px;
+}
+.dash-mode {
+  padding: 10px 8px; border-radius: 9px; border: 1px solid transparent;
+  background: none; color: var(--lp-fg-3); cursor: pointer;
+  font: inherit; font-size: 13px; font-weight: 600; text-align: center;
+  transition: background .18s ease, color .18s ease, border-color .18s ease;
+}
+.dash-mode:hover { color: var(--lp-fg-2); background: rgba(255, 255, 255, .04); }
+.dash-mode small { display: block; font-size: 10.5px; font-weight: 500; margin-top: 3px; opacity: .8; }
+.dash-mode[aria-pressed="true"].waste {
+  background: rgba(80, 255, 74, .13); color: var(--lp-signal); border-color: rgba(80, 255, 74, .3);
+}
+.dash-mode[aria-pressed="true"].flood {
+  background: rgba(47, 216, 239, .13); color: var(--lp-water); border-color: rgba(47, 216, 239, .32);
+}
+.dash-mode:focus-visible { outline: 2px solid var(--lp-water); outline-offset: 1px; }
+
+/* ── cards ── */
+.dcard {
+  border: 1px solid var(--lp-line);
+  border-radius: 13px;
+  background: var(--lp-surface);
+  overflow: hidden;
+}
+.dcard-h {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 10px 13px; border-bottom: 1px solid var(--lp-line);
+  font-size: 12px; font-weight: 600; color: var(--lp-fg-2);
+}
+.dcard-h .c { font-size: 11.5px; color: var(--lp-fg-3); font-weight: 500; }
+.dcard-b { padding: 13px; }
+
+/* summary metrics */
+.dmetrics { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--lp-line); }
+.dmetric { background: var(--lp-surface); padding: 12px 13px; }
+.dmetric .v {
+  font-family: var(--font-display); font-size: 22px; font-weight: 600;
+  line-height: 1.1; letter-spacing: -.02em; color: var(--lp-sand);
+  font-variant-numeric: tabular-nums;
+}
+.dmetric.cy .v { color: var(--lp-water); }
+.dmetric.gn .v { color: var(--lp-signal); }
+.dmetric.hot .v { color: var(--sev-2); }
+.dmetric .u { font-size: 10.5px; color: var(--lp-fg-3); margin-top: 2px; }
+.dmetric .l { font-size: 11px; color: var(--lp-fg-2); margin-top: 6px; line-height: 1.45; }
+
+/* advisory — the recommendation, with the reason attached */
+.dadvisory {
+  border-radius: 13px; overflow: hidden;
+  border: 1px solid rgba(240, 138, 90, .34);
+  background: linear-gradient(160deg, rgba(240, 138, 90, .1), rgba(240, 138, 90, .02));
+  box-shadow: 0 0 0 1px rgba(240, 138, 90, .06), 0 10px 30px rgba(0, 0, 0, .3);
+}
+.dadvisory.calm {
+  border-color: rgba(80, 255, 74, .3);
+  background: linear-gradient(160deg, rgba(80, 255, 74, .09), rgba(80, 255, 74, .02));
+  box-shadow: 0 0 0 1px rgba(80, 255, 74, .06), 0 10px 30px rgba(0, 0, 0, .3);
+}
+.dadvisory-h {
+  display: flex; align-items: center; gap: 8px; padding: 10px 13px;
+  font-size: 12px; font-weight: 700; color: var(--sev-2);
+  border-bottom: 1px solid rgba(240, 138, 90, .22);
+}
+.dadvisory.calm .dadvisory-h { color: var(--lp-signal); border-bottom-color: rgba(80, 255, 74, .2); }
+.dadvisory-b { padding: 12px 13px; font-size: 12.5px; line-height: 1.7; color: var(--lp-fg-2); }
+.dadvisory-b b { color: var(--lp-fg); font-weight: 600; }
+
+/* priority list */
+.dlist { display: flex; flex-direction: column; gap: 6px; padding: 10px; }
+.drow {
+  display: grid; grid-template-columns: 3px 1fr auto; gap: 10px; align-items: center;
+  padding: 9px 10px; border-radius: 9px; cursor: pointer;
+  background: rgba(255, 255, 255, .025); border: 1px solid transparent;
+  transition: background .15s ease, border-color .15s ease;
+  text-align: start; font: inherit; color: inherit; width: 100%;
+}
+.drow:hover { background: rgba(255, 255, 255, .06); border-color: var(--lp-line-2); }
+.drow[aria-selected="true"] { background: rgba(47, 216, 239, .1); border-color: rgba(47, 216, 239, .35); }
+.drow:focus-visible { outline: 2px solid var(--lp-water); outline-offset: 1px; }
+.drow > i { align-self: stretch; border-radius: 3px; min-height: 26px; }
+.drow .t {
+  font-size: 12.5px; font-weight: 600; color: var(--lp-fg);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.drow .s { font-size: 11px; color: var(--lp-fg-3); margin-top: 2px; }
+.drow .v {
+  font-family: var(--font-display); font-size: 14px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.dskel { height: 44px; border-radius: 9px; background: rgba(255, 255, 255, .04); animation: dpulse 1.5s ease-in-out infinite; }
+@keyframes dpulse { 0%, 100% { opacity: .45 } 50% { opacity: .8 } }
+
+/* ── the map side ── */
+.dash-map { position: relative; min-width: 0; }
+.dash-map .map-shell { position: absolute; inset: 0; border: none; border-radius: 0; }
+.dash-map .map-canvas { position: absolute; inset: 0; }
+
+/* floating chrome over the map */
+.map-topbar {
+  position: absolute; z-index: 5; top: 12px; inset-inline-end: 12px;
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  max-width: calc(100% - 100px); justify-content: flex-end;
+}
+.map-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 12px; border-radius: 999px;
+  background: rgba(4, 8, 26, .72); backdrop-filter: blur(10px);
+  border: 1px solid var(--lp-line-2);
+  font-size: 11.5px; color: var(--lp-fg-2); white-space: nowrap;
+}
+.map-pill .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.map-pill .dot.ok { background: var(--lp-signal); box-shadow: 0 0 9px var(--lp-signal); }
+.map-pill .dot.wait { background: var(--sev-1); box-shadow: 0 0 9px var(--sev-1); }
+
+.chip {
+  padding: 7px 12px; border-radius: 999px; cursor: pointer;
+  background: rgba(4, 8, 26, .72); backdrop-filter: blur(10px);
+  border: 1px solid var(--lp-line-2); color: var(--lp-fg-3);
+  font: inherit; font-size: 11.5px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+.chip:hover { color: var(--lp-fg-2); }
+.chip[aria-pressed="true"] { color: var(--lp-fg); border-color: currentColor; }
+.chip i { width: 8px; height: 8px; border-radius: 2px; flex: none; opacity: .35; }
+.chip[aria-pressed="true"] i { opacity: 1; }
+.chip:focus-visible { outline: 2px solid var(--lp-water); outline-offset: 2px; }
+
+/* selection card — replaces the MapLibre popup, which could not be styled
+   to match anything else on the page */
+.dsel {
+  position: absolute; z-index: 6; inset-block-end: 16px; inset-inline-start: 16px;
+  width: min(310px, calc(100% - 32px));
+  border-radius: 13px; overflow: hidden;
+  border: 1px solid var(--lp-line-2);
+  background: rgba(11, 18, 49, .93); backdrop-filter: blur(12px);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .5);
+}
+.dsel-h {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 10px 13px; border-bottom: 1px solid var(--lp-line);
+  font-size: 12.5px; font-weight: 600; color: var(--lp-fg);
+}
+.dsel-x {
+  background: none; border: none; cursor: pointer; color: var(--lp-fg-3);
+  font-size: 16px; line-height: 1; padding: 2px 4px; border-radius: 5px;
+}
+.dsel-x:hover { color: var(--lp-fg); background: rgba(255, 255, 255, .07); }
+.dsel-b { padding: 12px 13px; display: flex; flex-direction: column; gap: 8px; }
+.dsel-b .r { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+.dsel-b .r span { color: var(--lp-fg-3); }
+.dsel-b .r b { color: var(--lp-fg); font-weight: 600; }
+
+/* legend, restyled to sit on the frosted chrome */
+.dash-map .legend {
+  position: absolute; z-index: 5; inset-block-end: 12px; inset-inline-end: 12px;
+  display: flex; flex-wrap: wrap; gap: 6px 13px; align-items: center;
+  padding: 8px 13px; border-radius: 11px;
+  background: rgba(4, 8, 26, .74); backdrop-filter: blur(10px);
+  border: 1px solid var(--lp-line); font-size: 11px; color: var(--lp-fg-2);
+  max-width: calc(100% - 360px);
+}
+.dash-map .legend-count { color: var(--lp-fg-3); }
+
+.map-overlay {
+  position: absolute; inset: 0; z-index: 4; display: grid; place-items: center;
+  background: rgba(4, 8, 26, .82); color: var(--lp-fg-2); font-size: 13px;
+}
+.map-overlay.err { color: var(--sev-2); }
+
+/* rain rail, along the bottom of the panel */
+.drain { display: flex; gap: 6px; overflow-x: auto; padding: 10px; }
+.drain-i {
+  flex: none; min-width: 74px; padding: 8px 10px; border-radius: 9px;
+  background: rgba(255, 255, 255, .03); border: 1px solid var(--lp-line);
+}
+.drain-i .mm {
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--lp-water); font-variant-numeric: tabular-nums;
+}
+.drain-i .mm small { font-size: 9.5px; color: var(--lp-fg-3); margin-inline-start: 3px; font-weight: 400; }
+.drain-i .dt { font-size: 10px; color: var(--lp-fg-3); margin-top: 3px; font-variant-numeric: tabular-nums; }
+
+.dnote {
+  font-size: 11.5px; line-height: 1.65; color: var(--lp-fg-3);
+  padding: 11px 13px; border-radius: 11px;
+  border: 1px dashed var(--lp-line-2); background: rgba(255, 255, 255, .02);
+}
+.dnote b { color: var(--lp-fg-2); font-weight: 600; }

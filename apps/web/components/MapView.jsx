@@ -8,14 +8,54 @@ import { loadGreen, loadSegments } from '@/lib/data';
 const AOI = { minLon: 39.5, minLat: 24.36, maxLon: 39.72, maxLat: 24.58 };
 
 /**
- * Self-authored "ink" basemap: one background layer in the brand colour.
- * No tile provider, no API key, works with the network unplugged — the city's
- * own geometry supplies all the structure the map needs.
+ * Corners of public/img/madinah-hero.jpg, in the order MapLibre wants for an
+ * image source: clockwise from top-left.
+ *
+ * Derived from the mosaic's own tile extent — z14, tiles x[9989..9999],
+ * y[7037..7048], cropped to rows 743..2327 — by tools/build_hero_layer.py.
+ * Do not adjust these by eye: the vector network is baked into the same frame,
+ * so a nudge here silently slides every street off the road it describes.
+ */
+const HERO_BOUNDS = [
+  [39.484863, 24.529087],
+  [39.726562, 24.529087],
+  [39.726562, 24.405340],
+  [39.484863, 24.405340],
+];
+
+/**
+ * The basemap is our own Sentinel-2 mosaic rather than a tile provider.
+ *
+ * A flat background made the data look like it was floating in a void — there
+ * was nothing to tell you a bright line was a street rather than an abstract
+ * shape. A commercial dark basemap would fix that but costs an API key and a
+ * network round trip; the imagery we already hold fixes it and doubles as
+ * evidence, since the streets visibly land on the streets.
+ *
+ * It is served as a single image source, which needs no tiling server: the
+ * whole thing is one 1.4 MB JPEG bounded to the city.
  */
 const INK_STYLE = {
   version: 8,
-  sources: {},
-  layers: [{ id: 'bg', type: 'background', paint: { 'background-color': '#010628' } }],
+  sources: {
+    satellite: { type: 'image', url: '/img/madinah-hero.jpg', coordinates: HERO_BOUNDS },
+  },
+  layers: [
+    { id: 'bg', type: 'background', paint: { 'background-color': '#04081a' } },
+    {
+      id: 'satellite',
+      type: 'raster',
+      source: 'satellite',
+      paint: {
+        // Desert reflectance is bright; pull it back so the overlay reads as
+        // the foreground and not as clutter on top of a photograph.
+        'raster-opacity': 0.5,
+        'raster-saturation': -0.25,
+        'raster-contrast': 0.12,
+        'raster-fade-duration': 0,
+      },
+    },
+  ],
 };
 
 // A segment with no score yet. `coalesce` to a sentinel rather than comparing
@@ -27,14 +67,27 @@ const RISK_RAMP = [
   0, '#2A9759', 35, '#50FF4A', 55, '#FFC857', 75, '#FF6B5A', 100, '#FF3B2A',
 ];
 
-export default function MapView({ mode = 'flood', scored = false }) {
+// Which style layers each UI toggle governs.
+const LAYER_GROUPS = {
+  satellite: ['satellite'],
+  risk: ['segments-glow', 'segments-line'],
+  green: ['green-fill', 'green-line'],
+  rings: ['ring-fill'],
+};
+
+export default function MapView({
+  mode = 'flood',
+  scored = false,
+  layers = { satellite: true, risk: true, green: true, rings: true },
+  onSelect,
+}) {
   const container = useRef(null);
   const mapRef = useRef(null);
-  const scoredRef = useRef(scored);
+  const selectRef = useRef(onSelect);
   const [status, setStatus] = useState('loading');
   const [counts, setCounts] = useState({ seg: 0, green: 0 });
 
-  scoredRef.current = scored;
+  selectRef.current = onSelect;
 
   useEffect(() => {
     if (mapRef.current || !container.current) return;
@@ -56,7 +109,8 @@ export default function MapView({ mode = 'flood', scored = false }) {
     map.addControl(
       new maplibregl.AttributionControl({
         compact: true,
-        customAttribution: '© OpenStreetMap contributors · Copernicus',
+        customAttribution:
+          '© OpenStreetMap contributors · Sentinel-2 cloudless by EOX (CC BY 4.0) · Copernicus',
       }),
       'bottom-right',
     );
@@ -155,17 +209,14 @@ export default function MapView({ mode = 'flood', scored = false }) {
           map.on('mouseleave', id, () => (map.getCanvas().style.cursor = ''));
           map.on('click', id, (e) => {
             const p = e.features?.[0]?.properties ?? {};
-            const name = p.name || p.id || '—';
-            const body =
-              p.s !== null && p.s !== undefined
-                ? `<div style="color:#A9B6D4">درجة المخاطر <b style="color:#50FF4A" dir="ltr">${p.s}</b></div>`
-                : p.area
-                  ? `<div style="color:#A9B6D4">المساحة <b dir="ltr">${Number(p.area).toLocaleString('en-US')}</b> م²</div>`
-                  : `<div style="color:#6B7A9E">لم تُحتسب درجة بعد</div>`;
-            new maplibregl.Popup({ closeButton: false, offset: 10 })
-              .setLngLat(e.lngLat)
-              .setHTML(`<div style="font-weight:600;margin-bottom:4px">${name}</div>${body}`)
-              .addTo(map);
+            selectRef.current?.({
+              id: p.id ?? null,
+              name: p.name || null,
+              score: p.s ?? null,
+              area: p.area ?? null,
+              kind: id === 'green-fill' ? 'green' : 'segment',
+              lngLat: [e.lngLat.lng, e.lngLat.lat],
+            });
           });
         }
 
@@ -202,6 +253,25 @@ export default function MapView({ mode = 'flood', scored = false }) {
     set('green-fill', 'fill-opacity', mode === 'flood' ? 0.34 : 0.55);
   }, [mode, status]);
 
+  // Layer chips. The satellite layer exists from style load, so it is the one
+  // group that can be toggled before the vector data has arrived.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const apply = () => {
+      for (const [group, ids] of Object.entries(LAYER_GROUPS)) {
+        const visible = layers?.[group] !== false;
+        for (const id of ids) {
+          if (map.getLayer(id)) {
+            map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
+          }
+        }
+      }
+    };
+    if (map.isStyleLoaded()) apply();
+    else map.once('load', apply);
+  }, [layers, status]);
+
   return (
     <div className="map-shell">
       <div ref={container} className="map-canvas" />
@@ -214,25 +284,23 @@ export default function MapView({ mode = 'flood', scored = false }) {
       )}
 
       {status === 'ready' && (
-        <>
-          <div className="map-badge">
+        <div className="legend">
+          {scored ? (
+            <>
+              <span><i style={{ background: '#FF6B5A' }} />حرج</span>
+              <span><i style={{ background: '#FFC857' }} />مرتفع</span>
+              <span><i style={{ background: '#50FF4A' }} />مستقر</span>
+            </>
+          ) : (
+            <span><i style={{ background: '#4FB3D9' }} />شبكة الطرق — لم تُقيَّم بعد</span>
+          )}
+          <span><i style={{ background: '#3FD46E' }} />مسطّح أخضر</span>
+          <span><i style={{ background: '#00C4D5' }} />حزام التماس</span>
+          <span className="legend-count">
             <span className="num">{counts.seg.toLocaleString('en-US')}</span> مقطع ·{' '}
-            <span className="num">{counts.green.toLocaleString('en-US')}</span> أصل أخضر
-          </div>
-          <div className="legend">
-            {scored ? (
-              <>
-                <span><i style={{ background: '#FF6B5A' }} />حرج</span>
-                <span><i style={{ background: '#FFC857' }} />مرتفع</span>
-                <span><i style={{ background: '#50FF4A' }} />مستقر</span>
-              </>
-            ) : (
-              <span><i style={{ background: '#4FB3D9' }} />شبكة الطرق — لم تُقيَّم بعد</span>
-            )}
-            <span><i style={{ background: '#3FD46E' }} />مسطّح أخضر</span>
-            <span><i style={{ background: '#00C4D5' }} />حزام التماس</span>
-          </div>
-        </>
+            <span className="num">{counts.green.toLocaleString('en-US')}</span> أصل
+          </span>
+        </div>
       )}
     </div>
   );

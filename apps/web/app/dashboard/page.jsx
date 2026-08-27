@@ -2,13 +2,23 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { fmt, loadGreen, loadMeta, loadRain, loadTopSegments, loadWasteEvents, riskColor } from '@/lib/data';
+import './dashboard.css';
+import {
+  fmt, loadGreen, loadMeta, loadRain, loadTopSegments, loadWasteEvents, riskColor,
+} from '@/lib/data';
 
 // MapLibre touches window on import, so it must never be server-rendered
 const MapView = dynamic(() => import('@/components/MapView'), {
   ssr: false,
-  loading: () => <div className="map-shell map-loading">جارٍ تحميل الخريطة…</div>,
+  loading: () => <div className="map-overlay">جارٍ تحميل الخريطة…</div>,
 });
+
+const LAYER_CHIPS = [
+  { key: 'satellite', label: 'صورة القمر', color: '#c39a6d' },
+  { key: 'risk', label: 'مقاطع الشوارع', color: '#4FB3D9' },
+  { key: 'green', label: 'المسطّحات', color: '#3FD46E' },
+  { key: 'rings', label: 'أحزمة التماس', color: '#00C4D5' },
+];
 
 export default function Dashboard() {
   const [meta, setMeta] = useState(null);
@@ -18,6 +28,10 @@ export default function Dashboard() {
   const [green, setGreen] = useState([]);
   const [mode, setMode] = useState('flood');
   const [loaded, setLoaded] = useState(false);
+  const [sel, setSel] = useState(null);
+  const [layers, setLayers] = useState({
+    satellite: true, risk: true, green: true, rings: true,
+  });
 
   useEffect(() => {
     (async () => {
@@ -51,9 +65,10 @@ export default function Dashboard() {
   // Detections require the Earth Engine run. Until then we show the real
   // inventory rather than an empty screen — clearly labelled as inventory.
   const hasDetections = top.length > 0 || waste.length > 0;
+  const wet = rain72 >= 1;
 
   const rows = hasDetections
-    ? (mode === 'waste' ? waste : top).slice(0, 40).map((x) => ({
+    ? (mode === 'waste' ? waste : top).slice(0, 60).map((x) => ({
         id: x.greenUnitId ?? x.segmentUnitId,
         title: x.unit?.nameAr || x.greenUnitId || x.segmentUnitId,
         sub: mode === 'waste'
@@ -61,7 +76,7 @@ export default function Dashboard() {
           : `تغطية رصد ${fmt((x.observationCoverage ?? 0) * 100)}٪`,
         score: Math.round(((x.severityScore ?? x.riskScore) ?? 0) * 100),
       }))
-    : green.slice(0, 40).map((g, i) => ({
+    : green.slice(0, 60).map((g, i) => ({
         id: g.id,
         title: g.name || `أصل أخضر ${g.id}`,
         sub: `${fmt(g.area)} م² · حزام تماس مُعرَّف`,
@@ -69,157 +84,215 @@ export default function Dashboard() {
         rank: i + 1,
       }));
 
+  const toggle = (k) => setLayers((s) => ({ ...s, [k]: !s[k] }));
+
   return (
     <main className="dash">
-      {/* ── status strip ── */}
-      <div className="dash-status">
-        <div className="ds-left">
-          <span className={`pulse ${hasDetections ? 'ok' : 'wait'}`} />
-          <strong>
-            {hasDetections ? 'الكشف نشط' : 'المرحلة ١ من ٢ — الأصول والأمطار جاهزة'}
-          </strong>
-          <span className="dim2">
-            {hasDetections
-              ? 'نتائج محسوبة من مؤشرات الأقمار الصناعية'
-              : 'درجات المخاطر تنتظر تشغيل محرّك الأقمار الصناعية'}
-          </span>
-        </div>
-        {meta?.generatedAt && (
-          <span className="dim2">
-            آخر تحديث <span className="num">{meta.generatedAt.slice(0, 10)}</span>
-          </span>
-        )}
-      </div>
-
-      {/* ── KPIs ── */}
-      <section className="kpi-row">
-        <Kpi v={loaded ? fmt(meta?.units?.green) : '—'} u="أصلاً أخضر" l="حدائق ومسطحات مُعرَّفة آلياً" />
-        <Kpi variant="cyan" v={loaded ? fmt(meta?.units?.segment) : '—'} u="مقطع شارع" l={`${fmt(5272)} كم من الشبكة`} />
-        <Kpi variant="warm" v={loaded ? fmt(rain?.events?.length) : '—'} u="حدثاً مطرياً" l={`منذ ${'2015'} — أساس التحقّق التاريخي`} />
-        <Kpi
-          variant="hot"
-          v={loaded ? fmt(rain72, 1) : '—'}
-          u="ملم خلال 72 ساعة"
-          l={rain72 >= 1 ? 'حالة مطرية — وضع الغَرَق' : 'بلا مطر — وضع الهَدْر مفتوح'}
-        />
-      </section>
-
-      {/* ── mode toggle ── */}
-      <div className="dash-bar">
-        <h2 className="dash-h2">
-          {mode === 'flood' ? (
-            <>الماء الذي <span className="g-cyan">يُحاصَر</span></>
-          ) : (
-            <>الماء الذي <span className="g-neon">يُهدَر</span></>
-          )}
-        </h2>
-        <div className="seg-toggle" role="group" aria-label="وضع العرض">
+      {/* ── the dispatch panel ─────────────────────────────── */}
+      <aside className="dash-side">
+        {/* the discriminator, as the primary control */}
+        <div className="dash-modes" role="group" aria-label="شرط المطر">
           <button
-            className={mode === 'waste' ? 'on' : ''}
-            onClick={() => setMode('waste')}
+            type="button"
+            className="dash-mode waste"
             aria-pressed={mode === 'waste'}
+            onClick={() => setMode('waste')}
           >
-            ☂ بلا مطر — الهَدْر
+            الهَدْر
+            <small>ماء بلا مطر</small>
           </button>
           <button
-            className={mode === 'flood' ? 'on' : ''}
-            onClick={() => setMode('flood')}
+            type="button"
+            className="dash-mode flood"
             aria-pressed={mode === 'flood'}
+            onClick={() => setMode('flood')}
           >
-            بعد المطر — الغَرَق
+            الغَرَق
+            <small>ماء بعد مطر</small>
           </button>
         </div>
-      </div>
 
-      {/* ── main split ── */}
-      <div className="split">
-        <aside className="panel">
-          <div className="panel-head">
-            <h3>{hasDetections ? 'أولويات اليوم' : 'الأصول المرصودة'}</h3>
-            <span className="dim2 num">{loaded ? rows.length : '…'}</span>
-          </div>
-
-          {!hasDetections && loaded && (
-            <p className="panel-note">
-              هذه قائمة الأصول الحقيقية المُستخرجة من الخريطة. تظهر أولويات المخاطر هنا
-              بعد تشغيل محرّك الأقمار الصناعية.
-            </p>
-          )}
-
-          <div className="list">
-            {!loaded &&
-              Array.from({ length: 6 }).map((_, i) => <div className="row skel" key={i} />)}
-
-            {loaded &&
-              rows.map((r) => (
-                <div className="row" key={r.id}>
-                  <span
-                    className="bar"
-                    style={{ background: r.score === null ? 'var(--dim-2)' : riskColor(r.score) }}
-                  />
-                  <div className="row-main">
-                    <div className="row-title">{r.title}</div>
-                    <div className="row-sub">{r.sub}</div>
-                  </div>
-                  {r.score === null ? (
-                    <span className="row-rank num">{r.rank}</span>
-                  ) : (
-                    <span className="row-score num" style={{ color: riskColor(r.score) }}>
-                      {r.score}
-                    </span>
-                  )}
-                </div>
-              ))}
-          </div>
-        </aside>
-
-        <MapView mode={mode} scored={hasDetections} />
-      </div>
-
-      {/* ── rain strip ── */}
-      {loaded && rain?.events?.length > 0 && (
-        <section className="rain-strip">
-          <div className="rs-head">
-            <h3>أكبر الأحداث المطرية المرصودة</h3>
-            <span className="dim2">
-              {lastRain
-                ? <>آخر مطر مُسجّل <span className="num">{String(lastRain.date).slice(0, 10)}</span></>
-                : 'لا مطر في آخر 120 يوماً'}
+        {/* summary for the active mode */}
+        <div className="dcard">
+          <div className="dcard-h">
+            <span>{mode === 'waste' ? 'وحدة الهَدْر' : 'وحدة الغَرَق'}</span>
+            <span className="c">
+              {meta?.generatedAt ? `تحديث ${meta.generatedAt.slice(0, 10)}` : '—'}
             </span>
           </div>
-          <div className="rs-items">
-            {[...rain.events]
-              .sort((a, b) => b.totalMm - a.totalMm)
-              .slice(0, 6)
-              .map((e) => (
-                <div className="rs-item" key={e.rainEventId}>
-                  <div className="rs-mm num">{fmt(e.totalMm, 1)}<small>ملم</small></div>
-                  <div className="rs-date num">{String(e.peakDate).slice(0, 10)}</div>
+          <div className="dmetrics">
+            <div className="dmetric gn">
+              <div className="v num">{loaded ? fmt(meta?.units?.green) : '—'}</div>
+              <div className="u">أصل أخضر</div>
+              <div className="l">حدائق ومسطّحات مُعرَّفة آلياً</div>
+            </div>
+            <div className="dmetric cy">
+              <div className="v num">{loaded ? fmt(meta?.units?.segment) : '—'}</div>
+              <div className="u">مقطع شارع</div>
+              <div className="l">{fmt(meta?.networkKm ?? 5280)} كم من الشبكة</div>
+            </div>
+            <div className="dmetric">
+              <div className="v num">{loaded ? fmt(rain?.events?.length) : '—'}</div>
+              <div className="u">حدث مطري</div>
+              <div className="l">منذ ٢٠١٥ — أساس التحقّق التاريخي</div>
+            </div>
+            <div className={`dmetric${wet ? ' hot' : ''}`}>
+              <div className="v num">{loaded ? fmt(rain72, 1) : '—'}</div>
+              <div className="u">ملم خلال ٧٢ ساعة</div>
+              <div className="l">
+                {lastRain
+                  ? <>آخر مطر <span className="num">{String(lastRain.date).slice(0, 10)}</span></>
+                  : 'لا مطر في آخر ١٢٠ يوماً'}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* what the operator should actually do */}
+        <div className={`dadvisory${wet ? '' : ' calm'}`}>
+          <div className="dadvisory-h">
+            {wet ? '● حالة مطرية — وضع الغَرَق' : '● بلا مطر — بوابة الهَدْر مفتوحة'}
+          </div>
+          <div className="dadvisory-b">
+            {wet ? (
+              <>
+                هطل <b className="num">{fmt(rain72, 1)}</b> ملم خلال ٧٢ ساعة. الماء الظاهر على
+                الأسفلت الآن يُقرأ <b>ضعف تصريف</b>، لا هدر ريّ. المقاطع التي يبقى ماؤها بعد
+                ٤٨ ساعة هي المرشّحة للفحص الميداني.
+              </>
+            ) : (
+              <>
+                لا هطول معتبر خلال ٧٢ ساعة، فأي ماء على حزام التماس الآن لا يُفسَّر بالمطر —
+                يُقرأ <b>ريّاً مفرطاً أو تسرّباً</b>. هذه أفضل نافذة لرصد الهدر، ولأن{' '}
+                <b className="num">٢٫٣٪</b> فقط من أيام المدينة ممطرة فهي مفتوحة في كل مرور تقريباً.
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* priority list */}
+        <div className="dcard">
+          <div className="dcard-h">
+            <span>{hasDetections ? 'أولويات اليوم' : 'الأصول المرصودة'}</span>
+            <span className="c num">{loaded ? rows.length : '…'}</span>
+          </div>
+          {!hasDetections && loaded && (
+            <p className="dadvisory-b" style={{ paddingBottom: 0 }}>
+              هذه الأصول الحقيقية المُستخرجة من الخريطة. تظهر درجات الأولوية بعد تشغيل محرّك
+              الأقمار الصناعية.
+            </p>
+          )}
+          <div className="dlist">
+            {!loaded && Array.from({ length: 7 }).map((_, i) => <div className="dskel" key={i} />)}
+            {loaded && rows.map((r) => (
+              <button
+                type="button"
+                className="drow"
+                key={r.id}
+                aria-selected={sel?.id === r.id}
+                onClick={() => setSel({
+                  id: r.id, name: r.title, score: r.score, sub: r.sub,
+                  kind: hasDetections && mode === 'waste' ? 'green' : 'segment',
+                })}
+              >
+                <i style={{ background: r.score === null ? 'var(--lp-fg-3)' : riskColor(r.score) }} />
+                <span>
+                  <div className="t">{r.title}</div>
+                  <div className="s">{r.sub}</div>
+                </span>
+                <span
+                  className="v num"
+                  style={{ color: r.score === null ? 'var(--lp-fg-3)' : riskColor(r.score) }}
+                >
+                  {r.score === null ? r.rank : r.score}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* rain history rail */}
+        {loaded && rain?.events?.length > 0 && (
+          <div className="dcard">
+            <div className="dcard-h">
+              <span>أكبر الأحداث المطرية</span>
+              <span className="c num">{rain.events.length}</span>
+            </div>
+            <div className="drain">
+              {[...rain.events].sort((a, b) => b.totalMm - a.totalMm).slice(0, 8).map((e) => (
+                <div className="drain-i" key={e.rainEventId}>
+                  <div className="mm num">{fmt(e.totalMm, 1)}<small>ملم</small></div>
+                  <div className="dt">{String(e.peakDate).slice(0, 10)}</div>
                 </div>
               ))}
+            </div>
           </div>
-        </section>
-      )}
+        )}
 
-      {/* ── honesty ── */}
-      <div className="note">
-        <span className="badge">بصراحة</span>
-        <div>
-          دورة إعادة الزيارة <b>أيام</b>، والسيل الومضي <b>ساعات</b>. القمر الصناعي ليس نظام
-          إنذار لحظي — وظيفته بناء <b>خريطة القابلية</b> و<b>التحقّق بعد الحدث</b>. الإنذار
-          اللحظي يأتي من <b>تنبّؤ الطقس</b> مضروباً في تلك الخريطة. هذا التقسيم مقصود، لا قصور.
+        <p className="dnote">
+          دورة إعادة الزيارة <b>أيام</b> والسيل الومضي <b>ساعات</b> — فالقمر ليس نظام إنذار
+          لحظي. وظيفته خريطة القابلية والتحقّق بعد الحدث؛ الإنذار اللحظي من تنبّؤ الطقس مضروباً
+          في تلك الخريطة.
+        </p>
+      </aside>
+
+      {/* ── the map ────────────────────────────────────────── */}
+      <div className="dash-map">
+        <MapView mode={mode} scored={hasDetections} layers={layers} onSelect={setSel} />
+
+        <div className="map-topbar">
+          <span className="map-pill">
+            <i className={`dot ${hasDetections ? 'ok' : 'wait'}`} />
+            {hasDetections ? 'الكشف نشط' : 'المرحلة ١ من ٢ — الأصول والأمطار جاهزة'}
+          </span>
+          {LAYER_CHIPS.map((c) => (
+            <button
+              type="button"
+              key={c.key}
+              className="chip"
+              aria-pressed={layers[c.key]}
+              onClick={() => toggle(c.key)}
+              style={layers[c.key] ? { color: c.color } : undefined}
+            >
+              <i style={{ background: c.color }} />
+              {c.label}
+            </button>
+          ))}
         </div>
+
+        {sel && (
+          <div className="dsel">
+            <div className="dsel-h">
+              <span>{sel.name || sel.id || '—'}</span>
+              <button type="button" className="dsel-x" onClick={() => setSel(null)} aria-label="إغلاق">
+                ×
+              </button>
+            </div>
+            <div className="dsel-b">
+              <div className="r">
+                <span>النوع</span>
+                <b>{sel.kind === 'green' ? 'مسطّح أخضر' : 'مقطع شارع'}</b>
+              </div>
+              {sel.score !== null && sel.score !== undefined && (
+                <div className="r">
+                  <span>درجة الأولوية</span>
+                  <b className="num" style={{ color: riskColor(sel.score) }}>{sel.score}</b>
+                </div>
+              )}
+              {sel.area ? (
+                <div className="r"><span>المساحة</span><b><span className="num">{fmt(sel.area)}</span> م²</b></div>
+              ) : null}
+              {sel.sub && <div className="r"><span>ملاحظة</span><b>{sel.sub}</b></div>}
+              {(sel.score === null || sel.score === undefined) && (
+                <div className="r">
+                  <span>الحالة</span>
+                  <b style={{ color: 'var(--lp-fg-3)' }}>لم تُحتسب درجة بعد</b>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </main>
-  );
-}
-
-function Kpi({ v, u, l, variant }) {
-  return (
-    <div className={`kpi${variant ? ` ${variant}` : ''}`}>
-      <div className="v">{v}</div>
-      <div className="u">{u}</div>
-      <div className="l">{l}</div>
-    </div>
   );
 }

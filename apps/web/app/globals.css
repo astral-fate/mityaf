@@ -487,3 +487,27 @@ a { color: inherit; }
   border-radius: 5px; padding: 2px 6px; color: var(--cyan);
   direction: ltr; unicode-bidi: isolate; display: inline-block;
 }
+
+/* ── shared surface palette ─────────────────────────────────
+   Defined here as well as in landing.css because /dashboard does not import
+   landing.css, and both surfaces must resolve to the same colours. Values are
+   identical, so whichever loads last is a no-op.
+   ──────────────────────────────────────────────────────────── */
+:root {
+  --lp-ground:    #04081a;
+  --lp-ground-2:  #070d24;
+  --lp-surface:   #0b1231;
+  --lp-line:      rgba(160, 180, 225, 0.13);
+  --lp-line-2:    rgba(160, 180, 225, 0.22);
+  --lp-sand:      #e8d6bb;
+  --lp-sand-2:    #c39a6d;
+  --lp-signal:    #50ff4a;
+  --lp-water:     #2fd8ef;
+  --sev-0: #e8d6bb;
+  --sev-1: #f5c15c;
+  --sev-2: #f08a5a;
+  --sev-3: #e8596b;
+  --lp-fg:   #eef2ff;
+  --lp-fg-2: #a3b0d2;
+  --lp-fg-3: #66739a;
+}

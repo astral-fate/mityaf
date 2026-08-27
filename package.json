@@ -22,5 +22,8 @@
     "pipeline:s2": "npm run pipeline -- backfill-s2",
     "pipeline:export": "npm run pipeline -- export-static",
     "pipeline:all": "npm run pipeline -- all"
+  },
+  "dependencies": {
+    "pg": "^8.23.0"
   }
 }
