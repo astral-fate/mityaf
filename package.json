@@ -24,6 +24,7 @@
     "pipeline:all": "npm run pipeline -- all"
   },
   "dependencies": {
+    "geotiff": "^3.0.5",
     "pg": "^8.23.0"
   }
 }
