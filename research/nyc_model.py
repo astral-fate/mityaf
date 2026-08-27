@@ -175,7 +175,7 @@ def d8_flow_accumulation(dem):
 
 
 def terrain_stack(dem, transform):
-    from scipy.ndimage import uniform_filter
+    from scipy.ndimage import distance_transform_edt, uniform_filter
 
     px_m = abs(transform.a) * 111_320 * math.cos(math.radians(40.7))
     py_m = abs(transform.e) * 110_540
@@ -193,12 +193,25 @@ def terrain_stack(dem, transform):
 
     # Height above the local drainage line: proxy HAND using the elevation of the
     # most-accumulating cells nearby, which in a city is where water concentrates.
+    # Height above nearest drainage.
+    #
+    # This was previously a windowed mean of channel elevations, which silently
+    # returned `elevation - 0` wherever no channel fell inside the 25 px window:
+    # the denominator collapsed to 1e-6 and filled_chan went to zero. In New
+    # York, at 10-40 m elevation, that produced plausible-looking numbers and
+    # went unnoticed while contributing 8.7% of model gain. In Al Madinah, at
+    # ~600 m, it saturates the 200 m clip and the error becomes visible.
+    #
+    # Every cell is now referenced to its nearest drainage cell by Euclidean
+    # distance transform — the standard approximation of HAND, defined
+    # everywhere, with no window and no empty-neighbourhood case.
     channel = acc > np.percentile(acc, 99.5)
-    chan_z = np.where(channel, np.nan_to_num(dem, nan=0), np.nan)
-    filled_chan = uniform_filter(np.nan_to_num(chan_z, nan=0), size=25) / np.maximum(
-        uniform_filter(channel.astype("float32"), size=25), 1e-6)
-    hand = np.nan_to_num(dem, nan=0) - filled_chan
-    hand = np.clip(hand, -50, 200)
+    z = np.nan_to_num(dem, nan=float(np.nanmedian(dem)))
+    if channel.any():
+        _, (iy, ix) = distance_transform_edt(~channel, return_indices=True)
+        hand = np.clip(z - z[iy, ix], -50, 200)
+    else:
+        hand = np.zeros_like(z)
 
     rel_elev = np.nan_to_num(dem, nan=0) - uniform_filter(
         np.nan_to_num(dem, nan=0), size=17)

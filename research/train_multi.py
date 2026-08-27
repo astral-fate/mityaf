@@ -127,6 +127,12 @@ def main() -> None:
     print("building matrices")
     data = {}
     for city in CITIES:
+        # A city with no ground truth supplies features only. Including it
+        # here would add 30k unlabelled rows as negatives and quietly
+        # destroy both the prevalence baseline and the LOCO evaluation.
+        if not CITIES[city].get("labels_url"):
+            print(f"  {city}: no labels — features only, excluded from training")
+            continue
         if not (HERE / "cache" / city / "meta.json").exists():
             print(f"  {city}: no cache — run build_city.py {city}")
             continue
@@ -207,6 +213,24 @@ def main() -> None:
             quints.append({"q": i + 1, "max_density": None if math.isinf(edges[i + 1])
                            else float(edges[i + 1]), "rate": rate, "n": int(sel.sum())})
     results["pooled"]["road_density_quintiles"] = quints
+
+    # Persist the pooled model. Earlier work deliberately did not save NYC-only
+    # weights, because one city's weights carry that city's drainage design and
+    # climate. A model fitted across cities is a different proposition — and
+    # whether it may be applied to a city it never saw is exactly what the
+    # leave-one-city-out numbers decide. They are saved beside the weights so
+    # nobody can pick up one without the other.
+    try:
+        import joblib
+        joblib.dump(
+            {"model": final, "features": keys, "cities": list(data),
+             "loco": results["loco"], "n_train": int(len(yall))},
+            HERE / "model_pooled.joblib",
+        )
+        print(f"saved model_pooled.joblib ({len(keys)} features, "
+              f"{len(yall):,} rows, {len(data)} cities)")
+    except ImportError:
+        print("joblib not installed — model not persisted")
 
     OUT.write_text(json.dumps(results, indent=1), encoding="utf-8")
     print(f"\nwrote {OUT.name}")

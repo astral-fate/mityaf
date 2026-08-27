@@ -45,24 +45,46 @@ def fetch(url, dest: Path, data=None) -> Path:
 
 
 def load_dem(city: str, cfg: dict):
+    """Elevation for the AOI — bare earth if we have it, surface otherwise.
+
+    FABDEM.tif is preferred when present. Copernicus GLO-30 is a SURFACE model
+    including buildings and vegetation, and water does not flow over rooftops:
+    over Al Madinah the surface sits 2.44 m above bare earth across the
+    built-up tenth of the city and 5.44 m across the densest 1%, which is
+    precisely where street flooding occurs. FABDEM removes buildings and trees
+    with a learned correction, cutting mean absolute vertical error in built-up
+    areas from 1.61 m to 1.12 m.
+
+    Fetch it with `node research/fetch_fabdem.js <city>`.
+    LICENCE: FABDEM is CC BY-NC-SA 4.0 — non-commercial.
+    """
     import rasterio
     from rasterio.merge import merge
 
+    fab = cache_dir(city) / "FABDEM.tif"
+    if fab.exists():
+        with rasterio.open(fab) as s:
+            dem = s.read(1).astype("float32")
+            transform = s.transform
+        dem[dem < -1000] = np.nan
+        print(f"    FABDEM (bare earth) {dem.shape[1]}x{dem.shape[0]} px")
+        return dem, transform
+
     srcs = []
     for t in cfg["dem_tiles"]:
-        p = fetch(DEM_URL.format(t=t), cache_dir(city) / f"{t}.tif")
-        srcs.append(rasterio.open(p))
+        pth = fetch(DEM_URL.format(t=t), cache_dir(city) / f"{t}.tif")
+        srcs.append(rasterio.open(pth))
     arr, transform = merge(srcs, bounds=cfg["bbox"])
     for s in srcs:
         s.close()
     dem = arr[0].astype("float32")
     dem[dem < -1000] = np.nan
-    print(f"    DEM {dem.shape[1]}x{dem.shape[0]} px")
+    print(f"    Copernicus (surface, incl. buildings) {dem.shape[1]}x{dem.shape[0]} px")
     return dem, transform
 
 
 def terrain_stack(dem, transform, lat_mid: float):
-    from scipy.ndimage import uniform_filter
+    from scipy.ndimage import distance_transform_edt, uniform_filter
 
     px_m = abs(transform.a) * 111_320 * math.cos(math.radians(lat_mid))
     py_m = abs(transform.e) * 110_540
@@ -78,11 +100,22 @@ def terrain_stack(dem, transform, lat_mid: float):
     sca = acc * cell_area / px_m
     twi = np.log(np.maximum(sca, 1.0) / np.maximum(np.tan(np.radians(slope)), 0.001))
 
+    # Height above nearest drainage.
+    #
+    # Previously a windowed mean of channel elevations, which silently returned
+    # `elevation - 0` wherever no channel fell inside the 25 px window: the
+    # denominator collapsed to 1e-6 and filled_chan went to zero. At New York
+    # elevations that looked plausible and went unnoticed while carrying 8.7%
+    # of model gain; at Al Madinah's ~600 m it saturates the 200 m clip and the
+    # error is obvious. Now referenced to the nearest drainage cell by
+    # Euclidean distance transform — defined everywhere, no empty-window case.
     channel = acc > np.percentile(acc, 99.5)
-    chan_z = np.where(channel, np.nan_to_num(dem, nan=0), np.nan)
-    filled_chan = uniform_filter(np.nan_to_num(chan_z, nan=0), size=25) / np.maximum(
-        uniform_filter(channel.astype("float32"), size=25), 1e-6)
-    hand = np.clip(np.nan_to_num(dem, nan=0) - filled_chan, -50, 200)
+    z = np.nan_to_num(dem, nan=float(np.nanmedian(dem)))
+    if channel.any():
+        _, (iy, ix) = distance_transform_edt(~channel, return_indices=True)
+        hand = np.clip(z - z[iy, ix], -50, 200)
+    else:
+        hand = np.zeros_like(z)
 
     rel_elev = np.nan_to_num(dem, nan=0) - uniform_filter(np.nan_to_num(dem, nan=0), size=17)
 
