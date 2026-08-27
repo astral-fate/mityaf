@@ -214,7 +214,7 @@ async function exportDistricts() {
 async function exportGreenHealth() {
   const { rows } = await query(
     `SELECT DISTINCT ON (green_unit_id)
-            green_unit_id, assessed_on, status, ndvi_median, ndvi_slope_yr,
+            green_unit_id, assessed_on, status, ndvi_median, ndvi_max, ndmi_median, ndvi_slope_yr,
             ndmi_slope_yr, ndmi_reliable, n_observations, reason_ar
        FROM green_health
       ORDER BY green_unit_id, assessed_on DESC`,
@@ -225,6 +225,8 @@ async function exportGreenHealth() {
       assessedOn: r.assessed_on,
       status: r.status,
       ndviMedian: r.ndvi_median,
+      ndviMax: r.ndvi_max,
+      ndmiMedian: r.ndmi_median,
       ndviSlopeYr: r.ndvi_slope_yr,
       ndmiSlopeYr: r.ndmi_slope_yr,
       ndmiReliable: r.ndmi_reliable,

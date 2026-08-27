@@ -108,19 +108,31 @@ export default function Stats() {
   const maxMm = Math.max(1, ...events.map((e) => e.totalMm));
 
   return (
-    <main className="stats">
-      <aside className="dash-side">
-        <FilterBar filters={filters} update={update} clear={clear} active={active} />
-        <button type="button" className="dl-btn" onClick={download} disabled={busy || !rows.length}>
-          {busy ? 'جارٍ التحضير…' : '⤓ تنزيل Excel'}
-        </button>
-        <p className="dnote">
-          يُصدَّر ما هو معروض الآن بالضبط، مع ورقة تُوثّق المرشّحات المطبَّقة وحدود البيانات —
-          فالملف يعيش أطول من الشاشة التي خرج منها.
-        </p>
-      </aside>
+    <main className="pg">
+      <header className="pg-head">
+        <div>
+          <h1>الإحصاءات</h1>
+          <p>
+            {filters.district ? <>حي {filters.district}</> : 'كل الأحياء'} ·{' '}
+            <span className="num">{fmt(totals.seg)}</span> مقطع ·{' '}
+            <span className="num">{fmt(events.length)}</span> حدث مطري في المدى
+          </p>
+        </div>
+      </header>
 
-      <div className="stats-body">
+      <div className="pg-body">
+        <FilterBar
+          filters={filters}
+          update={update}
+          clear={clear}
+          active={active}
+          extra={(
+            <button type="button" className="dl-btn inline" onClick={download}
+                    disabled={busy || !rows.length}>
+              {busy ? 'جارٍ التحضير…' : '⤓ تنزيل Excel'}
+            </button>
+          )}
+        />
         <div className="stat-cards">
           <Card v={fmt(totals.districts)} l="حيّاً" />
           <Card v={fmt(totals.seg)} l="مقطع شارع" c="var(--lp-water)" />
@@ -189,6 +201,11 @@ export default function Stats() {
             حدود الأحياء مشتقّة من نقاط مراكزها ولا تمثّل حدوداً رسمية — تختلف عند التماس بين حيّين.
           </p>
         </section>
+
+        <p className="dnote">
+          يُصدَّر ما هو معروض الآن بالضبط، مع ورقة تُوثّق المرشّحات المطبَّقة وحدود البيانات —
+          فالملف يعيش أطول من الشاشة التي خرج منها.
+        </p>
       </div>
     </main>
   );

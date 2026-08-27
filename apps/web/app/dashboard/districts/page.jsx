@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DataTable from '@/components/DataTable';
+import FilterBar from '@/components/FilterBar';
 import { fmt, loadDistricts } from '@/lib/data';
+import { useFilters } from '@/lib/useFilters';
 
 /**
  * Every district, searchable by name.
@@ -14,6 +16,7 @@ import { fmt, loadDistricts } from '@/lib/data';
  */
 export default function Districts() {
   const router = useRouter();
+  const { filters, update, clear, active } = useFilters();
   const [rows, setRows] = useState([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -75,6 +78,8 @@ export default function Districts() {
       </header>
 
       <div className="pg-body">
+        <FilterBar filters={filters} update={update} clear={clear} active={active} />
+
         {loaded ? (
           <DataTable
             rows={rows}

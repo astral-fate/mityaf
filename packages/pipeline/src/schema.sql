@@ -119,9 +119,11 @@ CREATE TABLE IF NOT EXISTS green_health (
   green_unit_id   TEXT NOT NULL REFERENCES units(unit_id) ON DELETE CASCADE,
   assessed_on     DATE NOT NULL,
   status          TEXT NOT NULL
-      CHECK (status IN ('healthy','water_stress','sparse','declining','dead',
+      CHECK (status IN ('healthy','water_stress','sparse','declining','dead','bare',
                         'insufficient_data')),
   ndvi_median     DOUBLE PRECISION,
+  ndvi_max        DOUBLE PRECISION,
+  ndmi_median     DOUBLE PRECISION,
   ndvi_slope_yr   DOUBLE PRECISION,
   ndmi_slope_yr   DOUBLE PRECISION,
   -- NDMI is 20 m native: a small garden is one mixed pixel, and the water
@@ -132,6 +134,11 @@ CREATE TABLE IF NOT EXISTS green_health (
   created_at      TIMESTAMPTZ DEFAULT now(),
   PRIMARY KEY (green_unit_id, assessed_on)
 );
+ALTER TABLE green_health DROP CONSTRAINT IF EXISTS green_health_status_check;
+ALTER TABLE green_health ADD CONSTRAINT green_health_status_check
+  CHECK (status IN ('healthy','water_stress','sparse','declining','dead','bare','insufficient_data'));
+ALTER TABLE green_health ADD COLUMN IF NOT EXISTS ndvi_max DOUBLE PRECISION;
+ALTER TABLE green_health ADD COLUMN IF NOT EXISTS ndmi_median DOUBLE PRECISION;
 CREATE INDEX IF NOT EXISTS ix_health_status ON green_health (status, assessed_on DESC);
 
 CREATE TABLE IF NOT EXISTS waste_events (

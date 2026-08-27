@@ -3,32 +3,25 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DataTable from '@/components/DataTable';
+import FilterBar from '@/components/FilterBar';
 import { fmt, loadGreen, loadHealth } from '@/lib/data';
+import { useFilters } from '@/lib/useFilters';
+import { actionFor, band, scoreAsset, STATUS_META } from '@/lib/score';
 
 /**
- * The green asset register, with a health verdict per asset.
+ * Green asset performance.
  *
- * Health comes from build-health, which reads NDVI against NDMI. Until that
- * has run the column reads "لم تُقيَّم" rather than "سليم": an asset nobody has
- * assessed is not an asset in good condition, and the difference is the whole
- * point of the honesty rules in the classifier.
+ * Built around the question a parks department actually has — which of these
+ * needs someone sent to it this week — rather than around the indices. The
+ * score and its colour carry the answer at a glance; the indices are kept as
+ * the justification, one click away, because the verdict has to be arguable.
  */
-
-const STATUS = {
-  healthy:           { ar: 'سليم', c: 'var(--lp-signal)' },
-  water_stress:      { ar: 'إجهاد ريّ', c: 'var(--sev-1)' },
-  sparse:            { ar: 'غطاء متفرّق', c: 'var(--sev-1)' },
-  declining:         { ar: 'متدهور', c: 'var(--sev-2)' },
-  dead:              { ar: 'ميت', c: 'var(--sev-3)' },
-  insufficient_data: { ar: 'رصد غير كافٍ', c: 'var(--lp-fg-3)' },
-};
-const UNASSESSED = { ar: 'لم تُقيَّم', c: 'var(--lp-fg-3)' };
-
 export default function GreenAssets() {
   const router = useRouter();
+  const { filters, update, clear, active } = useFilters();
   const [rows, setRows] = useState([]);
   const [loaded, setLoaded] = useState(false);
-  const [filter, setFilter] = useState('all');
+  const [status, setStatus] = useState('all');
 
   useEffect(() => {
     Promise.all([loadGreen(), loadHealth()]).then(([g, h]) => {
@@ -36,65 +29,101 @@ export default function GreenAssets() {
       setRows((g?.features ?? [])
         .map((f) => f.properties)
         .filter((p) => p.t === 'green')
-        .map((p) => ({ ...p, health: health.get(p.id) ?? null })));
+        .map((p) => {
+          const hh = health.get(p.id) ?? null;
+          const sc = scoreAsset(hh);
+          return {
+            ...p,
+            health: hh,
+            status: hh?.status ?? 'insufficient_data',
+            score: sc.score,
+            parts: sc.parts,
+            action: actionFor(hh?.status),
+          };
+        }));
       setLoaded(true);
     });
   }, []);
 
+  const inFilters = (r) => !filters.district || r.district === filters.district;
+  const base = useMemo(() => rows.filter(inFilters), [rows, filters.district]);
+  const shown = useMemo(
+    () => (status === 'all' ? base : base.filter((r) => r.status === status)),
+    [base, status],
+  );
+
   const tally = useMemo(() => {
     const t = {};
-    for (const r of rows) {
-      const k = r.health?.status ?? 'unassessed';
-      t[k] = (t[k] ?? 0) + 1;
-    }
+    for (const r of base) t[r.status] = (t[r.status] ?? 0) + 1;
     return t;
-  }, [rows]);
+  }, [base]);
 
-  const shown = useMemo(
-    () => (filter === 'all' ? rows : rows.filter((r) => (r.health?.status ?? 'unassessed') === filter)),
-    [rows, filter],
-  );
+  const summary = useMemo(() => {
+    const scored = base.map((r) => r.score).filter((s) => s !== null);
+    return {
+      avg: scored.length ? Math.round(scored.reduce((a, b) => a + b, 0) / scored.length) : null,
+      scored: scored.length,
+      attention: base.filter((r) => r.action.urgency >= 2).length,
+    };
+  }, [base]);
 
   const columns = useMemo(() => [
     {
-      key: 'name', title: 'الأصل', sortable: true,
-      value: (r) => r.name ?? r.id, search: (r) => `${r.name ?? ''} ${r.id}`,
+      key: 'name', title: 'الأصل', sortable: true, width: '26%',
+      value: (r) => r.name ?? r.id, search: (r) => `${r.name ?? ''} ${r.id} ${r.district ?? ''}`,
       render: (r) => (
         <>
           <span className="dt-strong">{r.name || 'أصل بلا اسم'}</span>
-          <span className="dt-sub num">{r.id}</span>
+          <span className="dt-sub">{r.district ?? '—'} · <span className="num">{fmt(r.area)}</span> م²</span>
         </>
       ),
     },
     {
-      key: 'district', title: 'الحي', sortable: true,
-      value: (r) => r.district ?? '', search: (r) => r.district,
-      render: (r) => r.district ?? '—',
-    },
-    {
-      key: 'area', title: 'المساحة م²', sortable: true, cellClass: 'num',
-      value: (r) => r.area ?? 0, render: (r) => fmt(r.area),
-    },
-    {
-      key: 'status', title: 'الحالة', sortable: true,
-      value: (r) => r.health?.status ?? 'zzz',
+      key: 'score', title: 'درجة الأداء', sortable: true, width: '15%',
+      value: (r) => r.score,
       render: (r) => {
-        const s = r.health ? (STATUS[r.health.status] ?? UNASSESSED) : UNASSESSED;
-        return <span className="pill" style={{ color: s.c, borderColor: s.c }}>{s.ar}</span>;
+        const b = band(r.score);
+        return (
+          <div className="scorecell">
+            <span className="scoreval num" style={{ color: b.color }}>
+              {r.score === null ? '—' : r.score}
+            </span>
+            <span className="scoretrack">
+              <span className="scorefill"
+                    style={{ width: `${r.score ?? 0}%`, background: b.color }} />
+            </span>
+            <span className="scoreband" style={{ color: b.color }}>{b.ar}</span>
+          </div>
+        );
       },
     },
     {
-      key: 'ndvi', title: 'NDVI', sortable: true, cellClass: 'num',
+      key: 'status', title: 'الحالة', sortable: true, width: '13%',
+      value: (r) => r.status,
+      render: (r) => {
+        const m = STATUS_META[r.status] ?? STATUS_META.insufficient_data;
+        return <span className="pill" style={{ color: m.color, borderColor: m.color }}>{m.ar}</span>;
+      },
+    },
+    {
+      key: 'ndvi', title: 'NDVI', sortable: true, cellClass: 'num', width: '9%',
       value: (r) => r.health?.ndviMedian ?? null,
       render: (r) => (r.health?.ndviMedian != null ? fmt(r.health.ndviMedian, 2) : '—'),
     },
     {
-      key: 'why', title: 'السبب', sortable: false,
-      render: (r) => <span className="dt-sub">{r.health?.reasonAr ?? 'بانتظار تشغيل تقييم الصحة'}</span>,
+      key: 'action', title: 'الإجراء المقترح', sortable: true, width: '37%',
+      value: (r) => r.action.urgency,
+      render: (r) => (
+        <>
+          <span className={`act u${r.action.urgency}`}>{r.action.ar}</span>
+          <span className="dt-sub">{r.health?.reasonAr ?? 'بانتظار التقييم'}</span>
+        </>
+      ),
     },
   ], []);
 
-  const chips = [['all', 'الكل'], ...Object.keys(STATUS).map((k) => [k, STATUS[k].ar]), ['unassessed', UNASSESSED.ar]]
+  const chips = [['all', 'الكل', '#a3b0d2'],
+    ...Object.entries(STATUS_META).map(([k, m]) => [k, m.ar, m.color])]
     .filter(([k]) => k === 'all' || tally[k]);
 
   return (
@@ -102,17 +131,44 @@ export default function GreenAssets() {
       <header className="pg-head">
         <div>
           <h1>المسطّحات الخضراء</h1>
-          <p><span className="num">{fmt(rows.length)}</span> أصلاً تحت الرصد</p>
+          <p>
+            <span className="num">{fmt(base.length)}</span> أصلاً
+            {filters.district ? <> في حي {filters.district}</> : ' في المدينة'} ·{' '}
+            <span className="num">{fmt(summary.scored)}</span> مُقيَّم
+          </p>
+        </div>
+        <div className="head-score">
+          <span className="num" style={{ color: band(summary.avg).color }}>
+            {summary.avg ?? '—'}
+          </span>
+          <small>متوسط الأداء</small>
         </div>
       </header>
 
       <div className="pg-body">
+        <FilterBar filters={filters} update={update} clear={clear} active={active} />
+
+        {summary.attention > 0 && (
+          <div className="cta">
+            <span className="cta-n num">{summary.attention}</span>
+            <div>
+              <b>أصلاً يحتاج تدخّلاً هذا الأسبوع</b>
+              <p>فقد غطاء نباتي، أو اتجاه هابط، أو إجهاد ريّ رُصد قبل ظهوره للعين.</p>
+            </div>
+            <button type="button" className="cta-btn" onClick={() => setStatus('water_stress')}>
+              عرض حالات الإجهاد ←
+            </button>
+          </div>
+        )}
+
         <div className="chiprow">
-          {chips.map(([k, label]) => (
-            <button key={k} type="button" className="chip2" aria-pressed={filter === k}
-                    onClick={() => setFilter(k)}>
+          {chips.map(([k, label, color]) => (
+            <button key={k} type="button" className="chip2" aria-pressed={status === k}
+                    onClick={() => setStatus(k)}
+                    style={status === k ? { color, borderColor: color } : undefined}>
+              <i style={{ background: color }} />
               {label}
-              <span className="num">{k === 'all' ? rows.length : (tally[k] ?? 0)}</span>
+              <span className="num">{k === 'all' ? base.length : (tally[k] ?? 0)}</span>
             </button>
           ))}
         </div>
@@ -124,11 +180,19 @@ export default function GreenAssets() {
             getKey={(r) => r.id}
             searchPlaceholder="ابحث باسم الأصل أو الحي…"
             emptyMessage="لا يوجد أصل مطابق."
-            onRowClick={(r) => router.push(`/dashboard/map?district=${encodeURIComponent(r.district ?? '')}`)}
+            onRowClick={(r) => r.district
+              && router.push(`/dashboard/map?district=${encodeURIComponent(r.district)}`)}
           />
         ) : (
           <div className="pg-loading">جارٍ التحميل…</div>
         )}
+
+        <p className="dnote">
+          <b>كيف تُقرأ الدرجة:</b> مجموع مرجّح شفّاف من الحيوية (NDVI) والرطوبة (NDMI) والاتجاه،
+          لا تصنيفاً عنقودياً — حتى يمكن الدفاع عن أي رقم في اجتماع. أصل بأقل من ستة أرصاد صافية
+          لا يُمنح درجة إطلاقاً: رقمٌ واثق مبني على أربع لقطات غائمة أسوأ من لا رقم.
+          و«أرض غير مزروعة» ليست «فقد غطاء» — الأولى لم تُزرع قط، والثانية خسرت غطاءً كان موجوداً.
+        </p>
       </div>
     </main>
   );

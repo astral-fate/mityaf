@@ -73,49 +73,52 @@ export default function Rain() {
   ], []);
 
   return (
-    <main className="pg with-side">
-      <aside className="pg-side">
+    <main className="pg">
+      <header className="pg-head">
+        <div>
+          <h1>الأحداث المطرية</h1>
+          <p>
+            <span className="num">{fmt(rain?.events?.length ?? 0)}</span> حدثاً منذ ٢٠١٥ —
+            كل تحقّق «قبل/بعد» مرتبط بأحدها
+          </p>
+        </div>
+      </header>
+
+      <div className="pg-body">
         <FilterBar filters={filters} update={update} clear={clear} active={active} />
-        <div className="card2">
-          <div className="card2-h"><h2>في المدى المحدَّد</h2></div>
-          <div className="card2-b">
-            <div className="kv"><span>عدد الأحداث</span><b className="num">{fmt(events.length)}</b></div>
-            <div className="kv"><span>مجموع الهطول</span><b className="num">{fmt(stats.total, 1)} ملم</b></div>
-            <div className="kv"><span>أكبر حدث</span><b className="num">{fmt(stats.max, 1)} ملم</b></div>
-            {stats.biggest && (
-              <div className="kv"><span>تاريخه</span><b className="num">{String(stats.biggest.peakDate).slice(0, 10)}</b></div>
-            )}
+
+        <div className="ov-grid">
+          <div className="ov-tile as-stat">
+            <div className="v num">{fmt(events.length)}</div>
+            <div className="k">حدثاً في المدى</div>
+          </div>
+          <div className="ov-tile as-stat">
+            <div className="v num" style={{ color: 'var(--lp-water)' }}>{fmt(stats.total, 1)}</div>
+            <div className="k">ملم مجموع الهطول</div>
+          </div>
+          <div className="ov-tile as-stat">
+            <div className="v num" style={{ color: 'var(--sev-2)' }}>{fmt(stats.max, 1)}</div>
+            <div className="k">ملم أكبر حدث</div>
+            <div className="s num">{stats.biggest ? String(stats.biggest.peakDate).slice(0, 10) : '—'}</div>
           </div>
         </div>
+
+        {loaded ? (
+          <DataTable
+            rows={events}
+            columns={columns}
+            getKey={(e) => e.rainEventId}
+            searchPlaceholder="ابحث بالتاريخ…"
+            emptyMessage="لا أحداث مطرية داخل المدى المحدَّد."
+          />
+        ) : (
+          <div className="pg-loading">جارٍ التحميل…</div>
+        )}
+
         <p className="dnote">
           المصدر: أرشيف Open-Meteo اليومي عند مركز نطاق الدراسة. الحدث يُعرَّف بتجاوز عتبة
           الهطول التراكمي المحدّدة في إعدادات خط الأنابيب.
         </p>
-      </aside>
-
-      <div className="pg-main">
-        <header className="pg-head">
-          <div>
-            <h1>الأحداث المطرية</h1>
-            <p>
-              <span className="num">{fmt(rain?.events?.length ?? 0)}</span> حدثاً منذ ٢٠١٥ —
-              كل تحقّق «قبل/بعد» مرتبط بأحدها
-            </p>
-          </div>
-        </header>
-        <div className="pg-body">
-          {loaded ? (
-            <DataTable
-              rows={events}
-              columns={columns}
-              getKey={(e) => e.rainEventId}
-              searchPlaceholder="ابحث بالتاريخ…"
-              emptyMessage="لا أحداث مطرية داخل المدى المحدَّد."
-            />
-          ) : (
-            <div className="pg-loading">جارٍ التحميل…</div>
-          )}
-        </div>
       </div>
     </main>
   );

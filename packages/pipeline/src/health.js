@@ -30,6 +30,7 @@ const SPARSE_NDVI = 0.25;      // stressed or patchy
 const MIN_OBS = 6;             // fewer looks than this cannot carry a trend
 const NDMI_MIN_AREA_M2 = 1600; // 4 x 4 pixels at 20 m; below this NDMI is mixed
 const DECLINE_PER_YEAR = -0.06; // NDVI slope that counts as a real decline
+const WAS_VEGETATED_NDVI = 0.30; // proof the ground was once genuinely planted
 
 /** Ordinary least squares slope, in index units per year. */
 export function slopePerYear(points) {
@@ -61,6 +62,8 @@ export function median(xs) {
 export function classify({ ndvi, ndmi, areaM2 }) {
   const nd = ndvi.map((p) => p.v);
   const ndviMedian = median(nd);
+  const ndviMax = nd.length ? Math.max(...nd) : null;
+  const ndmiMedian = median(ndmi.map((p) => p.v));
   const ndviSlope = slopePerYear(ndvi);
   const ndmiSlope = slopePerYear(ndmi);
   const ndmiReliable = areaM2 >= NDMI_MIN_AREA_M2 && ndmi.length >= MIN_OBS;
@@ -68,23 +71,41 @@ export function classify({ ndvi, ndmi, areaM2 }) {
   if (ndvi.length < MIN_OBS || ndviMedian === null) {
     return {
       status: 'insufficient_data',
-      ndviMedian, ndviSlope, ndmiSlope, ndmiReliable,
+      ndviMedian, ndviMax, ndmiMedian, ndviSlope, ndmiSlope, ndmiReliable,
       reasonAr: `عدد الأرصاد الصافية ${ndvi.length} — أقل من ${MIN_OBS}، لا يكفي للحكم`,
     };
   }
 
+  // Low greenness has two entirely different causes, and conflating them is
+  // the difference between a true alarm and an embarrassing one.
+  //
+  // A park that once read 0.4 and now reads 0.07 lost its planting: that is
+  // dead, and it is the alert worth firing. A designated desert park that has
+  // read 0.06 for the whole record was never planted — or is scattered date
+  // palms over bright sand, where the soil dominates a 10 m pixel and the
+  // canopy barely registers. Reporting the second as "ميت" tells the Amanah
+  // its parks died when nothing of the sort happened.
   if (ndviMedian < BARE_SOIL_NDVI) {
-    return {
-      status: 'dead',
-      ndviMedian, ndviSlope, ndmiSlope, ndmiReliable,
-      reasonAr: `الغطاء النباتي عند مستوى التربة العارية (NDVI ${ndviMedian.toFixed(2)})`,
-    };
+    const everGreen = ndviMax !== null && ndviMax >= WAS_VEGETATED_NDVI;
+    return everGreen
+      ? {
+        status: 'dead',
+        ndviMedian, ndviMax, ndmiMedian, ndviSlope, ndmiSlope, ndmiReliable,
+        reasonAr: `فقد الغطاء النباتي خلال فترة الرصد — بلغ NDVI ${ndviMax.toFixed(2)} `
+          + `ثم انخفض إلى ${ndviMedian.toFixed(2)}`,
+      }
+      : {
+        status: 'bare',
+        ndviMedian, ndviMax, ndmiMedian, ndviSlope, ndmiSlope, ndmiReliable,
+        reasonAr: `لم يُرصد غطاء نباتي طوال فترة الرصد (NDVI ${ndviMedian.toFixed(2)}) — `
+          + `أرض غير مزروعة أو نخيل متفرّق فوق رمل يغلب على البكسل`,
+      };
   }
 
   if (ndviSlope !== null && ndviSlope <= DECLINE_PER_YEAR) {
     return {
       status: 'declining',
-      ndviMedian, ndviSlope, ndmiSlope, ndmiReliable,
+      ndviMedian, ndviMax, ndmiMedian, ndviSlope, ndmiSlope, ndmiReliable,
       reasonAr: `اتجاه هابط في الخضرة بمقدار ${Math.abs(ndviSlope).toFixed(2)} سنوياً`,
     };
   }
@@ -94,7 +115,7 @@ export function classify({ ndvi, ndmi, areaM2 }) {
       && ndviMedian >= SPARSE_NDVI) {
     return {
       status: 'water_stress',
-      ndviMedian, ndviSlope, ndmiSlope, ndmiReliable,
+      ndviMedian, ndviMax, ndmiMedian, ndviSlope, ndmiSlope, ndmiReliable,
       reasonAr: 'رطوبة المظلة تنخفض والخضرة ما زالت مرتفعة — إجهاد ريّ قبل ظهوره للعين',
     };
   }
@@ -102,14 +123,14 @@ export function classify({ ndvi, ndmi, areaM2 }) {
   if (ndviMedian < SPARSE_NDVI) {
     return {
       status: 'sparse',
-      ndviMedian, ndviSlope, ndmiSlope, ndmiReliable,
+      ndviMedian, ndviMax, ndmiMedian, ndviSlope, ndmiSlope, ndmiReliable,
       reasonAr: `غطاء نباتي متفرّق (NDVI ${ndviMedian.toFixed(2)})`,
     };
   }
 
   return {
     status: 'healthy',
-    ndviMedian, ndviSlope, ndmiSlope, ndmiReliable,
+    ndviMedian, ndviMax, ndmiMedian, ndviSlope, ndmiSlope, ndmiReliable,
     reasonAr: `خضرة مستقرة (NDVI ${ndviMedian.toFixed(2)})`,
   };
 }
@@ -157,6 +178,8 @@ export async function buildHealth({ months = 12 } = {}) {
       assessed_on: new Date().toISOString().slice(0, 10),
       status: v.status,
       ndvi_median: v.ndviMedian,
+      ndvi_max: v.ndviMax,
+      ndmi_median: v.ndmiMedian,
       ndvi_slope_yr: v.ndviSlope,
       ndmi_slope_yr: v.ndmiSlope,
       ndmi_reliable: v.ndmiReliable,
@@ -167,7 +190,7 @@ export async function buildHealth({ months = 12 } = {}) {
 
   await bulkUpsert({
     table: 'green_health',
-    columns: ['green_unit_id', 'assessed_on', 'status', 'ndvi_median', 'ndvi_slope_yr',
+    columns: ['green_unit_id', 'assessed_on', 'status', 'ndvi_median', 'ndvi_max', 'ndmi_median', 'ndvi_slope_yr',
       'ndmi_slope_yr', 'ndmi_reliable', 'n_observations', 'reason_ar'],
     rows: out,
     conflictTarget: ['green_unit_id', 'assessed_on'],

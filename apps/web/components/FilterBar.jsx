@@ -4,96 +4,96 @@ import { useEffect, useState } from 'react';
 import { loadDistricts } from '@/lib/data';
 
 /**
- * District and time-window controls, shared by every dashboard view.
+ * Filters, on one horizontal row.
  *
- * The district list is read from districts.geojson rather than derived from
- * the 6.8 MB segment file, so the control is usable before the map data has
- * finished arriving — and it carries each district's segment count, which is
- * what tells an operator whether narrowing to it will leave them anything.
+ * The first version stacked a select, four preset buttons and two date inputs
+ * down a 300 px column, which spent a third of the screen on controls nobody
+ * looks at twice. Everything here is either a dropdown or collapses into one,
+ * so the row is a strip and the data gets the space.
  */
 
 const PRESETS = [
+  { k: 'all', label: 'الأرشيف كاملاً', days: null },
   { k: '30', label: 'آخر ٣٠ يوماً', days: 30 },
   { k: '90', label: 'آخر ٣ أشهر', days: 90 },
   { k: '365', label: 'آخر سنة', days: 365 },
-  { k: 'all', label: 'الأرشيف كاملاً', days: null },
+  { k: 'custom', label: 'مدى مخصّص', days: 'custom' },
 ];
 
 const iso = (d) => d.toISOString().slice(0, 10);
 
-export default function FilterBar({ filters, update, clear, active }) {
+export default function FilterBar({ filters, update, clear, active, extra = null }) {
   const [districts, setDistricts] = useState([]);
+  const [custom, setCustom] = useState(false);
 
   useEffect(() => {
     loadDistricts().then((d) => {
-      const list = (d?.features ?? [])
+      setDistricts((d?.features ?? [])
         .map((f) => f.properties)
         .filter((p) => p.seg > 0)
-        .sort((a, b) => b.seg - a.seg);
-      setDistricts(list);
+        .sort((a, b) => b.seg - a.seg));
     });
   }, []);
 
-  const applyPreset = (p) => {
+  // A stored range that matches no preset is a custom range; reflect that on
+  // load so a shared link does not open showing "الأرشيف كاملاً".
+  useEffect(() => {
+    if (filters.from || filters.to) setCustom(true);
+  }, [filters.from, filters.to]);
+
+  const onPreset = (v) => {
+    const p = PRESETS.find((x) => x.k === v);
+    if (!p) return;
+    if (p.days === 'custom') { setCustom(true); return; }
+    setCustom(false);
     if (!p.days) return update({ from: null, to: null });
     const to = new Date();
-    const from = new Date(to.getTime() - p.days * 864e5);
-    return update({ from: iso(from), to: iso(to) });
+    return update({ from: iso(new Date(to.getTime() - p.days * 864e5)), to: iso(to) });
   };
 
+  const presetValue = custom ? 'custom'
+    : (!filters.from && !filters.to) ? 'all'
+      : 'custom';
+
   return (
-    <div className="fbar">
-      <div className="fbar-row">
-        <label className="fbar-lab" htmlFor="f-district">الحي</label>
+    <div className="hbar-row">
+      <label className="hf">
+        <span>الحي</span>
         <select
-          id="f-district"
-          className="fbar-sel"
           value={filters.district ?? ''}
           onChange={(e) => update({ district: e.target.value || null })}
         >
           <option value="">كل الأحياء ({districts.length})</option>
           {districts.map((d) => (
-            <option key={d.id} value={d.name}>
-              {d.name} — {d.seg.toLocaleString('en-US')} مقطع
-            </option>
+            <option key={d.id} value={d.name}>{d.name} — {d.seg} مقطع</option>
           ))}
         </select>
-      </div>
+      </label>
 
-      <div className="fbar-row">
-        <span className="fbar-lab">المدى الزمني</span>
-        <div className="fbar-presets">
-          {PRESETS.map((p) => (
-            <button
-              key={p.k}
-              type="button"
-              className="fbar-preset"
-              onClick={() => applyPreset(p)}
-              aria-pressed={p.days ? false : !filters.from && !filters.to}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <label className="hf">
+        <span>المدى الزمني</span>
+        <select value={presetValue} onChange={(e) => onPreset(e.target.value)}>
+          {PRESETS.map((p) => <option key={p.k} value={p.k}>{p.label}</option>)}
+        </select>
+      </label>
 
-      <div className="fbar-row dates">
-        <input
-          type="date" className="fbar-date" aria-label="من تاريخ"
-          value={filters.from ?? ''}
-          onChange={(e) => update({ from: e.target.value || null })}
-        />
-        <span className="fbar-dash">→</span>
-        <input
-          type="date" className="fbar-date" aria-label="إلى تاريخ"
-          value={filters.to ?? ''}
-          onChange={(e) => update({ to: e.target.value || null })}
-        />
-      </div>
+      {custom && (
+        <label className="hf dates">
+          <span>من / إلى</span>
+          <span className="hf-dates">
+            <input type="date" value={filters.from ?? ''} aria-label="من تاريخ"
+                   onChange={(e) => update({ from: e.target.value || null })} />
+            <input type="date" value={filters.to ?? ''} aria-label="إلى تاريخ"
+                   onChange={(e) => update({ to: e.target.value || null })} />
+          </span>
+        </label>
+      )}
+
+      {extra}
 
       {active && (
-        <button type="button" className="fbar-clear" onClick={clear}>
-          مسح المرشّحات
+        <button type="button" className="hf-clear" onClick={() => { setCustom(false); clear(); }}>
+          مسح
         </button>
       )}
     </div>
