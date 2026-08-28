@@ -52,8 +52,12 @@ html { direction: rtl; }
 
 body {
   font-family: var(--font);
-  background: var(--ink);
-  color: var(--white);
+  /* Themed tokens, not the legacy --ink/--white: those never flip, which left
+     the console painting white text on a light ground and showed through the
+     transparent nav as a dark bar. The landing pins --lp-* to dark, so it is
+     unaffected. */
+  background: var(--lp-ground);
+  color: var(--lp-fg);
   font-size: var(--fs-body);
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
@@ -108,8 +112,8 @@ svg { direction: ltr; }
 .topnav {
   display: flex; align-items: center; gap: 8px;
   height: 60px; padding: 0 24px;
-  border-bottom: 1px solid var(--line-soft);
-  background: rgba(4, 8, 26, 0.82);
+  border-bottom: 1px solid var(--lp-line);
+  background: var(--lp-nav-bg);
   backdrop-filter: blur(10px);
   position: sticky; top: 0; z-index: 20;
   transition: background .25s ease, border-color .25s ease;
@@ -118,34 +122,34 @@ svg { direction: ltr; }
    once the page has scrolled under it. */
 .topnav.ghost { background: transparent; border-bottom-color: transparent; backdrop-filter: none; }
 
-.brandmark { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--white); }
+.brandmark { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--lp-fg); }
 .brandmark .brand-name {
   font-family: var(--font-display); font-weight: 600; font-size: 16px; letter-spacing: -.01em;
 }
 .brandmark .brand-sub {
-  font-size: 12px; color: var(--dim-2);
-  padding-inline-start: 11px; border-inline-start: 1px solid var(--line-soft);
+  font-size: 12px; color: var(--lp-fg-3);
+  padding-inline-start: 11px; border-inline-start: 1px solid var(--lp-line);
 }
 @media (max-width: 760px) { .brandmark .brand-sub { display: none; } }
 
 .navlinks { display: flex; gap: 2px; margin-inline-start: 26px; }
 .navlinks a {
-  padding: 7px 13px; border-radius: 9px; color: var(--dim-2);
+  padding: 7px 13px; border-radius: 9px; color: var(--lp-fg-2);
   text-decoration: none; font-size: 13.5px; font-weight: 500;
   transition: color .15s, background .15s;
 }
-.navlinks a:hover { color: var(--white); background: rgba(255, 255, 255, .06); }
-.navlinks a.active { color: var(--neon); background: rgba(80, 255, 74, 0.12); font-weight: 600; }
+.navlinks a:hover { color: var(--lp-fg); background: var(--lp-tint-2); }
+.navlinks a.active { color: var(--lp-signal); background: var(--lp-tint-2); font-weight: 600; }
 @media (max-width: 640px) { .navlinks { display: none; } }
 
 .nav-cta {
   margin-inline-start: auto; display: inline-flex; align-items: center;
   padding: 8px 18px; border-radius: 999px;
   font-family: var(--font-display); font-size: 13.5px; font-weight: 600;
-  text-decoration: none; color: #032a06; background: var(--neon);
+  text-decoration: none; color: var(--lp-on-signal); background: var(--lp-signal);
   transition: box-shadow .18s ease, transform .18s ease;
 }
-.nav-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(80, 255, 74, .35); }
+.nav-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 22px var(--lp-tint-2); }
 .topnav a:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
 
 /* ── cards ── */
@@ -495,17 +499,55 @@ a { color: inherit; }
   direction: ltr; unicode-bidi: isolate; display: inline-block;
 }
 
-/* ── shared surface palette ─────────────────────────────────
-   Defined here as well as in landing.css because /dashboard does not import
-   landing.css, and both surfaces must resolve to the same colours. Values are
-   identical, so whichever loads last is a no-op.
+/* ── surface palette ────────────────────────────────────────
+   Light is the default: this console is read in daylight, in meetings, and
+   printed. Dark remains available and is what the landing page and the map
+   stay in, but a municipal tool should not assume a dim room.
+
+   Light is NOT gated on prefers-color-scheme. The default is a product
+   decision, not a guess about the room — a visitor whose OS is dark should
+   still land on the light console and switch if they want to. The toggle
+   stamps data-theme on <html> and the choice persists.
+
+   Accents are re-mixed rather than reused. #50ff4a on white is barely legible
+   and the severity ramp collapses to a smear of pastels, so every accent has
+   a light-ground value chosen to hold the same meaning at the same contrast.
    ──────────────────────────────────────────────────────────── */
 :root {
+  --lp-ground:    #f1f4fa;
+  --lp-ground-2:  #ffffff;
+  --lp-surface:   #ffffff;
+  --lp-card:      #ffffff;
+  --lp-line:      rgba(20, 34, 78, 0.13);
+  --lp-line-2:    rgba(20, 34, 78, 0.22);
+  /* neutral overlays: a wash toward the ink, never toward white */
+  --lp-tint:      rgba(20, 34, 78, 0.04);
+  --lp-tint-2:    rgba(20, 34, 78, 0.08);
+  --lp-sand:      #8f6430;
+  --lp-sand-2:    #74501f;
+  --lp-signal:    #0d8b39;
+  --lp-water:     #0a7391;
+  --sev-0: #8f6430;
+  --sev-1: #a06c12;
+  --sev-2: #bd5320;
+  --sev-3: #b81f3c;
+  --lp-fg:   #0d1633;
+  --lp-fg-2: #414e78;
+  --lp-fg-3: #6d789a;
+  --lp-nav-bg:   rgba(255, 255, 255, 0.86);
+  --lp-on-signal: #ffffff;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
   --lp-ground:    #04081a;
   --lp-ground-2:  #070d24;
   --lp-surface:   #0b1231;
+  --lp-card:      #0b1231;
   --lp-line:      rgba(160, 180, 225, 0.13);
   --lp-line-2:    rgba(160, 180, 225, 0.22);
+  --lp-tint:      rgba(255, 255, 255, 0.04);
+  --lp-tint-2:    rgba(255, 255, 255, 0.08);
   --lp-sand:      #e8d6bb;
   --lp-sand-2:    #c39a6d;
   --lp-signal:    #50ff4a;
@@ -517,4 +559,21 @@ a { color: inherit; }
   --lp-fg:   #eef2ff;
   --lp-fg-2: #a3b0d2;
   --lp-fg-3: #66739a;
+  --lp-nav-bg:   rgba(4, 8, 26, 0.82);
+  --lp-on-signal: #032a06;
+  color-scheme: dark;
 }
+
+/* ── theme toggle ───────────────────────────────────────────────────────── */
+.theme-tgl {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 12px; border-radius: 999px; cursor: pointer;
+  background: transparent; border: 1px solid var(--lp-line-2);
+  color: var(--lp-fg-2); font: inherit; font-size: 12.5px;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.theme-tgl:hover { color: var(--lp-fg); border-color: var(--lp-fg-3); }
+.theme-tgl svg { flex: none; }
+/* Reserve the label's width before the client knows the theme, so the nav does
+   not shift when the toggle resolves. */
+.theme-tgl span { min-width: 2.4em; text-align: start; }

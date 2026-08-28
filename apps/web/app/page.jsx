@@ -107,6 +107,8 @@ const ECON = [
 export default function Landing() {
   return (
     <main className="lp">
+      <div className="glow-backdrop" />
+      <div className="grid-overlay" />
       {/* ── hero ─────────────────────────────────────────── */}
       <section className="lp-hero">
         <div className="lp-hero-media">

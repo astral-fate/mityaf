@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import ThemeToggle from './ThemeToggle';
 
 /**
  * Site nav. It rides transparent over the hero raster and picks up its
@@ -43,6 +44,7 @@ export default function SiteNav() {
         ))}
       </div>
 
+      <ThemeToggle />
       <a className="nav-cta" href="/dashboard">لوحة الرصد</a>
     </nav>
   );

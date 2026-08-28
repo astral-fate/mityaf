@@ -29,7 +29,7 @@
 }
 .sbar-item svg { flex: none; }
 .sbar-item span { flex: 1; min-width: 0; }
-.sbar-item:hover { color: var(--lp-fg); background: rgba(255, 255, 255, .05); }
+.sbar-item:hover { color: var(--lp-fg); background: var(--lp-tint-2); }
 .sbar-item.on { color: var(--lp-signal); background: rgba(80, 255, 74, .1); border-color: rgba(80, 255, 74, .24); }
 .sbar-item.has-active { color: var(--lp-fg-2); }
 .sbar-item:focus-visible { outline: 2px solid var(--lp-water); outline-offset: 1px; }
@@ -43,7 +43,7 @@
   text-decoration: none; color: var(--lp-fg-3); font-size: 12.5px; font-weight: 500;
   transition: color .15s ease, background .15s ease, border-color .15s ease;
 }
-.sbar-child:hover { color: var(--lp-fg); background: rgba(255, 255, 255, .04); }
+.sbar-child:hover { color: var(--lp-fg); background: var(--lp-tint); }
 .sbar-child.on { color: var(--lp-signal); border-inline-start-color: var(--lp-signal); background: rgba(80, 255, 74, .07); }
 
 /* page chrome */
@@ -51,6 +51,9 @@
 .pg.with-side { display: grid; grid-template-columns: 300px minmax(0, 1fr); }
 .pg-side { padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
            border-inline-end: 1px solid var(--lp-line); background: var(--lp-ground-2); }
+/* Same guard as .dash-side and .pg-body: a scrolling column must not squeeze
+   its children into clipping. */
+.pg-side > * { flex: 0 0 auto; }
 .pg-main { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
 /* ── content measure ──────────────────────────────────────────────────────
    On a wide desktop the console ran edge to edge: a six-column table stretched
@@ -82,6 +85,12 @@
   padding: 18px var(--dash-inset) 34px;
   display: flex; flex-direction: column; gap: 16px;
 }
+/* Flex children shrink below their content by default. In a scrolling column
+   that is exactly wrong: instead of the column growing and scrolling, every
+   card gets squeezed and clips its last rows — which is why a card read fine
+   only after zooming out, when the content happened to fit. Pin them to their
+   natural height and let the container scroll, which is its job. */
+.pg-body > * { flex: 0 0 auto; }
 .pg-loading { padding: 50px; text-align: center; color: var(--lp-fg-3); font-size: 13px; }
 
 /* overview */
@@ -128,7 +137,7 @@
           border-bottom: 1px solid var(--lp-line); flex-wrap: wrap; }
 .dt-search { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 190px;
              padding: 8px 12px; border-radius: 9px;
-             background: rgba(255, 255, 255, .05); border: 1px solid var(--lp-line-2);
+             background: var(--lp-tint-2); border: 1px solid var(--lp-line-2);
              color: var(--lp-fg-3); }
 .dt-search:focus-within { border-color: var(--lp-water); color: var(--lp-water); }
 .dt-search input { flex: 1; min-width: 0; background: none; border: none; outline: none;
@@ -153,7 +162,7 @@
 .dt-table td.num { font-variant-numeric: tabular-nums; direction: ltr; text-align: start; }
 .dt-table tr:last-child td { border-bottom: none; }
 .dt-table tr.clickable { cursor: pointer; }
-.dt-table tr.clickable:hover td { background: rgba(255, 255, 255, .04); }
+.dt-table tr.clickable:hover td { background: var(--lp-tint); }
 .dt-strong { display: block; color: var(--lp-fg); font-weight: 600; }
 .dt-sub { display: block; font-size: 11px; color: var(--lp-fg-3); margin-top: 2px; }
 .dt-go { font-size: 11.5px; color: var(--lp-water); font-weight: 600; text-decoration: none; white-space: nowrap; }
@@ -161,7 +170,7 @@
 .dt-pager { display: flex; align-items: center; justify-content: center; gap: 6px;
             padding: 11px; border-top: 1px solid var(--lp-line); font-size: 12px; }
 .dt-pager button { padding: 6px 11px; border-radius: 7px; cursor: pointer; font: inherit; font-size: 11.5px;
-                   background: rgba(255, 255, 255, .05); border: 1px solid var(--lp-line-2); color: var(--lp-fg-2); }
+                   background: var(--lp-tint-2); border: 1px solid var(--lp-line-2); color: var(--lp-fg-2); }
 .dt-pager button:hover:not(:disabled) { color: var(--lp-fg); border-color: var(--lp-water); }
 .dt-pager button:disabled { opacity: .35; cursor: not-allowed; }
 .dt-pager span { color: var(--lp-fg-3); padding: 0 8px; }
@@ -169,7 +178,7 @@
 .chiprow { display: flex; flex-wrap: wrap; gap: 7px; }
 .chip2 { display: inline-flex; align-items: center; gap: 7px; padding: 7px 13px; border-radius: 999px;
          cursor: pointer; font: inherit; font-size: 11.5px; font-weight: 600;
-         background: rgba(255, 255, 255, .04); border: 1px solid var(--lp-line-2); color: var(--lp-fg-3); }
+         background: var(--lp-tint); border: 1px solid var(--lp-line-2); color: var(--lp-fg-3); }
 .chip2:hover { color: var(--lp-fg); }
 .chip2[aria-pressed="true"] { color: var(--lp-water); border-color: rgba(47, 216, 239, .45); background: rgba(47, 216, 239, .09); }
 .chip2 .num { opacity: .7; }
@@ -211,7 +220,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 4px;
   padding: 4px;
-  background: rgba(255, 255, 255, .04);
+  background: var(--lp-tint);
   border: 1px solid var(--lp-line);
   border-radius: 12px;
 }
@@ -221,7 +230,7 @@
   font: inherit; font-size: 13px; font-weight: 600; text-align: center;
   transition: background .18s ease, color .18s ease, border-color .18s ease;
 }
-.dash-mode:hover { color: var(--lp-fg-2); background: rgba(255, 255, 255, .04); }
+.dash-mode:hover { color: var(--lp-fg-2); background: var(--lp-tint); }
 .dash-mode small { display: block; font-size: 10.5px; font-weight: 500; margin-top: 3px; opacity: .8; }
 .dash-mode[aria-pressed="true"].waste {
   background: rgba(80, 255, 74, .13); color: var(--lp-signal); border-color: rgba(80, 255, 74, .3);
@@ -286,11 +295,11 @@
 .drow {
   display: grid; grid-template-columns: 3px 1fr auto; gap: 10px; align-items: center;
   padding: 9px 10px; border-radius: 9px; cursor: pointer;
-  background: rgba(255, 255, 255, .025); border: 1px solid transparent;
+  background: var(--lp-tint); border: 1px solid transparent;
   transition: background .15s ease, border-color .15s ease;
   text-align: start; font: inherit; color: inherit; width: 100%;
 }
-.drow:hover { background: rgba(255, 255, 255, .06); border-color: var(--lp-line-2); }
+.drow:hover { background: var(--lp-tint-2); border-color: var(--lp-line-2); }
 .drow[aria-selected="true"] { background: rgba(47, 216, 239, .1); border-color: rgba(47, 216, 239, .35); }
 .drow:focus-visible { outline: 2px solid var(--lp-water); outline-offset: 1px; }
 .drow > i { align-self: stretch; border-radius: 3px; min-height: 26px; }
@@ -303,7 +312,7 @@
   font-family: var(--font-display); font-size: 14px; font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
-.dskel { height: 44px; border-radius: 9px; background: rgba(255, 255, 255, .04); animation: dpulse 1.5s ease-in-out infinite; }
+.dskel { height: 44px; border-radius: 9px; background: var(--lp-tint); animation: dpulse 1.5s ease-in-out infinite; }
 @keyframes dpulse { 0%, 100% { opacity: .45 } 50% { opacity: .8 } }
 
 /* ── the map side ── */
@@ -365,7 +374,7 @@
   background: none; border: none; cursor: pointer; color: var(--lp-fg-3);
   font-size: 16px; line-height: 1; padding: 2px 4px; border-radius: 5px;
 }
-.dsel-x:hover { color: var(--lp-fg); background: rgba(255, 255, 255, .07); }
+.dsel-x:hover { color: var(--lp-fg); background: var(--lp-tint-2); }
 .dsel-b { padding: 12px 13px; display: flex; flex-direction: column; gap: 8px; }
 .dsel-b .r { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
 .dsel-b .r span { color: var(--lp-fg-3); }
@@ -397,7 +406,7 @@
 /* imported layers */
 .dzone {
   margin: 11px; padding: 20px 14px; border-radius: 12px; cursor: pointer;
-  border: 1.5px dashed var(--lp-line-2); background: rgba(255, 255, 255, .02);
+  border: 1.5px dashed var(--lp-line-2); background: var(--lp-tint);
   display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
   color: var(--lp-fg-3); transition: border-color .18s ease, background .18s ease, color .18s ease;
 }
@@ -419,7 +428,7 @@
              overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ulayer-btn { background: none; border: none; cursor: pointer; color: var(--lp-fg-3); padding: 2px 5px;
               border-radius: 5px; font-size: 13px; line-height: 1; }
-.ulayer-btn:hover { color: var(--lp-fg); background: rgba(255, 255, 255, .07); }
+.ulayer-btn:hover { color: var(--lp-fg); background: var(--lp-tint-2); }
 .ulayer-meta { font-size: 10.5px; color: var(--lp-fg-3); }
 .ulayer input[type="range"] { width: 100%; accent-color: var(--lp-water); height: 3px; }
 
@@ -427,7 +436,7 @@
 .drain { display: flex; gap: 6px; overflow-x: auto; padding: 10px; }
 .drain-i {
   flex: none; min-width: 74px; padding: 8px 10px; border-radius: 9px;
-  background: rgba(255, 255, 255, .03); border: 1px solid var(--lp-line);
+  background: var(--lp-tint); border: 1px solid var(--lp-line);
 }
 .drain-i .mm {
   font-family: var(--font-display); font-size: 15px; font-weight: 600;
@@ -439,7 +448,7 @@
 .dnote {
   font-size: 11.5px; line-height: 1.65; color: var(--lp-fg-3);
   padding: 11px 13px; border-radius: 11px;
-  border: 1px dashed var(--lp-line-2); background: rgba(255, 255, 255, .02);
+  border: 1px dashed var(--lp-line-2); background: var(--lp-tint);
 }
 .dnote b { color: var(--lp-fg-2); font-weight: 600; }
 
@@ -452,7 +461,7 @@
 .fbar-lab { font-size: 11px; font-weight: 600; color: var(--lp-fg-3); }
 .fbar-sel, .fbar-date {
   width: 100%; padding: 8px 10px; border-radius: 9px; font: inherit; font-size: 12.5px;
-  background: rgba(255, 255, 255, .04); border: 1px solid var(--lp-line-2); color: var(--lp-fg);
+  background: var(--lp-tint); border: 1px solid var(--lp-line-2); color: var(--lp-fg);
 }
 .fbar-date { flex: 1; min-width: 0; color-scheme: dark; }
 .fbar-dash { color: var(--lp-fg-3); font-size: 12px; }
@@ -460,7 +469,7 @@
 .fbar-presets { display: flex; flex-wrap: wrap; gap: 5px; }
 .fbar-preset {
   padding: 6px 10px; border-radius: 8px; cursor: pointer; font: inherit; font-size: 11px;
-  background: rgba(255, 255, 255, .04); border: 1px solid var(--lp-line); color: var(--lp-fg-3);
+  background: var(--lp-tint); border: 1px solid var(--lp-line); color: var(--lp-fg-3);
 }
 .fbar-preset:hover { color: var(--lp-fg); border-color: var(--lp-line-2); }
 .fbar-preset[aria-pressed="true"] { color: var(--lp-water); border-color: rgba(47, 216, 239, .4); }
@@ -498,7 +507,7 @@
   padding: 5px 9px; border-radius: 7px; cursor: pointer; font: inherit; font-size: 11px;
   background: none; border: 1px solid transparent; color: var(--lp-fg-3);
 }
-.sortby button:hover { color: var(--lp-fg-2); background: rgba(255, 255, 255, .05); }
+.sortby button:hover { color: var(--lp-fg-2); background: var(--lp-tint-2); }
 .sortby button[aria-pressed="true"] { color: var(--lp-water); border-color: rgba(47, 216, 239, .35); }
 
 .tbl-scroll { overflow-x: auto; max-height: 46vh; overflow-y: auto; }
@@ -526,7 +535,7 @@
 .hf > span { font-size: 10.5px; font-weight: 600; color: var(--lp-fg-3); }
 .hf select, .hf input[type="date"] {
   padding: 8px 11px; border-radius: 9px; font: inherit; font-size: 12.5px;
-  background: rgba(255, 255, 255, .05); border: 1px solid var(--lp-line-2);
+  background: var(--lp-tint-2); border: 1px solid var(--lp-line-2);
   color: var(--lp-fg); min-width: 160px; color-scheme: dark;
 }
 .hf select:focus-visible, .hf input:focus-visible { outline: 2px solid var(--lp-water); outline-offset: 1px; }
@@ -542,7 +551,7 @@
 .scorecell { display: grid; grid-template-columns: 30px 1fr; gap: 4px 8px; align-items: center; }
 .scoreval { font-family: var(--font-display); font-size: 16px; font-weight: 700;
             font-variant-numeric: tabular-nums; grid-row: span 2; }
-.scoretrack { height: 5px; border-radius: 3px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.scoretrack { height: 5px; border-radius: 3px; background: var(--lp-tint-2); overflow: hidden; }
 .scorefill { display: block; height: 100%; border-radius: 3px; }
 .scoreband { font-size: 10.5px; font-weight: 600; }
 
@@ -597,7 +606,7 @@
 .kpi {
   display: flex; flex-direction: column; gap: 3px;
   padding: 12px 14px; border: 1px solid var(--lp-line); border-radius: 10px;
-  background: var(--lp-card);
+  background: var(--lp-surface);
 }
 .kpi .v { font-size: 21px; font-weight: 700; color: var(--lp-fg); }
 .kpi .l { font-size: 11.5px; color: var(--lp-fg-3); }
@@ -625,7 +634,27 @@
 .drv-lab { font-size: 12.5px; color: var(--lp-fg); }
 .drv-track {
   height: 12px; border-radius: 6px;
-  background: rgba(255, 255, 255, .06); overflow: hidden;
+  background: var(--lp-tint-2); overflow: hidden;
 }
 .drv-fill { display: block; height: 100%; border-radius: 6px; }
 .drv-val { font-size: 12.5px; font-weight: 700; text-align: end; }
+
+
+/* ── the map stays dark in both themes ───────────────────────────────────
+   The basemap is satellite imagery and the network colours are tuned against
+   it; a light shell around a dark map is a normal pattern, a light-tinted map
+   is a fight with the raster. Chrome floating over it is pinned so the light
+   console never hands it a white-on-white pill. */
+.dash-map {
+  --lp-fg: #eef2ff;
+  --lp-fg-2: #a3b0d2;
+  --lp-fg-3: #8792b5;
+  --lp-surface: #0b1231;
+  --lp-line: rgba(160, 180, 225, 0.18);
+  --lp-line-2: rgba(160, 180, 225, 0.28);
+  --lp-signal: #50ff4a;
+  --lp-water: #2fd8ef;
+  --sev-1: #f5c15c;
+  --sev-2: #f08a5a;
+  --sev-3: #e8596b;
+}

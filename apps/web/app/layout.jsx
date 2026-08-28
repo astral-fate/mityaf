@@ -9,10 +9,23 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" data-theme="light">
+      <head>
+        {/* Runs before the body paints: without it a visitor who chose dark
+            sees the light default first and watches it correct itself. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('mityaf-theme');`
+              + `if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}`
+              + `catch(e){}`,
+          }}
+        />
+      </head>
       <body>
-        <div className="glow-backdrop" />
-        <div className="grid-overlay" />
+        {/* The radial glow and map grid moved to the landing page: they are a
+            dark-hero aesthetic, and as fixed layers in the root layout they
+            painted over the light console and showed through the transparent
+            nav as a dark bar. */}
         <SiteNav />
         {children}
       </body>

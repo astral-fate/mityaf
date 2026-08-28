@@ -7,7 +7,12 @@
    reading as signal rather than as styling.
    ============================================================ */
 
-:root {
+/* The landing page is pinned dark in both themes on purpose: its hero is a
+   Sentinel-2 raster with a canvas animation drawn over it, and every colour on
+   the page is chosen against that image. Doubling the selector raises
+   specificity so this wins over the themed :root in globals.css regardless of
+   which stylesheet the bundler emits last. */
+:root:root {
   --lp-ground:    #04081a;
   --lp-ground-2:  #070d24;
   --lp-surface:   #0b1231;
