@@ -13,6 +13,10 @@ import { bulkUpsert, query } from './db.js';
 import { config } from './config.js';
 import * as gee from './gee.js';
 
+/** Matches MIN_OBS_TREND in health.js: below this a unit cannot carry a trend,
+ *  so it is what "already covered" has to mean. */
+const MIN_COVERAGE = 20;
+
 /** Rain context for a date, from the already-ingested archive. */
 async function rainIndex() {
   const { rows } = await query(
@@ -24,11 +28,32 @@ async function rainIndex() {
   return map;
 }
 
-export async function backfillS2({ run = null, months = 12, unitTypes = ['green', 'ring'] } = {}) {
+export async function backfillS2({
+  run = null, months = 12, unitTypes = ['green', 'ring'], onlyMissing = false,
+} = {}) {
+  // Earth Engine throttles concurrent requests from one service account, so
+  // wall clock tracks total units x dates almost linearly. That makes skipping
+  // units that are already covered the only lever that actually shortens a
+  // backfill: after the inventory grew from 324 to 696 assets, re-reading the
+  // 324 that were already complete was three quarters of the work.
   const { rows: unitRows } = await query(
-    `SELECT unit_id AS "unitId", ST_AsGeoJSON(geom) AS gj
-       FROM units WHERE unit_type = ANY($1) AND active`,
-    [unitTypes]);
+    onlyMissing
+      // "Has any observation" is the wrong test: a partial run leaves every unit
+      // with a few dates, which would then exclude all of them. What matters is
+      // whether a unit has enough readings to carry a verdict.
+      ? `SELECT u.unit_id AS "unitId", ST_AsGeoJSON(u.geom) AS gj
+           FROM units u
+           LEFT JOIN observations o
+             ON o.unit_id = u.unit_id AND o.sensor = 'S2'
+            AND o.obs_date >= (CURRENT_DATE - ($2 || ' days')::interval)
+          WHERE u.unit_type = ANY($1) AND u.active
+          GROUP BY u.unit_id, u.geom
+         HAVING count(o.unit_id) < $3`
+      : `SELECT unit_id AS "unitId", ST_AsGeoJSON(geom) AS gj
+           FROM units WHERE unit_type = ANY($1) AND active`,
+    onlyMissing
+      ? [unitTypes, String(Math.round(months * 30)), MIN_COVERAGE]
+      : [unitTypes]);
   const units = unitRows.map((u) => ({ unitId: u.unitId, geometry: JSON.parse(u.gj) }));
 
   if (!units.length) {
@@ -56,9 +81,23 @@ export async function backfillS2({ run = null, months = 12, unitTypes = ['green'
   for (const [i, date] of dates.entries()) {
     const docs = [];
 
-    for (const chunk of chunks) {
+    // Earth Engine is a remote service, so each chunk spends almost all of its
+    // time waiting rather than computing. Running them serially made the wall
+    // clock the sum of every round trip: at 1,392 units that is seven calls a
+    // date and roughly two minutes a date, which put a full backfill near five
+    // hours. Issuing them together turns that sum into its maximum.
+    const settled = await Promise.allSettled(
+      chunks.map((chunk) => gee.reduceUnitsForDate(chunk, date)));
+
+    for (const outcome of settled) {
+      if (outcome.status === 'rejected') {
+        failed++;
+        console.log(`    [${date}] chunk failed: `
+          + `${String(outcome.reason?.message ?? outcome.reason).slice(0, 90)}`);
+        continue;
+      }
       try {
-        const rows = await gee.reduceUnitsForDate(chunk, date);
+        const rows = outcome.value;
         calls++;
         const ctx = rain.get(date) ?? {};
         const obsTs = new Date(`${date}T00:00:00Z`);
@@ -81,8 +120,10 @@ export async function backfillS2({ run = null, months = 12, unitTypes = ['green'
           });
         }
       } catch (err) {
+        // Transport failures are handled by allSettled above; reaching here
+        // means a returned row could not be mapped, which is a different bug.
         failed++;
-        console.log(`    [${date}] chunk failed: ${String(err.message).slice(0, 90)}`);
+        console.log(`    [${date}] row mapping failed: ${String(err.message).slice(0, 90)}`);
       }
     }
 

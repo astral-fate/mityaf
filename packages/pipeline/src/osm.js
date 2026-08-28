@@ -39,11 +39,23 @@ const QUERIES = {
        ["area"!~"yes"](${bbox});
     out geom;
   `,
+  /**
+   * Seven tag values reached 394 of the 844 green features OSM actually holds
+   * for this AOI — less than half the inventory, and the half it missed was
+   * the operationally interesting half: 189 `natural=tree_row` (street trees,
+   * the thing a crew is most often dispatched to) and 151 `landuse=orchard`
+   * (date palm groves, the largest irrigation draw in the city).
+   *
+   * `tree_row` is an open way rather than a closed ring, so buildGreen buffers
+   * it into a strip instead of discarding it.
+   */
   green: (bbox) => `
     [out:json][timeout:180];
     (
-      way["leisure"~"^(park|garden|pitch)$"](${bbox});
-      way["landuse"~"^(grass|village_green|recreation_ground|forest)$"](${bbox});
+      way["leisure"~"^(park|garden|pitch|playground|common|golf_course|dog_park|nature_reserve)$"](${bbox});
+      way["landuse"~"^(grass|village_green|recreation_ground|forest|meadow|orchard|greenfield|allotments|plant_nursery|cemetery)$"](${bbox});
+      way["natural"~"^(tree_row|wood|scrub|grassland)$"](${bbox});
+      way["amenity"="grave_yard"](${bbox});
     );
     out geom;
   `,

@@ -51,6 +51,14 @@ const trendOf = (slope) => (slope === null ? null : clamp01((slope + 0.1) / 0.2)
 export function scoreAsset(h) {
   if (!h) return { score: null, parts: null, confidence: 0 };
 
+  // A hard court and a sub-pixel planting strip both produce a perfectly
+  // real NDVI that is not about their vegetation. Scoring them would rank a
+  // tennis court against a park on greenness, which is the exact category
+  // error the pipeline now refuses to make.
+  if (h.status === 'not_assessable') {
+    return { score: null, parts: null, confidence: 0, notAssessable: true };
+  }
+
   const n = h.nObservations ?? 0;
   const confidence = clamp01(n / 12);          // a year of clear looks is full marks
   if (n < 6) return { score: null, parts: null, confidence };
@@ -97,7 +105,12 @@ export function scoreDistrict(assets) {
     nAssets: assets.length,
     nScored: scored.length,
     counts,
-    needsAttention: (counts.dead ?? 0) + (counts.declining ?? 0) + (counts.water_stress ?? 0),
+    // Prefer the pipeline's own actionable flag: it already excludes verdicts
+    // that are true readings but false errands (a sand pitch reading bare).
+    actionable: assets.filter((a) => a.actionable).length,
+    needsAttention: assets.some((a) => a.actionable !== undefined)
+      ? assets.filter((a) => a.actionable).length
+      : (counts.dead ?? 0) + (counts.declining ?? 0) + (counts.water_stress ?? 0),
   };
 }
 
@@ -111,6 +124,7 @@ export function actionFor(status) {
     bare: { ar: 'لا إجراء — أرض غير مزروعة أصلاً، تُراجع للتخطيط', urgency: 0 },
     healthy: { ar: 'لا إجراء — الوضع مستقر', urgency: 0 },
     insufficient_data: { ar: 'رصد غير كافٍ — يُعاد التقييم بعد مرورات إضافية', urgency: 0 },
+    not_assessable: { ar: 'خارج نطاق التقييم — سطح صلب أو شريط أضيق من بكسل واحد', urgency: 0 },
   }[status] ?? { ar: 'لم يُقيَّم بعد', urgency: 0 };
 }
 
@@ -122,4 +136,5 @@ export const STATUS_META = {
   dead: { ar: 'فقد الغطاء', color: '#e8596b' },
   bare: { ar: 'أرض غير مزروعة', color: '#66739a' },
   insufficient_data: { ar: 'رصد غير كافٍ', color: '#66739a' },
+  not_assessable: { ar: 'خارج نطاق التقييم', color: '#3d4766' },
 };

@@ -45,13 +45,31 @@ export async function buildGreen() {
   const recs = waysToRecords(await fetchLayer('green'));
   const rows = [];
 
+  let buffered = 0;
   for (const r of recs) {
-    if (!r.closed || r.coords.length < 4) continue;
     let poly;
-    try {
-      poly = turf.polygon([r.coords]);
-    } catch {
-      continue; // self-intersecting or degenerate ring
+    if (r.closed && r.coords.length >= 4) {
+      try {
+        poly = turf.polygon([r.coords]);
+      } catch {
+        continue; // self-intersecting or degenerate ring
+      }
+    } else if (r.tags?.natural === 'tree_row' && r.coords.length >= 2) {
+      // A row of street trees is mapped as a line, so it has no area to
+      // measure. Dropping it lost 189 assets — the ones a crew is most often
+      // sent to. Buffering the line by half a canopy width gives a strip that
+      // the rest of the pipeline can treat like any other polygon; it is
+      // recorded as low geometry confidence because the width is assumed, not
+      // surveyed.
+      try {
+        poly = turf.buffer(turf.lineString(r.coords), U.treeRowHalfWidthM, { units: 'meters' });
+      } catch {
+        continue;
+      }
+      if (!poly) continue;
+      buffered++;
+    } else {
+      continue;
     }
     const areaM2 = turf.area(poly);
     // a 30 m2 "park" is a mapping artefact; over 20 ha is usually a land-use
@@ -74,15 +92,19 @@ export async function buildGreen() {
       length_m: null,
       highway_class: null,
       half_width_m: null,
-      geometry_confidence: 'high',
-      qa_flags: '{}',
+      // A buffered tree row's width is assumed, so its outline is not survey
+      // grade the way a digitised park boundary is. The distinction travels
+      // with the row rather than living in a comment.
+      geometry_confidence: r.closed ? 'high' : 'low',
+      qa_flags: r.closed ? '{}' : JSON.stringify({ geometrySource: 'buffered_tree_row' }),
       active: true,
     });
   }
 
   const n = await insertUnits(rows);
   console.log(`  green   : ${recs.length} candidates -> ${n} kept ` +
-              `(${U.greenMinAreaM2}-${U.greenMaxAreaM2} m2, inside AOI)`);
+              `(${U.greenMinAreaM2}-${U.greenMaxAreaM2} m2, inside AOI` +
+              `${buffered ? `, ${buffered} tree rows buffered to ${U.treeRowHalfWidthM * 2} m` : ''})`);
   return n;
 }
 
@@ -92,7 +114,17 @@ export async function buildRings() {
     `SELECT unit_id, name_ar, ST_AsGeoJSON(geom) AS gj FROM units WHERE unit_type='green'`,
   );
 
-  const parsed = greens.map((g) => ({ ...g, geometry: JSON.parse(g.gj) }));
+  // Bounding boxes are computed once up front. The neighbour subtraction below
+  // is O(n^2), which was invisible at 324 assets and fatal at 696: half a
+  // million booleanIntersects calls on real polygons ran long enough for the
+  // database connection to be dropped underneath it. Comparing boxes first
+  // costs microseconds and removes almost every pair before it reaches Turf.
+  const parsed = greens.map((g) => {
+    const geometry = JSON.parse(g.gj);
+    return { ...g, geometry, bbox: turf.bbox(geometry) };
+  });
+  const overlaps = (a, b) =>
+    a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1];
   const rows = [];
   let tooSmall = 0;
 
@@ -114,8 +146,10 @@ export async function buildRings() {
 
     // subtract any neighbouring green, so a ring never reports another park's
     // irrigation as this park's spill
+    const ringBox = turf.bbox(ring);
     for (const other of parsed) {
       if (other.unit_id === g.unit_id) continue;
+      if (!overlaps(ringBox, other.bbox)) continue;
       const of = { type: 'Feature', geometry: other.geometry, properties: {} };
       try {
         if (!turf.booleanIntersects(ring, of)) continue;

@@ -73,6 +73,14 @@ ALTER TABLE units DROP CONSTRAINT IF EXISTS units_unit_type_check;
 ALTER TABLE units ADD COLUMN IF NOT EXISTS asset_kind TEXT;
 ALTER TABLE units ADD COLUMN IF NOT EXISTS asset_kind_ar TEXT;
 ALTER TABLE units ADD COLUMN IF NOT EXISTS display_name_ar TEXT;
+-- 2*area/perimeter: the short side of a ribbon. Under one S2 pixel (10 m) the
+-- polygon's own vegetation index does not exist, and the health pass says so
+-- rather than reporting the adjacent asphalt as bare ground.
+ALTER TABLE units ADD COLUMN IF NOT EXISTS effective_width_m DOUBLE PRECISION;
+-- The nearest NAMED street, so a work order can say where to go. A district
+-- alone is not an address: "حديقة عامة — حي الجامعة" describes 39 assets.
+ALTER TABLE units ADD COLUMN IF NOT EXISTS nearest_street_ar TEXT;
+ALTER TABLE units ADD COLUMN IF NOT EXISTS nearest_street_m DOUBLE PRECISION;
 ALTER TABLE units ADD CONSTRAINT units_unit_type_check
   CHECK (unit_type IN ('green','ring','segment','catchment','district'));
 
@@ -165,10 +173,17 @@ CREATE TABLE IF NOT EXISTS green_health (
   PRIMARY KEY (green_unit_id, assessed_on)
 );
 ALTER TABLE green_health DROP CONSTRAINT IF EXISTS green_health_status_check;
+-- 'not_assessable' is the honesty verdict: a hard court or a sub-pixel strip
+-- has no vegetation reading of its own, and must never be counted as bare.
 ALTER TABLE green_health ADD CONSTRAINT green_health_status_check
-  CHECK (status IN ('healthy','water_stress','sparse','declining','dead','bare','insufficient_data'));
+  CHECK (status IN ('healthy','water_stress','sparse','declining','dead','bare',
+                    'insufficient_data','not_assessable'));
 ALTER TABLE green_health ADD COLUMN IF NOT EXISTS ndvi_max DOUBLE PRECISION;
 ALTER TABLE green_health ADD COLUMN IF NOT EXISTS ndmi_median DOUBLE PRECISION;
+-- The ranked work list. A verdict nobody can queue is not an output.
+ALTER TABLE green_health ADD COLUMN IF NOT EXISTS actionable BOOLEAN DEFAULT FALSE;
+ALTER TABLE green_health ADD COLUMN IF NOT EXISTS priority DOUBLE PRECISION;
+ALTER TABLE green_health ADD COLUMN IF NOT EXISTS action_ar TEXT;
 CREATE INDEX IF NOT EXISTS ix_health_status ON green_health (status, assessed_on DESC);
 
 CREATE TABLE IF NOT EXISTS waste_events (

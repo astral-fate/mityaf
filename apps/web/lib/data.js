@@ -34,6 +34,9 @@ export const loadRain = () => loadJson('rain.json');
 export const loadDistricts = () => loadJson('districts.geojson');
 export const loadHealth = () => loadJson('green-health.json');
 export const loadSocial = () => loadJson('social.json');
+/** One asset's full index history. Split per asset so a detail page does not
+ *  pull every reading in the city to draw one chart. */
+export const loadGreenDetail = (id) => loadJson(`green/${id}.json`);
 
 /** Colour ramp shared by the map paint expression and the list rows. */
 export function riskColor(score) {

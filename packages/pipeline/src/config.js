@@ -48,6 +48,9 @@ export const config = {
     ringInnerM: num(process.env.RING_INNER_M, 2),
     segmentLengthM: num(process.env.SEGMENT_LENGTH_M, 200),
     segmentMinLengthM: num(process.env.SEGMENT_MIN_LENGTH_M, 40),
+    // A street tree row is a line in OSM. Half a canopy width turns it into a
+    // strip with an area; 4 m is a mature date palm's radius in Madinah.
+    treeRowHalfWidthM: num(process.env.TREE_ROW_HALF_WIDTH_M, 4),
     greenMinAreaM2: num(process.env.GREEN_MIN_AREA_M2, 200),
     greenMaxAreaM2: num(process.env.GREEN_MAX_AREA_M2, 200000),
     ringTooSmallM2: 1000, // < ~10 Sentinel-2 pixels: cannot support a claim

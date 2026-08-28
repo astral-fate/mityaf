@@ -97,7 +97,9 @@ export default function Overview() {
                   ['water_stress', 'إجهاد ريّ', 'var(--sev-1)'],
                   ['sparse', 'متفرّق', 'var(--sev-1)'],
                   ['declining', 'متدهور', 'var(--sev-2)'],
-                  ['dead', 'ميت', 'var(--sev-3)'],
+                  ['dead', 'فقد الغطاء', 'var(--sev-3)'],
+                  ['bare', 'أرض غير مزروعة', '#66739a'],
+                  ['not_assessable', 'خارج نطاق التقييم', '#3d4766'],
                   ['insufficient_data', 'رصد غير كافٍ', 'var(--lp-fg-3)'],
                 ].filter(([k]) => health[k]).map(([k, label, c]) => (
                   <span key={k} className="hseg" style={{ flex: health[k], background: c }}
