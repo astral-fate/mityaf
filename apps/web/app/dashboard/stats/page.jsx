@@ -151,7 +151,10 @@ export default function Stats() {
               {[...events]
                 .sort((a, b) => String(a.peakDate).localeCompare(String(b.peakDate)))
                 .map((e, i) => {
-                  const h = (e.totalMm / maxMm) * 96;
+                  // A 6 mm event against a 65 mm maximum is a 9 px bar that
+                  // reads as an empty slot. Floor it so every event in the
+                  // range is visibly an event, and let colour carry severity.
+                  const h = Math.max(6, (e.totalMm / maxMm) * 96);
                   return (
                     <rect
                       key={e.rainEventId} x={i * 14 + 3} y={108 - h} width="9" height={h}

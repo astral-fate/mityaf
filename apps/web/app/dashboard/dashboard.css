@@ -52,13 +52,36 @@
 .pg-side { padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
            border-inline-end: 1px solid var(--lp-line); background: var(--lp-ground-2); }
 .pg-main { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+/* ── content measure ──────────────────────────────────────────────────────
+   On a wide desktop the console ran edge to edge: a six-column table stretched
+   across 2500px and prose lines ran well past the width at which the eye can
+   still find the start of the next row.
+
+   The chrome stays full-bleed — the header's bottom border, the sticky table
+   head and the scrollbar all still reach the window edge, which is what makes
+   a console read as one surface rather than a floating card. Only the content
+   is measured, and it is measured with a centring gutter rather than an extra
+   wrapper element, so no page markup has to change: below the max width the
+   expression collapses to a plain gutter, above it the surplus splits evenly
+   either side. */
+.dash-view {
+  --dash-max: 1360px;
+  --dash-gutter: 22px;
+  --dash-inset: max(var(--dash-gutter), calc((100% - var(--dash-max)) / 2));
+}
+
 .pg-head {
   display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
-  padding: 16px 20px; border-bottom: 1px solid var(--lp-line); background: var(--lp-ground-2);
+  padding: 16px var(--dash-inset); border-bottom: 1px solid var(--lp-line);
+  background: var(--lp-ground-2);
 }
 .pg-head h1 { font-family: var(--font-display); font-size: 19px; font-weight: 600; letter-spacing: -.01em; }
 .pg-head p { font-size: 12.5px; color: var(--lp-fg-3); margin-top: 4px; }
-.pg-body { flex: 1; overflow-y: auto; padding: 16px 20px 28px; display: flex; flex-direction: column; gap: 14px; }
+.pg-body {
+  flex: 1; overflow-y: auto;
+  padding: 18px var(--dash-inset) 34px;
+  display: flex; flex-direction: column; gap: 16px;
+}
 .pg-loading { padding: 50px; text-align: center; color: var(--lp-fg-3); font-size: 13px; }
 
 /* overview */
@@ -285,6 +308,10 @@
 
 /* ── the map side ── */
 .dash-map { position: relative; min-width: 0; }
+/* The map stays full-bleed on purpose: it is the instrument, and every piece
+   of floating chrome over it (topbar, legend, scale, layer chips) is anchored
+   to the window edge. Insetting the shell would leave all of them measuring
+   from the wrong origin. */
 .dash-map .map-shell { position: absolute; inset: 0; border: none; border-radius: 0; }
 .dash-map .map-canvas { position: absolute; inset: 0; }
 

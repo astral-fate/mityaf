@@ -68,6 +68,13 @@ body {
   display: inline-block;
 }
 
+/* ...except on a table cell, where inline-block takes the cell out of the
+   table's column layout: the header keeps the column's full width while the
+   cell collapses to its content, so the two stop lining up and the table reads
+   as a scatter of numbers with dead space beside them. The bidi isolation is
+   what .num is actually for here, and it survives without the display change. */
+td.num, th.num { display: table-cell; }
+
 /* SVG must be LTR: `text-anchor: start|end` resolves against the inline base
    direction, so an RTL context mirrors every anchored label. Arabic glyphs
    still shape correctly via the Unicode bidi algorithm inside an LTR box. */
