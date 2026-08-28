@@ -15,7 +15,13 @@ const cache = new Map();
 export async function loadJson(name, { signal } = {}) {
   if (cache.has(name)) return cache.get(name);
   try {
-    const res = await fetch(`/data/${name}`, { signal, cache: 'force-cache' });
+    // 'force-cache' pinned these files in the browser across deploys: after a
+    // pipeline run shipped 696 assets, a returning visitor kept being served
+    // the 324-asset file and the dashboard told them health had never been
+    // run. 'no-cache' revalidates instead — the ETag makes that a 304 when
+    // nothing changed, and the in-memory Map above already stops repeat
+    // fetches within a session, which is what the original setting was for.
+    const res = await fetch(`/data/${name}`, { signal, cache: 'no-cache' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     cache.set(name, json);
