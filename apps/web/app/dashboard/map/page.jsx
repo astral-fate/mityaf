@@ -8,6 +8,7 @@ import FilterBar from '@/components/FilterBar';
 import {
   fmt, loadGreen, loadMeta, loadRain, loadTopSegments, loadWasteEvents, riskColor,
 } from '@/lib/data';
+import { MECHANISMS } from '@/lib/mechanisms';
 import { useFilters } from '@/lib/useFilters';
 
 // MapLibre touches window on import, so it must never be server-rendered
@@ -21,6 +22,9 @@ const LAYER_CHIPS = [
   { key: 'risk', label: 'مقاطع الشوارع', color: '#4FB3D9' },
   { key: 'green', label: 'المسطّحات', color: '#3FD46E' },
   { key: 'rings', label: 'أحزمة التماس', color: '#00C4D5' },
+  { key: 'ponding', label: 'نقاط الغَرَق', color: MECHANISMS.depression.color },
+  { key: 'tunnels', label: 'الأنفاق', color: MECHANISMS.tunnel.color },
+  { key: 'basin', label: 'حدود الحوض', color: MECHANISMS.depression.color },
 ];
 
 export default function Dashboard() {
@@ -35,6 +39,7 @@ export default function Dashboard() {
   const [sel, setSel] = useState(null);
   const [layers, setLayers] = useState({
     satellite: true, risk: true, green: true, rings: true,
+    ponding: true, tunnels: true, basin: true,
   });
   const [userLayers, setUserLayers] = useState([]);
   const [fitTo, setFitTo] = useState(null);
@@ -114,7 +119,7 @@ export default function Dashboard() {
     <main className="dash">
       {/* ── the dispatch panel ─────────────────────────────── */}
       <aside className="dash-side">
-        <FilterBar filters={filters} update={update} clear={clear} active={active} />
+        <FilterBar filters={filters} update={update} clear={clear} active={active} showMechanism />
 
         {/* the discriminator, as the primary control */}
         <div className="dash-modes" role="group" aria-label="شرط المطر">
@@ -318,6 +323,7 @@ export default function Dashboard() {
           layers={layers}
           userLayers={userLayers}
           district={filters.district}
+          mechanism={filters.mechanism}
           fitTo={fitTo}
           onSelect={setSel}
         />
@@ -353,24 +359,46 @@ export default function Dashboard() {
             <div className="dsel-b">
               <div className="r">
                 <span>النوع</span>
-                <b>{sel.kind === 'green' ? 'مسطّح أخضر' : 'مقطع شارع'}</b>
+                <b>
+                  {sel.kind === 'green' ? 'مسطّح أخضر'
+                    : sel.kind === 'tunnel' ? 'نفق'
+                      : 'مقطع شارع'}
+                </b>
               </div>
-              {sel.score !== null && sel.score !== undefined && (
+              {sel.mechanism && MECHANISMS[sel.mechanism] && (
+                <div className="r">
+                  <span>الآلية</span>
+                  <b style={{ color: MECHANISMS[sel.mechanism].color }}>
+                    {MECHANISMS[sel.mechanism].ar}
+                  </b>
+                </div>
+              )}
+              {sel.score !== null && sel.score !== undefined ? (
                 <div className="r">
                   <span>درجة الأولوية</span>
                   <b className="num" style={{ color: riskColor(sel.score) }}>{sel.score}</b>
+                </div>
+              ) : sel.priority !== null && sel.priority !== undefined ? (
+                // A percentile within the point's own mechanism population
+                // (533 depressions / 2,084 convergence points / 47 tunnels),
+                // not the city-wide `s` score above — a different quantity,
+                // shown with its own label so the two are never conflated.
+                <div className="r">
+                  <span>الأولوية ضمن الآلية</span>
+                  <b className="num" style={{ color: riskColor(sel.priority * 100) }}>
+                    {fmt(sel.priority * 100, 0)}٪
+                  </b>
+                </div>
+              ) : (
+                <div className="r">
+                  <span>الحالة</span>
+                  <b style={{ color: 'var(--lp-fg-3)' }}>لم تُحتسب درجة بعد</b>
                 </div>
               )}
               {sel.area ? (
                 <div className="r"><span>المساحة</span><b><span className="num">{fmt(sel.area)}</span> م²</b></div>
               ) : null}
               {sel.sub && <div className="r"><span>ملاحظة</span><b>{sel.sub}</b></div>}
-              {(sel.score === null || sel.score === undefined) && (
-                <div className="r">
-                  <span>الحالة</span>
-                  <b style={{ color: 'var(--lp-fg-3)' }}>لم تُحتسب درجة بعد</b>
-                </div>
-              )}
             </div>
           </div>
         )}

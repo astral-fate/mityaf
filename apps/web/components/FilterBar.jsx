@@ -23,7 +23,9 @@ const PRESETS = [
 
 const iso = (d) => d.toISOString().slice(0, 10);
 
-export default function FilterBar({ filters, update, clear, active, extra = null }) {
+export default function FilterBar({
+  filters, update, clear, active, extra = null, showMechanism = false,
+}) {
   const [districts, setDistricts] = useState([]);
   const [custom, setCustom] = useState(false);
 
@@ -90,35 +92,37 @@ export default function FilterBar({ filters, update, clear, active, extra = null
         </label>
       )}
 
-      <div className="hf">
-        <span>الآلية</span>
-        <div className="chiprow" role="group" aria-label="التصفية حسب الآلية">
-          <button
-            type="button"
-            className="chip2"
-            aria-pressed={(filters.mechanism ?? 'all') === 'all'}
-            onClick={() => update({ mechanism: 'all' })}
-          >
-            الكل
-          </button>
-          {MECHANISM_ORDER.map((k) => (
+      {showMechanism && (
+        <div className="hf">
+          <span>الآلية</span>
+          <div className="chiprow" role="group" aria-label="التصفية حسب الآلية">
             <button
-              key={k}
               type="button"
               className="chip2"
-              aria-pressed={filters.mechanism === k}
-              style={filters.mechanism === k
-                ? { color: MECHANISMS[k].color, borderColor: MECHANISMS[k].color }
-                : undefined}
-              title={MECHANISMS[k].hint}
-              onClick={() => update({ mechanism: k })}
+              aria-pressed={(filters.mechanism ?? 'all') === 'all'}
+              onClick={() => update({ mechanism: 'all' })}
             >
-              <i style={{ background: MECHANISMS[k].color }} />
-              {MECHANISMS[k].ar}
+              الكل
             </button>
-          ))}
+            {MECHANISM_ORDER.map((k) => (
+              <button
+                key={k}
+                type="button"
+                className="chip2"
+                aria-pressed={filters.mechanism === k}
+                style={filters.mechanism === k
+                  ? { color: MECHANISMS[k].color, borderColor: MECHANISMS[k].color }
+                  : undefined}
+                title={MECHANISMS[k].hint}
+                onClick={() => update({ mechanism: k })}
+              >
+                <i style={{ background: MECHANISMS[k].color }} />
+                {MECHANISMS[k].ar}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {extra}
 

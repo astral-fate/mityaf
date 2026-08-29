@@ -7,7 +7,6 @@ import {
   loadBasin, loadGreen, loadPondingShortlist, loadSegments, loadTunnels,
 } from '@/lib/data';
 import { MECHANISM_ORDER, MECHANISMS } from '@/lib/mechanisms';
-import { useFilters } from '@/lib/useFilters';
 
 const AOI = { minLon: 39.5, minLat: 24.36, maxLon: 39.72, maxLat: 24.58 };
 
@@ -130,6 +129,12 @@ export default function MapView({
   layers = { satellite: true, risk: true, green: true, rings: true },
   userLayers = [],
   district = null,
+  // The mechanism filter, passed down exactly the way `district` already is.
+  // MapView must NOT call useFilters() itself: FilterBar's update() persists
+  // through window.history.replaceState, which fires no `popstate` event, so
+  // a second independent useFilters() instance inside this component would
+  // read the URL once at mount and then never learn of later changes.
+  mechanism = 'all',
   fitTo = null,
   onSelect,
 }) {
@@ -145,11 +150,6 @@ export default function MapView({
   const [counts, setCounts] = useState({ seg: 0, green: 0, ponding: 0, tunnels: 0 });
 
   selectRef.current = onSelect;
-
-  // Read-only: the mechanism filter lives in the URL (useFilters.js), and
-  // both this map and FilterBar read it independently rather than one
-  // passing it down as a prop, so a shared link filters the map on its own.
-  const { filters } = useFilters();
 
   useEffect(() => {
     if (mapRef.current || !container.current) return;
@@ -202,74 +202,19 @@ export default function MapView({
         ]);
         const nSeg = segments?.features?.length ?? 0;
         const nGreen = green?.features?.filter((f) => f.properties?.t === 'green').length ?? 0;
+        // Layer construction below still branches on items.length (the data
+        // actually usable to build features), but the number DISPLAYED in the
+        // legend is the file's own exported `count`, never a browser-side
+        // items.length — the two agree today but only one of them is the
+        // number of record the export claims to hold.
         const nPonding = shortlist?.items?.length ?? 0;
         const nTunnels = tunnels?.items?.length ?? 0;
-        setCounts({ seg: nSeg, green: nGreen, ponding: nPonding, tunnels: nTunnels });
-
-        if (nPonding) {
-          const pondingFC = pointFC(shortlist.items, (it) => ({
-            id: it.id, mechanism: it.mechanism, priority: it.priority,
-            district: it.district, name: it.name,
-          }));
-          map.addSource('ponding', { type: 'geojson', data: pondingFC, promoteId: 'id' });
-          map.addLayer({
-            id: 'ponding-circles',
-            type: 'circle',
-            source: 'ponding',
-            paint: {
-              'circle-color': PONDING_COLOR,
-              'circle-radius': PONDING_RADIUS,
-              'circle-stroke-width': 0.6,
-              'circle-stroke-color': 'rgba(4,8,26,.75)',
-            },
-          });
-        }
-
-        if (nTunnels) {
-          const tunnelsFC = pointFC(tunnels.items, (t) => ({
-            osmId: t.osmId, name: t.name, district: t.district,
-            priority: t.priority, mechanism: 'tunnel',
-          }));
-          map.addSource('tunnels', { type: 'geojson', data: tunnelsFC, promoteId: 'osmId' });
-          // A symbol layer, not another circle: tunnels are 47 named OSM
-          // ways, not a scored population, so a text glyph reads as a
-          // distinct marker kind rather than one more dot in the ramp.
-          map.addLayer({
-            id: 'tunnels-symbol',
-            type: 'symbol',
-            source: 'tunnels',
-            layout: {
-              'text-field': '⛊',
-              'text-size': 15,
-              'text-allow-overlap': true,
-              'text-ignore-placement': true,
-            },
-            paint: {
-              'text-color': MECHANISMS.tunnel.color,
-              'text-halo-color': 'rgba(4,8,26,.85)',
-              'text-halo-width': 1.2,
-            },
-          });
-        }
-
-        const basinPoly = bboxPolygon(basin?.bbox);
-        if (basinPoly) {
-          map.addSource('basin', { type: 'geojson', data: basinPoly });
-          map.addLayer({
-            id: 'basin-fill',
-            type: 'fill',
-            source: 'basin',
-            paint: { 'fill-color': MECHANISMS.depression.color, 'fill-opacity': 0.08 },
-          });
-          map.addLayer({
-            id: 'basin-line',
-            type: 'line',
-            source: 'basin',
-            paint: {
-              'line-color': MECHANISMS.depression.color, 'line-width': 1.6, 'line-dasharray': [2, 1.5],
-            },
-          });
-        }
+        setCounts({
+          seg: nSeg,
+          green: nGreen,
+          ponding: shortlist?.count ?? nPonding,
+          tunnels: tunnels?.count ?? nTunnels,
+        });
 
         if (!nSeg && !nGreen && !nPonding && !nTunnels) {
           setDataStatus('empty');
@@ -352,7 +297,79 @@ export default function MapView({
           });
         }
 
-        for (const id of ['segments-line', 'green-fill', 'ponding-circles', 'tunnels-symbol']) {
+        // Ponding, tunnels and the basin are added AFTER segments and green,
+        // not before: MapLibre paints strictly in insertion order, and the
+        // mechanism circles (radius 2-7 px) were previously getting painted
+        // under all 30,337 street lines and every green polygon — visible
+        // colours that were then substantially overpainted by the very
+        // network they annotate.
+        const basinPoly = bboxPolygon(basin?.bbox);
+        if (basinPoly) {
+          map.addSource('basin', { type: 'geojson', data: basinPoly });
+          map.addLayer({
+            id: 'basin-fill',
+            type: 'fill',
+            source: 'basin',
+            paint: { 'fill-color': MECHANISMS.depression.color, 'fill-opacity': 0.08 },
+          });
+          map.addLayer({
+            id: 'basin-line',
+            type: 'line',
+            source: 'basin',
+            paint: {
+              'line-color': MECHANISMS.depression.color, 'line-width': 1.6, 'line-dasharray': [2, 1.5],
+            },
+          });
+        }
+
+        if (nPonding) {
+          const pondingFC = pointFC(shortlist.items, (it) => ({
+            id: it.id, mechanism: it.mechanism, priority: it.priority,
+            district: it.district, name: it.name,
+          }));
+          map.addSource('ponding', { type: 'geojson', data: pondingFC, promoteId: 'id' });
+          map.addLayer({
+            id: 'ponding-circles',
+            type: 'circle',
+            source: 'ponding',
+            paint: {
+              'circle-color': PONDING_COLOR,
+              'circle-radius': PONDING_RADIUS,
+              'circle-stroke-width': 0.6,
+              'circle-stroke-color': 'rgba(4,8,26,.75)',
+            },
+          });
+        }
+
+        if (nTunnels) {
+          const tunnelsFC = pointFC(tunnels.items, (t) => ({
+            osmId: t.osmId, name: t.name, district: t.district,
+            priority: t.priority, mechanism: 'tunnel',
+          }));
+          map.addSource('tunnels', { type: 'geojson', data: tunnelsFC, promoteId: 'osmId' });
+          // A circle layer with a thick white stroke, not a text glyph: the
+          // style declares no `glyphs` endpoint, so a symbol layer's
+          // text-field falls back to rasterising the character through the
+          // browser's generic sans-serif font. Most Linux and Android
+          // installs have no glyph for a rare pictogram codepoint, so an
+          // operator on those platforms would see tofu boxes or nothing.
+          // A stroked circle needs no font at all and stays visually
+          // distinct from the mechanism dots by stroke alone.
+          map.addLayer({
+            id: 'tunnels-circle',
+            type: 'circle',
+            source: 'tunnels',
+            paint: {
+              'circle-radius': 7,
+              'circle-color': MECHANISMS.tunnel.color,
+              'circle-stroke-width': 2.2,
+              'circle-stroke-color': '#ffffff',
+              'circle-opacity': 0.92,
+            },
+          });
+        }
+
+        for (const id of ['segments-line', 'green-fill', 'ponding-circles', 'tunnels-circle']) {
           if (!map.getLayer(id)) continue;
           map.on('mouseenter', id, () => (map.getCanvas().style.cursor = 'pointer'));
           map.on('mouseleave', id, () => (map.getCanvas().style.cursor = ''));
@@ -360,11 +377,17 @@ export default function MapView({
             const p = e.features?.[0]?.properties ?? {};
             const kind = id === 'green-fill' ? 'green'
               : id === 'ponding-circles' ? 'ponding'
-                : id === 'tunnels-symbol' ? 'tunnel' : 'segment';
+                : id === 'tunnels-circle' ? 'tunnel' : 'segment';
             selectRef.current?.({
               id: p.id ?? p.osmId ?? null,
               name: p.name || null,
+              // Segments/green carry a city-wide `s` risk score (0-100);
+              // ponding and tunnel features carry `priority`, a percentile
+              // (0-1) within their own mechanism population — two different
+              // quantities, kept in separate fields rather than collapsed
+              // into one `score` so the panel cannot label one as the other.
               score: p.s ?? null,
+              priority: p.priority ?? null,
               area: p.area ?? null,
               mechanism: p.mechanism ?? null,
               kind,
@@ -514,12 +537,13 @@ export default function MapView({
    * circles, but نفق is a wholly separate dataset (47 OSM ways, never a
    * `mechanism` value on a shortlist row), so selecting it hides the circles
    * and shows only the tunnel layer — leaving exactly 47 points, not 47 plus
-   * whatever the circle layer would otherwise show.
+   * whatever the circle layer would otherwise show. `mechanism` arrives as a
+   * prop from the page's own `useFilters()` instance, the same as `district`.
    */
   useEffect(() => {
     const map = mapRef.current;
     if (!map || dataStatus !== 'ready') return;
-    const mech = filters.mechanism ?? 'all';
+    const mech = mechanism ?? 'all';
 
     if (map.getLayer('ponding-circles')) {
       const conds = [];
@@ -530,13 +554,13 @@ export default function MapView({
       map.setLayoutProperty('ponding-circles', 'visibility', visible ? 'visible' : 'none');
     }
 
-    if (map.getLayer('tunnels-symbol')) {
+    if (map.getLayer('tunnels-circle')) {
       const conds = district ? ['==', ['get', 'district'], district] : null;
-      map.setFilter('tunnels-symbol', conds);
+      map.setFilter('tunnels-circle', conds);
       const visible = layers?.tunnels !== false && (mech === 'all' || mech === 'tunnel');
-      map.setLayoutProperty('tunnels-symbol', 'visibility', visible ? 'visible' : 'none');
+      map.setLayoutProperty('tunnels-circle', 'visibility', visible ? 'visible' : 'none');
     }
-  }, [district, filters.mechanism, layers, dataStatus]);
+  }, [district, mechanism, layers, dataStatus]);
 
   // Fly to a layer the moment it is imported: dropping a file and seeing the
   // map stay where it was reads as "nothing happened".
