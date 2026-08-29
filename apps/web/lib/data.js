@@ -44,6 +44,14 @@ export const loadSocial = () => loadJson('social.json');
  *  pull every reading in the city to draw one chart. */
 export const loadGreenDetail = (id) => loadJson(`green/${id}.json`);
 
+export const loadPondingSegments = () => loadJson('ponding-segments.json');
+export const loadPondingShortlist = () => loadJson('ponding-shortlist.json');
+export const loadTunnels = () => loadJson('ponding-tunnels.json');
+export const loadPondingDistricts = () => loadJson('ponding-districts.geojson');
+export const loadIncidents = () => loadJson('ponding-incidents.json');
+export const loadPondingRain = () => loadJson('ponding-rain.json');
+export const loadBasin = () => loadJson('ponding-basin.json');
+
 /** Colour ramp shared by the map paint expression and the list rows. */
 export function riskColor(score) {
   if (score === null || score === undefined) return '#6B7A9E';
