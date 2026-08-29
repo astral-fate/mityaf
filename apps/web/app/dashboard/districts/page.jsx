@@ -58,7 +58,7 @@ export default function Districts() {
       ),
     },
     {
-      key: 'convergenceCount', title: 'ملتقى جريان', sortable: true, cellClass: 'num',
+      key: 'convergenceCount', title: 'شارع انبساطي', sortable: true, cellClass: 'num',
       value: (r) => r.convergenceCount ?? 0,
       render: (r) => (
         <span>
@@ -127,7 +127,7 @@ export default function Districts() {
             <span className="num">{fmt(totals?.districtCount)}</span> حيّاً ·{' '}
             <span className="num">{fmt(totals?.shortlistCount)}</span> مقطع مرشّح ·{' '}
             <span className="num">{fmt(totals?.depressionCount)}</span> منخفض ·{' '}
-            <span className="num">{fmt(totals?.convergenceCount)}</span> ملتقى جريان ·{' '}
+            <span className="num">{fmt(totals?.convergenceCount)}</span> شارع انبساطي ·{' '}
             <span className="num">{fmt(totals?.tunnelCount)}</span> نفق ·{' '}
             <span className="num">{fmt(totals?.verifiedCount)}</span> حيّ مطابق لإحداثيات ساكن
           </p>
