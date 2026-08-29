@@ -17,7 +17,10 @@ import { useCallback, useEffect, useState } from 'react';
  * filter".
  */
 
-export const EMPTY = { district: null, from: null, to: null };
+// `mechanism` defaults to 'all' rather than null: the filter has a fixed set
+// of buttons (الآليات الثلاث + الكل) and 'all' is itself one of the values a
+// button can put back into the URL, not merely the absence of a filter.
+export const EMPTY = { district: null, from: null, to: null, mechanism: 'all' };
 
 function read() {
   if (typeof window === 'undefined') return EMPTY;
@@ -26,6 +29,7 @@ function read() {
     district: q.get('district') || null,
     from: q.get('from') || null,
     to: q.get('to') || null,
+    mechanism: q.get('mechanism') || 'all',
   };
 }
 
@@ -46,7 +50,10 @@ export function useFilters() {
       const next = { ...prev, ...patch };
       const q = new URLSearchParams(window.location.search);
       for (const [k, v] of Object.entries(next)) {
-        if (v) q.set(k, v);
+        // 'all' is mechanism's own "no filter" value — keep it out of the URL
+        // the same way an empty district or date is kept out.
+        const isEmpty = !v || (k === 'mechanism' && v === 'all');
+        if (!isEmpty) q.set(k, v);
         else q.delete(k);
       }
       const qs = q.toString();
@@ -57,7 +64,10 @@ export function useFilters() {
 
   const clear = useCallback(() => update(EMPTY), [update]);
 
-  const active = Boolean(filters.district || filters.from || filters.to);
+  const active = Boolean(
+    filters.district || filters.from || filters.to
+      || (filters.mechanism && filters.mechanism !== 'all'),
+  );
   return { filters, update, clear, active };
 }
 
@@ -74,7 +84,9 @@ export function inWindow(dateish, { from, to }) {
 /** A link that carries the current filters across a route change. */
 export function withFilters(href, filters) {
   const q = new URLSearchParams();
-  for (const [k, v] of Object.entries(filters)) if (v) q.set(k, v);
+  for (const [k, v] of Object.entries(filters)) {
+    if (v && !(k === 'mechanism' && v === 'all')) q.set(k, v);
+  }
   const qs = q.toString();
   return qs ? `${href}?${qs}` : href;
 }

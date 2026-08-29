@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { loadDistricts } from '@/lib/data';
+import { MECHANISMS, MECHANISM_ORDER } from '@/lib/mechanisms';
 
 /**
  * Filters, on one horizontal row.
@@ -88,6 +89,36 @@ export default function FilterBar({ filters, update, clear, active, extra = null
           </span>
         </label>
       )}
+
+      <div className="hf">
+        <span>الآلية</span>
+        <div className="chiprow" role="group" aria-label="التصفية حسب الآلية">
+          <button
+            type="button"
+            className="chip2"
+            aria-pressed={(filters.mechanism ?? 'all') === 'all'}
+            onClick={() => update({ mechanism: 'all' })}
+          >
+            الكل
+          </button>
+          {MECHANISM_ORDER.map((k) => (
+            <button
+              key={k}
+              type="button"
+              className="chip2"
+              aria-pressed={filters.mechanism === k}
+              style={filters.mechanism === k
+                ? { color: MECHANISMS[k].color, borderColor: MECHANISMS[k].color }
+                : undefined}
+              title={MECHANISMS[k].hint}
+              onClick={() => update({ mechanism: k })}
+            >
+              <i style={{ background: MECHANISMS[k].color }} />
+              {MECHANISMS[k].ar}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {extra}
 

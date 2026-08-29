@@ -3,7 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { loadGreen, loadSegments } from '@/lib/data';
+import {
+  loadBasin, loadGreen, loadPondingShortlist, loadSegments, loadTunnels,
+} from '@/lib/data';
+import { MECHANISM_ORDER, MECHANISMS } from '@/lib/mechanisms';
+import { useFilters } from '@/lib/useFilters';
 
 const AOI = { minLon: 39.5, minLat: 24.36, maxLon: 39.72, maxLat: 24.58 };
 
@@ -69,13 +73,56 @@ const RISK_RAMP = [
   0, '#2A9759', 35, '#50FF4A', 55, '#FFC857', 75, '#FF6B5A', 100, '#FF3B2A',
 ];
 
-// Which style layers each UI toggle governs.
+/**
+ * Ponding points are coloured by WHY the water pools, not by how bad it is —
+ * a depression and a convergence point at the same priority need opposite
+ * engineering, so collapsing them into one ramp would erase the one thing an
+ * operator needs from this layer. Built from MECHANISMS rather than
+ * hardcoded so the map can never drift from mechanisms.js's own colours.
+ */
+const PONDING_COLOR = [
+  'match', ['get', 'mechanism'],
+  ...MECHANISM_ORDER.flatMap((k) => [k, MECHANISMS[k].color]),
+  '#66739a',
+];
+const PONDING_RADIUS = ['interpolate', ['linear'], ['coalesce', ['get', 'priority'], 0], 0, 2, 1, 7];
+
+// Which style layers each UI toggle governs. `ponding` and `tunnels` are
+// deliberately absent: their visibility also depends on the mechanism
+// filter (see the effect below), which would fight this generic pass if
+// both governed the same layers independently.
 const LAYER_GROUPS = {
   satellite: ['satellite'],
   risk: ['segments-glow', 'segments-line'],
   green: ['green-fill', 'green-line'],
   rings: ['ring-fill'],
+  basin: ['basin-fill', 'basin-line'],
 };
+
+/** items[] -> Point FeatureCollection. Every ponding JSON file is a plain
+ *  array on disk (Task 1's ruling: one representation, not two), so maplibre
+ *  gets its GeoJSON built here rather than from a second export. */
+function pointFC(items, propsOf) {
+  return {
+    type: 'FeatureCollection',
+    features: (items ?? []).map((it) => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [it.lon, it.lat] },
+      properties: propsOf(it),
+    })),
+  };
+}
+
+/** basin.bbox [minLon, minLat, maxLon, maxLat] -> a closed rectangle ring. */
+function bboxPolygon(bbox) {
+  if (!bbox || bbox.length !== 4) return null;
+  const [w, s, e, n] = bbox;
+  return {
+    type: 'Feature',
+    properties: {},
+    geometry: { type: 'Polygon', coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]] },
+  };
+}
 
 export default function MapView({
   mode = 'flood',
@@ -95,9 +142,14 @@ export default function MapView({
   // let a slow 6.3 MB fetch masquerade as a broken map.
   const [status, setStatus] = useState('loading');
   const [dataStatus, setDataStatus] = useState('idle');
-  const [counts, setCounts] = useState({ seg: 0, green: 0 });
+  const [counts, setCounts] = useState({ seg: 0, green: 0, ponding: 0, tunnels: 0 });
 
   selectRef.current = onSelect;
+
+  // Read-only: the mechanism filter lives in the URL (useFilters.js), and
+  // both this map and FilterBar read it independently rather than one
+  // passing it down as a prop, so a shared link filters the map on its own.
+  const { filters } = useFilters();
 
   useEffect(() => {
     if (mapRef.current || !container.current) return;
@@ -140,12 +192,86 @@ export default function MapView({
 
       try {
         setDataStatus('loading');
-        const [segments, green] = await Promise.all([loadSegments(), loadGreen()]);
+        // Ponding uses the 2,617-row shortlist, not the 12.9 MB / 30,337-row
+        // full segment file: 27,720 of those rows carry mechanism: null and
+        // would all paint the same fallback grey, so loading them buys the
+        // map nothing but a much heavier fetch and feature count. See
+        // task-6-report.md for the measured numbers behind this call.
+        const [segments, green, shortlist, tunnels, basin] = await Promise.all([
+          loadSegments(), loadGreen(), loadPondingShortlist(), loadTunnels(), loadBasin(),
+        ]);
         const nSeg = segments?.features?.length ?? 0;
         const nGreen = green?.features?.filter((f) => f.properties?.t === 'green').length ?? 0;
-        setCounts({ seg: nSeg, green: nGreen });
+        const nPonding = shortlist?.items?.length ?? 0;
+        const nTunnels = tunnels?.items?.length ?? 0;
+        setCounts({ seg: nSeg, green: nGreen, ponding: nPonding, tunnels: nTunnels });
 
-        if (!nSeg && !nGreen) {
+        if (nPonding) {
+          const pondingFC = pointFC(shortlist.items, (it) => ({
+            id: it.id, mechanism: it.mechanism, priority: it.priority,
+            district: it.district, name: it.name,
+          }));
+          map.addSource('ponding', { type: 'geojson', data: pondingFC, promoteId: 'id' });
+          map.addLayer({
+            id: 'ponding-circles',
+            type: 'circle',
+            source: 'ponding',
+            paint: {
+              'circle-color': PONDING_COLOR,
+              'circle-radius': PONDING_RADIUS,
+              'circle-stroke-width': 0.6,
+              'circle-stroke-color': 'rgba(4,8,26,.75)',
+            },
+          });
+        }
+
+        if (nTunnels) {
+          const tunnelsFC = pointFC(tunnels.items, (t) => ({
+            osmId: t.osmId, name: t.name, district: t.district,
+            priority: t.priority, mechanism: 'tunnel',
+          }));
+          map.addSource('tunnels', { type: 'geojson', data: tunnelsFC, promoteId: 'osmId' });
+          // A symbol layer, not another circle: tunnels are 47 named OSM
+          // ways, not a scored population, so a text glyph reads as a
+          // distinct marker kind rather than one more dot in the ramp.
+          map.addLayer({
+            id: 'tunnels-symbol',
+            type: 'symbol',
+            source: 'tunnels',
+            layout: {
+              'text-field': '⛊',
+              'text-size': 15,
+              'text-allow-overlap': true,
+              'text-ignore-placement': true,
+            },
+            paint: {
+              'text-color': MECHANISMS.tunnel.color,
+              'text-halo-color': 'rgba(4,8,26,.85)',
+              'text-halo-width': 1.2,
+            },
+          });
+        }
+
+        const basinPoly = bboxPolygon(basin?.bbox);
+        if (basinPoly) {
+          map.addSource('basin', { type: 'geojson', data: basinPoly });
+          map.addLayer({
+            id: 'basin-fill',
+            type: 'fill',
+            source: 'basin',
+            paint: { 'fill-color': MECHANISMS.depression.color, 'fill-opacity': 0.08 },
+          });
+          map.addLayer({
+            id: 'basin-line',
+            type: 'line',
+            source: 'basin',
+            paint: {
+              'line-color': MECHANISMS.depression.color, 'line-width': 1.6, 'line-dasharray': [2, 1.5],
+            },
+          });
+        }
+
+        if (!nSeg && !nGreen && !nPonding && !nTunnels) {
           setDataStatus('empty');
           return;
         }
@@ -226,18 +352,22 @@ export default function MapView({
           });
         }
 
-        for (const id of ['segments-line', 'green-fill']) {
+        for (const id of ['segments-line', 'green-fill', 'ponding-circles', 'tunnels-symbol']) {
           if (!map.getLayer(id)) continue;
           map.on('mouseenter', id, () => (map.getCanvas().style.cursor = 'pointer'));
           map.on('mouseleave', id, () => (map.getCanvas().style.cursor = ''));
           map.on('click', id, (e) => {
             const p = e.features?.[0]?.properties ?? {};
+            const kind = id === 'green-fill' ? 'green'
+              : id === 'ponding-circles' ? 'ponding'
+                : id === 'tunnels-symbol' ? 'tunnel' : 'segment';
             selectRef.current?.({
-              id: p.id ?? null,
+              id: p.id ?? p.osmId ?? null,
               name: p.name || null,
               score: p.s ?? null,
               area: p.area ?? null,
-              kind: id === 'green-fill' ? 'green' : 'segment',
+              mechanism: p.mechanism ?? null,
+              kind,
               lngLat: [e.lngLat.lng, e.lngLat.lat],
             });
           });
@@ -378,6 +508,36 @@ export default function MapView({
     }
   }, [district, dataStatus]);
 
+  /**
+   * The mechanism filter narrows the ponding layer, and also decides which
+   * layer is on screen at all: تجمّع/منخفض are properties of the shortlist
+   * circles, but نفق is a wholly separate dataset (47 OSM ways, never a
+   * `mechanism` value on a shortlist row), so selecting it hides the circles
+   * and shows only the tunnel layer — leaving exactly 47 points, not 47 plus
+   * whatever the circle layer would otherwise show.
+   */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || dataStatus !== 'ready') return;
+    const mech = filters.mechanism ?? 'all';
+
+    if (map.getLayer('ponding-circles')) {
+      const conds = [];
+      if (district) conds.push(['==', ['get', 'district'], district]);
+      if (mech !== 'all' && mech !== 'tunnel') conds.push(['==', ['get', 'mechanism'], mech]);
+      map.setFilter('ponding-circles', conds.length ? ['all', ...conds] : null);
+      const visible = layers?.ponding !== false && mech !== 'tunnel';
+      map.setLayoutProperty('ponding-circles', 'visibility', visible ? 'visible' : 'none');
+    }
+
+    if (map.getLayer('tunnels-symbol')) {
+      const conds = district ? ['==', ['get', 'district'], district] : null;
+      map.setFilter('tunnels-symbol', conds);
+      const visible = layers?.tunnels !== false && (mech === 'all' || mech === 'tunnel');
+      map.setLayoutProperty('tunnels-symbol', 'visibility', visible ? 'visible' : 'none');
+    }
+  }, [district, filters.mechanism, layers, dataStatus]);
+
   // Fly to a layer the moment it is imported: dropping a file and seeing the
   // map stay where it was reads as "nothing happened".
   useEffect(() => {
@@ -416,9 +576,16 @@ export default function MapView({
           )}
           <span><i style={{ background: '#3FD46E' }} />مسطّح أخضر</span>
           <span><i style={{ background: '#00C4D5' }} />حزام التماس</span>
+          {counts.ponding > 0 && MECHANISM_ORDER.map((k) => (
+            <span key={k}><i style={{ background: MECHANISMS[k].color }} />{MECHANISMS[k].ar}</span>
+          ))}
           <span className="legend-count">
             <span className="num">{counts.seg.toLocaleString('en-US')}</span> مقطع ·{' '}
             <span className="num">{counts.green.toLocaleString('en-US')}</span> أصل
+            {counts.ponding > 0 && (
+              <> · <span className="num">{counts.ponding.toLocaleString('en-US')}</span> نقطة غَرَق ·{' '}
+                <span className="num">{counts.tunnels.toLocaleString('en-US')}</span> نفق</>
+            )}
           </span>
         </div>
       )}
