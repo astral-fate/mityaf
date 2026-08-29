@@ -43,10 +43,10 @@ REPORTS = [
     ("2017-08-18", "—", "شوارع المدينة، فجر الجمعة", "@NibiruNews1", "x", None, None),
     ("2018-10-31", "—", "شوارع وطرق أحياء المدينة", "@Almadin26146411", "x", None, None),
     ("2022-04-28", "الملك فهد", "عبدالله ابن اسلم البلوي", "resident", "resident", 24.5040022, 39.7000415),
-    ("2022-08-15", "الملك فهد", "water stood until tankers pumped it", "resident", "resident", 24.5040022, 39.7000415),
+    ("2022-08-15", "الملك فهد", "حي الملك فهد — بقي الماء حتى ضخّته الصهاريج", "resident", "resident", 24.5040022, 39.7000415),
     ("2022-08-20", "قباء", "شارع الإمام مسلم / قرب قباء", "@NewKhalij", "x", None, None),
     ("2022-11-11", "الملك فهد", "حي الملك فهد", "resident", "resident", 24.5040022, 39.7000415),
-    ("2023-01-04", "الملك فهد", "streets, water stuck", "resident", "resident", 24.5040022, 39.7000415),
+    ("2023-01-04", "الملك فهد", "شوارع حي الملك فهد — ماء راكد", "resident", "resident", 24.5040022, 39.7000415),
     ("2024-04-29", "السلام", "طريق السلام، الركن الغربي", "resident + @samir_gabbani", "both", 24.4823, 39.5097),
     ("2024-04-29", "العزيزية", "شارع البخاري", "@t_3r0", "x", 24.44919, 39.52306),
     ("2024-08-16", "—", "شوارع المدينة المنورة", "@1984_asd", "x", None, None),
@@ -63,33 +63,48 @@ REPORTS = [
     ("2024-08-31", "—", "المسجد النبوي / البقيع", "Al Jazeera Mubasher", "research", None, None),
     ("2025-01-06", "السلام", "طريق السلام / الجامعة", "Okaz", "research", None, None),
     ("2025-12-09", "التلعة", "طريق السلام / الدائري الثاني / طريق الجامعات", "Okaz", "research", None, None),
-    ("2016-08-08", "—", "reported, not corroborated", "research agent", "research", None, None),
-    ("2017-10-04", "الجرف", "reported, not corroborated", "research agent", "research", None, None),
-    ("2018-05-03", "—", "reported, not corroborated", "research agent", "research", None, None),
+    ("2016-08-08", "—", "بلاغ مسجَّل دون تأكيد", "research agent", "research", None, None),
+    ("2017-10-04", "الجرف", "بلاغ مسجَّل دون تأكيد", "research agent", "research", None, None),
+    ("2018-05-03", "—", "بلاغ مسجَّل دون تأكيد", "research agent", "research", None, None),
     ("2019-03-16", "قباء", "صلاح الدين الأيوبي / قباء — مياه راكدة", "Okaz", "research", None, None),
     ("2019-06-09", "طيبة", "حي طيبة — قنوات السيول", "Okaz", "research", None, None),
-    ("2020-06-20", "الخالدية", "reported, not corroborated", "research agent", "research", None, None),
-    ("2020-07-25", "—", "reported, not corroborated", "research agent", "research", None, None),
-    ("2020-08-20", "—", "reported, not corroborated", "research agent", "research", None, None),
-    ("2024-01-14", "—", "reported, not corroborated", "Al-Madina", "research", None, None),
+    ("2020-06-20", "الخالدية", "بلاغ مسجَّل دون تأكيد", "research agent", "research", None, None),
+    ("2020-07-25", "—", "بلاغ مسجَّل دون تأكيد", "research agent", "research", None, None),
+    ("2020-08-20", "—", "بلاغ مسجَّل دون تأكيد", "research agent", "research", None, None),
+    ("2024-01-14", "—", "بلاغ مسجَّل دون تأكيد", "Al-Madina", "research", None, None),
     ("2024-08-29", "السلام", "السلام / قربان", "research agent", "research", None, None),
     ("2025-12-03", "السلام", "السلام / العزيزية", "research agent", "research", None, None),
     ("2026-08-25", "السلام", "السلام / الجامعة", "Okaz", "research", None, None),
     ("2015-05-05", "—", "نفق الملك عبدالله — تجمع مائي حاد داخل النفق", "SPA", "research", None, None),
-    ("2015-10-12", "—", "reported, not corroborated", "Al-Riyadh", "research", None, None),
-    ("2016-01-18", "—", "reported, not corroborated", "Al-Madina", "research", None, None),
-    ("2016-02-10", "—", "reported, not corroborated", "Al-Madina", "research", None, None),
-    ("2016-11-14", "—", "reported, not corroborated", "Okaz", "research", None, None),
-    ("2017-05-22", "—", "reported, not corroborated", "Al-Madina", "research", None, None),
-    ("2017-11-15", "المطار", "reported, not corroborated", "research agent", "research", None, None),
-    ("2018-12-18", "—", "reported, not corroborated", "SPA", "research", None, None),
-    ("2019-05-15", "—", "reported, not corroborated", "Okaz", "research", None, None),
-    ("2015-05-12", "المطار", "reported, not corroborated", "SPA", "research", None, None),
+    ("2015-10-12", "—", "بلاغ مسجَّل دون تأكيد", "Al-Riyadh", "research", None, None),
+    ("2016-01-18", "—", "بلاغ مسجَّل دون تأكيد", "Al-Madina", "research", None, None),
+    ("2016-02-10", "—", "بلاغ مسجَّل دون تأكيد", "Al-Madina", "research", None, None),
+    ("2016-11-14", "—", "بلاغ مسجَّل دون تأكيد", "Okaz", "research", None, None),
+    ("2017-05-22", "—", "بلاغ مسجَّل دون تأكيد", "Al-Madina", "research", None, None),
+    ("2017-11-15", "المطار", "بلاغ مسجَّل دون تأكيد", "research agent", "research", None, None),
+    ("2018-12-18", "—", "بلاغ مسجَّل دون تأكيد", "SPA", "research", None, None),
+    ("2019-05-15", "—", "بلاغ مسجَّل دون تأكيد", "Okaz", "research", None, None),
+    ("2015-05-12", "المطار", "بلاغ مسجَّل دون تأكيد", "SPA", "research", None, None),
 ]
 
+# The mechanism vocabulary is closed at exactly three keys; anything the
+# terrain does not place into one of them carries None, never a fourth
+# sentinel string. `ponding-segments.json` already spells "no mechanism" as
+# null and the two files must not disagree.
 MECHANISM = {"الملك فهد": "depression", "قباء": "depression",
              "التلعة": "depression", "السلام": "convergence",
              "العزيزية": "convergence"}
+
+# A few reports name the structure rather than a district, and the structure
+# decides the mechanism: an underpass is below grade by construction wherever
+# it sits. Keyed by date because that is what identifies a report here.
+MECHANISM_BY_DATE = {"2015-05-05": "tunnel"}   # نفق الملك عبدالله
+
+# ERA5 and NASA POWER are proper nouns and stay Latin. "both" and "neither"
+# are English common words and this column is rendered verbatim in an Arabic
+# table, so they are written in Arabic at the source.
+SOURCE_BOTH = "المصدران"
+SOURCE_NEITHER = "لا مصدر"
 
 
 def era5(lat, lon, a, b):
@@ -132,13 +147,13 @@ def main() -> None:
             "date": date, "district": dist, "place": place,
             "source": src, "stream": stream,
             "lat": lat, "lon": lon,
-            "mechanism": MECHANISM.get(dist, "unknown"),
+            "mechanism": MECHANISM_BY_DATE.get(date) or MECHANISM.get(dist),
             "era5_peak_mm": round(e_max, 2), "power_peak_mm": round(p_max, 2),
             "best_mm": round(float(best), 2),
             "corroborated": bool(best >= 1.0),
-            "which_source": ("both" if e_max >= 1 and p_max >= 1
+            "which_source": (SOURCE_BOTH if e_max >= 1 and p_max >= 1
                              else "ERA5" if e_max >= 1
-                             else "NASA POWER" if p_max >= 1 else "neither"),
+                             else "NASA POWER" if p_max >= 1 else SOURCE_NEITHER),
         })
 
     reg = pd.DataFrame(rows).sort_values("date")
@@ -149,7 +164,7 @@ def main() -> None:
     for _, r in reg.iterrows():
         print(f"  {r.date:10}{r.district:<12}{r.era5_peak_mm:7.1f}"
               f"{r.power_peak_mm:8.1f}{'yes' if r.corroborated else 'NO':>6}"
-              f"  {r.which_source:<11}{r.mechanism:<12}{r.source}")
+              f"  {r.which_source:<11}{(r.mechanism or '-'):<12}{r.source}")
 
     n = int(reg.corroborated.sum())
     print(f"\n  {n} of {len(reg)} corroborated")
@@ -160,7 +175,7 @@ def main() -> None:
           f"   X {int((reg.stream=='x').sum())}"
           f"   both {int((reg.stream=='both').sum())}")
     print(f"  by mechanism: " + "  ".join(
-        f"{k} {int(v)}" for k, v in reg.mechanism.value_counts().items()))
+        f"{k} {int(v)}" for k, v in reg.mechanism.value_counts(dropna=False).items()))
     print(f"  with coordinates: {int(reg.lat.notna().sum())}")
 
     wet = pd.DataFrame({"era5": e_city, "power": p_city}).fillna(0)

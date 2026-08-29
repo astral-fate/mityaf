@@ -91,8 +91,10 @@ export default function SegmentDetail() {
     });
   }, [id]);
 
-  // Prefer the 2,617-item shortlist; only pull the 12.9 MB full segment file
-  // when this id did not make the cut.
+  // Prefer the 2,617-item shortlist; only pull the 13.26 MB full segment
+  // file when this id did not make the cut. That fallback is the common
+  // case -- 27,720 of 30,337 ids are not on the shortlist -- and splitting
+  // the file per id is its own plan, recorded in progress.md.
   useEffect(() => {
     let cancelled = false;
     loadPondingShortlist().then(async (shortlist) => {
@@ -170,11 +172,15 @@ export default function SegmentDetail() {
                 <div key={k} className="terrain-row">
                   <span className="terrain-name">{TERRAIN_AR[k]}</span>
                   <span className="terrain-value">{fmt(seg.terrain[k], 2)}</span>
+                  {/* A missing percentile is missing, not zero: `?? 0` claimed the
+                      segment was flatter and drier than every street in the city. */}
                   <span className="terrain-bar">
-                    <i style={{ width: `${Math.round((seg.pct[k] ?? 0) * 100)}%` }} />
+                    <i style={{ width: seg.pct[k] != null ? `${Math.round(seg.pct[k] * 100)}%` : 0 }} />
                   </span>
                   <span className="terrain-pct">
-                    {Math.round((seg.pct[k] ?? 0) * 100)}٪ من مقاطع المدينة
+                    {seg.pct[k] != null
+                      ? `${Math.round(seg.pct[k] * 100)}٪ من مقاطع المدينة`
+                      : '—'}
                   </span>
                 </div>
               ))}
@@ -191,7 +197,7 @@ export default function SegmentDetail() {
                     ['road', 'كثافة الطرق'], ['consensus', 'الإجماع']].map(([k, ar]) => (
                     <tr key={k} className={k === 'hyd' ? 'primary' : ''}>
                       <td>{ar}</td>
-                      <td>{Math.round((seg.ranks[k] ?? 0) * 100)}٪</td>
+                      <td>{seg.ranks[k] != null ? `${Math.round(seg.ranks[k] * 100)}٪` : '—'}</td>
                     </tr>
                   ))}
                 </tbody>

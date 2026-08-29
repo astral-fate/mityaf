@@ -147,7 +147,9 @@ export default function MapView({
   // let a slow 6.3 MB fetch masquerade as a broken map.
   const [status, setStatus] = useState('loading');
   const [dataStatus, setDataStatus] = useState('idle');
-  const [counts, setCounts] = useState({ seg: 0, green: 0, ponding: 0, tunnels: 0 });
+  const [counts, setCounts] = useState({
+    seg: 0, green: 0, ponding: 0, tunnels: 0, byMech: {},
+  });
 
   selectRef.current = onSelect;
 
@@ -192,7 +194,7 @@ export default function MapView({
 
       try {
         setDataStatus('loading');
-        // Ponding uses the 2,617-row shortlist, not the 12.9 MB / 30,337-row
+        // Ponding uses the 2,617-row shortlist, not the 13.26 MB / 30,337-row
         // full segment file: 27,720 of those rows carry mechanism: null and
         // would all paint the same fallback grey, so loading them buys the
         // map nothing but a much heavier fetch and feature count. See
@@ -214,6 +216,10 @@ export default function MapView({
           green: nGreen,
           ponding: shortlist?.count ?? nPonding,
           tunnels: tunnels?.count ?? nTunnels,
+          // City-wide totals per mechanism, exported by export_web.py, so the
+          // legend can follow the mechanism filter by PICKING a scalar rather
+          // than counting the features left on screen.
+          byMech: shortlist?.byMechanism ?? {},
         });
 
         if (!nSeg && !nGreen && !nPonding && !nTunnels) {
@@ -332,6 +338,11 @@ export default function MapView({
             id: 'ponding-circles',
             type: 'circle',
             source: 'ponding',
+            // MapLibre paints circles in source order, and the export sorts
+            // descending by priority — so without this the HIGHEST-priority
+            // points sit at the bottom of the stack, occluded by the lowest.
+            // circle-sort-key draws ascending, so the largest value wins.
+            layout: { 'circle-sort-key': ['coalesce', ['get', 'priority'], 0] },
             paint: {
               'circle-color': PONDING_COLOR,
               'circle-radius': PONDING_RADIUS,
@@ -571,6 +582,17 @@ export default function MapView({
     map.fitBounds([[w, s], [e, n]], { padding: 60, maxZoom: 16, duration: 900 });
   }, [fitTo]);
 
+  // What the legend is entitled to claim, given the active filter. Every
+  // number here is an exported scalar selected by key; nothing is counted,
+  // summed or filtered in the browser. Before this the legend kept reading
+  // the city-wide 2,617 while the map beside it showed 533.
+  const activeMech = mechanism ?? 'all';
+  const legendMechanisms = activeMech === 'all' ? MECHANISM_ORDER : [activeMech];
+  const shownPonding = activeMech === 'all'
+    ? counts.ponding
+    : activeMech === 'tunnel' ? 0 : (counts.byMech?.[activeMech] ?? 0);
+  const shownTunnels = (activeMech === 'all' || activeMech === 'tunnel') ? counts.tunnels : 0;
+
   return (
     <div className="map-shell">
       <div ref={container} className="map-canvas" />
@@ -600,15 +622,15 @@ export default function MapView({
           )}
           <span><i style={{ background: '#3FD46E' }} />مسطّح أخضر</span>
           <span><i style={{ background: '#00C4D5' }} />حزام التماس</span>
-          {counts.ponding > 0 && MECHANISM_ORDER.map((k) => (
+          {counts.ponding > 0 && legendMechanisms.map((k) => (
             <span key={k}><i style={{ background: MECHANISMS[k].color }} />{MECHANISMS[k].ar}</span>
           ))}
           <span className="legend-count">
             <span className="num">{counts.seg.toLocaleString('en-US')}</span> مقطع ·{' '}
             <span className="num">{counts.green.toLocaleString('en-US')}</span> أصل
             {counts.ponding > 0 && (
-              <> · <span className="num">{counts.ponding.toLocaleString('en-US')}</span> نقطة غَرَق ·{' '}
-                <span className="num">{counts.tunnels.toLocaleString('en-US')}</span> نفق</>
+              <> · <span className="num">{shownPonding.toLocaleString('en-US')}</span> نقطة غَرَق ·{' '}
+                <span className="num">{shownTunnels.toLocaleString('en-US')}</span> نفق</>
             )}
           </span>
         </div>

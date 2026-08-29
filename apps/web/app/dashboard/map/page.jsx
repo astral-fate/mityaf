@@ -383,9 +383,22 @@ export default function Dashboard() {
                 // (533 depressions / 2,084 convergence points / 47 tunnels),
                 // not the city-wide `s` score above — a different quantity,
                 // shown with its own label so the two are never conflated.
+                //
+                // And with its own colour: riskColor's 75/55/35 thresholds are
+                // bands on the city-wide susceptibility score, so painting a
+                // priority percentile with it gave 0.80 here the identical red
+                // as a score of 80 above and re-conflated what the label just
+                // separated. The mechanism's own colour carries no magnitude.
                 <div className="r">
                   <span>الأولوية ضمن الآلية</span>
-                  <b className="num" style={{ color: riskColor(sel.priority * 100) }}>
+                  <b
+                    className="num"
+                    style={{
+                      color: sel.mechanism && MECHANISMS[sel.mechanism]
+                        ? MECHANISMS[sel.mechanism].color
+                        : 'var(--lp-water)',
+                    }}
+                  >
                     {fmt(sel.priority * 100, 0)}٪
                   </b>
                 </div>

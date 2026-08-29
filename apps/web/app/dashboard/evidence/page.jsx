@@ -14,19 +14,38 @@ import { MECHANISMS, MECHANISM_ORDER } from '@/lib/mechanisms';
 
 export default function Evidence() {
   const [basin, setBasin] = useState(null);
-  const [incidents, setIncidents] = useState([]);
-  const [rain, setRain] = useState([]);
+  const [incidents, setIncidents] = useState(null);
+  const [rain, setRain] = useState(null);
+  // loadJson resolves to null on a 404 exactly as it does on success, so
+  // `basin === null` cannot also mean "still fetching": a missing file pins
+  // the loading state on forever, which is the failure the loader's own
+  // docstring says it exists to prevent. A separate flag tells them apart,
+  // as districts/page.jsx and MapView already do.
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    loadBasin().then(setBasin);
-    loadIncidents().then((d) => setIncidents(d?.items ?? []));
-    loadPondingRain().then((d) => setRain(d?.items ?? []));
+    Promise.all([loadBasin(), loadIncidents(), loadPondingRain()])
+      .then(([b, i, r]) => {
+        setBasin(b);
+        setIncidents(i);
+        setRain(r);
+        setLoaded(true);
+      });
   }, []);
 
-  if (!basin) return <main className="pg"><div className="pg-loading">جارٍ التحميل…</div></main>;
+  if (!loaded) return <main className="pg"><div className="pg-loading">جارٍ التحميل…</div></main>;
+  if (!basin) {
+    return (
+      <main className="pg">
+        <div className="pg-loading">تعذّر تحميل ponding-basin.json — أعِد تشغيل خطّ الأنابيب.</div>
+      </main>
+    );
+  }
 
-  const confirmed = incidents.filter((i) => i.corroborated);
-  const unconfirmed = incidents.length - confirmed.length;
+  // Every figure below is an exported scalar. Nothing here filters, sums or
+  // subtracts: the register's own counts are the numbers of record.
+  const items = incidents?.items ?? [];
+  const pin = basin.pins?.[basin.prediction?.pinIndex ?? 0] ?? null;
 
   return (
     <main dir="rtl" className="pg evidence">
@@ -45,7 +64,7 @@ export default function Evidence() {
             حُسب أعمق نقطة في الحوض من نموذج الارتفاع الرقمي عند
             <b> {basin.core.lat.toFixed(4)}، {basin.core.lon.toFixed(4)} </b>
             قبل وصول الإحداثي الثالث من الساكن. ثم جاء الإحداثي عند
-            <b> 24.5037، 39.7022 </b> — على بُعد <b>٣٨ متراً</b> فقط من النقطة التي
+            <b> {pin ? `${pin.lat.toFixed(4)}، ${pin.lon.toFixed(4)}` : '—'} </b> — على بُعد <b><span className="num">{fmt(basin.prediction?.distanceM, 1)}</span> متراً</b> فقط من النقطة التي
             توقّعها النموذج مسبقاً.
           </p>
           <ul className="evidence-facts">
@@ -60,10 +79,10 @@ export default function Evidence() {
         <section className="panel">
           <h2>سجلّ البلاغات</h2>
           <p>
-            <b className="num">{fmt(incidents.length)}</b> بلاغاً مؤرّخاً من أربعة مصادر مستقلّة
+            <b className="num">{fmt(incidents?.count)}</b> بلاغاً مؤرّخاً من أربعة مصادر مستقلّة
             (صحف، منصّة X، بلاغات ساكن، وبحث ميداني)، منها
-            <b className="num"> {fmt(confirmed.length)} </b> مؤكّدة بسجلّ الأمطار المستقلّ،
-            و<b className="num">{fmt(unconfirmed)}</b> غير مؤكّدة — تُعرض ولا تُحذف.
+            <b className="num"> {fmt(incidents?.corroboratedCount)} </b> مؤكّدة بسجلّ الأمطار المستقلّ،
+            و<b className="num">{fmt(incidents?.unconfirmedCount)}</b> غير مؤكّدة — تُعرض ولا تُحذف.
           </p>
           <div className="dt-scroll evidence-table-wrap">
             <table className="dt-table evidence-register">
@@ -78,7 +97,7 @@ export default function Evidence() {
                 </tr>
               </thead>
               <tbody>
-                {incidents.map((i) => (
+                {items.map((i) => (
                   <tr key={`${i.date}-${i.place}`} className={i.corroborated ? 'confirmed' : 'unverified'}>
                     <td className="num">{i.date}</td>
                     <td>{i.district ?? '—'}</td>
@@ -132,10 +151,10 @@ export default function Evidence() {
             لا يوجد سجلّ غرق مُعتمَد في المدينة المنورة، ولذلك لم يُدرَّب أيّ نموذج عليها
             ولم يُختبر عليها. كلّ ترتيب أو درجة معروضة في هذه المنصّة — في الأحياء، المقاطع،
             أو الخريطة — تنبّؤ لا احتمال غرق، والدليل الوحيد المقيس هنا هو حوض حيّ الملك فهد
-            أعلاه و<b className="num">{fmt(confirmed.length)}</b> بلاغاً مؤكّداً بسجلّ الأمطار.
+            أعلاه و<b className="num">{fmt(incidents?.corroboratedCount)}</b> بلاغاً مؤكّداً بسجلّ الأمطار.
           </p>
           <p>
-            و<b className="num">{fmt(rain.length)}</b> يوماً سجّل فيه المطر أكثر من ٥ ملم منذ
+            و<b className="num">{fmt(rain?.count)}</b> يوماً سجّل فيه المطر أكثر من ٥ ملم منذ
             ٢٠١٥ دون أن يقابله أيّ بلاغ — وهي أيضاً تنبّؤات قابلة للفحص الميداني، لا تأكيدات.
           </p>
         </section>

@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import DataTable from '@/components/DataTable';
 import FilterBar from '@/components/FilterBar';
 import { fmt, loadPondingDistricts } from '@/lib/data';
 import { MECHANISMS } from '@/lib/mechanisms';
-import { useFilters } from '@/lib/useFilters';
+import { useFilters, withFilters } from '@/lib/useFilters';
 
 /**
  * Every district, ranked by ponding evidence.
@@ -21,22 +22,20 @@ export default function Districts() {
   const router = useRouter();
   const { filters, update, clear, active } = useFilters();
   const [rows, setRows] = useState([]);
+  const [totals, setTotals] = useState(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     loadPondingDistricts().then((d) => {
       setRows((d?.features ?? []).map((f) => f.properties));
+      // Header figures come from the export's own `totals` block. Summing the
+      // 91 rows here instead produced numbers that agreed with
+      // ponding-shortlist.json only by luck: one district falling outside
+      // every Voronoi cell and the two screens quietly disagree.
+      setTotals(d?.totals ?? null);
       setLoaded(true);
     });
   }, []);
-
-  const totals = useMemo(() => ({
-    shortlist: rows.reduce((a, r) => a + (r.shortlistCount ?? 0), 0),
-    depression: rows.reduce((a, r) => a + (r.depressionCount ?? 0), 0),
-    convergence: rows.reduce((a, r) => a + (r.convergenceCount ?? 0), 0),
-    tunnel: rows.reduce((a, r) => a + (r.tunnelCount ?? 0), 0),
-    verified: rows.filter((r) => r.verified).length,
-  }), [rows]);
 
   const columns = useMemo(() => [
     {
@@ -79,18 +78,37 @@ export default function Districts() {
       ),
     },
     {
-      key: 'incidentCount', title: 'بلاغات مؤكّدة', sortable: true, cellClass: 'num',
-      value: (r) => r.incidentCount ?? 0, render: (r) => fmt(r.incidentCount),
+      // Bound to corroboratedCount, not incidentCount: the header says
+      // "corroborated" and used to sit above every report in the district,
+      // contradicting its own tooltip in the same row. The total is shown
+      // beside it as the denominator it actually is.
+      key: 'corroboratedCount', title: 'بلاغات مؤكّدة', sortable: true, cellClass: 'num',
+      value: (r) => r.corroboratedCount ?? 0,
+      render: (r) => (
+        <span>
+          {fmt(r.corroboratedCount)}
+          <span className="dt-sub"> / {fmt(r.incidentCount)}</span>
+        </span>
+      ),
     },
     {
-      key: 'verified', title: 'مُتحقَّق ميدانياً', sortable: true,
+      // Not "field-verified". No one visited these streets. A resident gave
+      // three coordinates that land inside a depression the elevation model
+      // had already found, and the rainfall record corroborated the dates --
+      // so the column says exactly that, in the cell, not in a title
+      // attribute a touch device never shows.
+      key: 'verified', title: 'مطابق لإحداثيات ساكن', sortable: true,
       value: (r) => (r.verified ? 1 : 0),
       render: (r) => (r.verified ? (
-        <span
-          className="verified-badge"
-          title="ثلاث إحداثيات من ساكن، وستّ حوادث مؤكّدة بالأمطار"
-        >
-          ✔ مُتحقَّق
+        <span className="verified-cell">
+          <span className="verified-badge">✔ مطابق</span>
+          <Link
+            className="verified-link"
+            href="/dashboard/evidence"
+            onClick={(e) => e.stopPropagation()}
+          >
+            إحداثيات ساكن مؤكّدة بالأمطار، لا زيارة ميدانية — الأدلّة ←
+          </Link>
         </span>
       ) : <span className="dt-sub">—</span>),
     },
@@ -106,12 +124,12 @@ export default function Districts() {
         <div>
           <h1>الأحياء</h1>
           <p>
-            <span className="num">{fmt(rows.length)}</span> حيّاً ·{' '}
-            <span className="num">{fmt(totals.shortlist)}</span> مقطع مرشّح ·{' '}
-            <span className="num">{fmt(totals.depression)}</span> منخفض ·{' '}
-            <span className="num">{fmt(totals.convergence)}</span> تجمّع جريان ·{' '}
-            <span className="num">{fmt(totals.tunnel)}</span> نفق ·{' '}
-            <span className="num">{fmt(totals.verified)}</span> حيّ مُتحقَّق ميدانياً
+            <span className="num">{fmt(totals?.districtCount)}</span> حيّاً ·{' '}
+            <span className="num">{fmt(totals?.shortlistCount)}</span> مقطع مرشّح ·{' '}
+            <span className="num">{fmt(totals?.depressionCount)}</span> منخفض ·{' '}
+            <span className="num">{fmt(totals?.convergenceCount)}</span> تجمّع جريان ·{' '}
+            <span className="num">{fmt(totals?.tunnelCount)}</span> نفق ·{' '}
+            <span className="num">{fmt(totals?.verifiedCount)}</span> حيّ مطابق لإحداثيات ساكن
           </p>
         </div>
       </header>
@@ -127,13 +145,19 @@ export default function Districts() {
             searchPlaceholder="ابحث باسم الحي…"
             emptyMessage="لا يوجد حيّ بهذا الاسم."
             defaultSortKey="shortlistCount"
-            onRowClick={(r) => router.push(`/dashboard/map?district=${encodeURIComponent(r.name)}`)}
+            // withFilters, not a hand-built query string: the hand-built one
+            // dropped from, to and mechanism on every jump.
+            onRowClick={(r) => router.push(withFilters('/dashboard/map', { ...filters, district: r.name }))}
           />
         ) : (
           <div className="pg-loading">جارٍ التحميل…</div>
         )}
 
         <p className="dnote">
+          عمود «بلاغات مؤكّدة» يعرض المؤكّد بسجلّ الأمطار من إجمالي البلاغات المسجّلة في الحيّ.
+          و«مطابق لإحداثيات ساكن» ليس تحقّقاً ميدانياً: لا زيارة ميدانية واحدة جرت في المدينة
+          المنورة — وإنّما زوّدنا ساكن بثلاث إحداثيات تقع داخل منخفض حدّده نموذج الارتفاع
+          مسبقاً، وأكّد سجلّ الأمطار تواريخ بلاغاته. التفصيل في صفحة الأدلّة.
           الترتيب حسب عدد المقاطع المرشّحة من خط أنابيب الهيدرولوجيا، لا حسب المساحة أو عدد
           الأصول الخضراء. حدود الأحياء نفسها مشتقّة من نقاط مراكزها بتجزئة Voronoi، وليست حدوداً
           رسمية — تختلف عند التماس بين حيّين، وتُستبدل فور توفّر حدود الأمانة الرسمية.
