@@ -4,15 +4,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DataTable from '@/components/DataTable';
 import FilterBar from '@/components/FilterBar';
-import { fmt, loadDistricts } from '@/lib/data';
+import { fmt, loadPondingDistricts } from '@/lib/data';
+import { MECHANISMS } from '@/lib/mechanisms';
 import { useFilters } from '@/lib/useFilters';
 
 /**
- * Every district, searchable by name.
+ * Every district, ranked by ponding evidence.
  *
- * This is the page that answers "where is حي الدفاع" without scrolling, which
- * the single flat list never could. Clicking a row hands the district to the
- * map as a filter rather than opening yet another view of the same numbers.
+ * Segment and green-asset counts told you how big a district is, not whether
+ * it floods. This ranks by the shortlist the hydrology pipeline actually
+ * produced — how many segments were flagged, by which of the three
+ * mechanisms, and whether a resident's own coordinates and a corroborated
+ * rain event back it up. Clicking a row still hands the district to the map.
  */
 export default function Districts() {
   const router = useRouter();
@@ -21,18 +24,18 @@ export default function Districts() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    loadDistricts().then((d) => {
-      setRows((d?.features ?? [])
-        .map((f) => f.properties)
-        .map((p) => ({ ...p, density: p.km2 > 0 ? p.seg / p.km2 : 0 })));
+    loadPondingDistricts().then((d) => {
+      setRows((d?.features ?? []).map((f) => f.properties));
       setLoaded(true);
     });
   }, []);
 
   const totals = useMemo(() => ({
-    seg: rows.reduce((a, r) => a + r.seg, 0),
-    green: rows.reduce((a, r) => a + r.green, 0),
-    km2: rows.reduce((a, r) => a + r.km2, 0),
+    shortlist: rows.reduce((a, r) => a + (r.shortlistCount ?? 0), 0),
+    depression: rows.reduce((a, r) => a + (r.depressionCount ?? 0), 0),
+    convergence: rows.reduce((a, r) => a + (r.convergenceCount ?? 0), 0),
+    tunnel: rows.reduce((a, r) => a + (r.tunnelCount ?? 0), 0),
+    verified: rows.filter((r) => r.verified).length,
   }), [rows]);
 
   const columns = useMemo(() => [
@@ -42,20 +45,54 @@ export default function Districts() {
       render: (r) => <span className="dt-strong">{r.name}</span>,
     },
     {
-      key: 'seg', title: 'مقاطع الشوارع', sortable: true, cellClass: 'num',
-      value: (r) => r.seg, render: (r) => fmt(r.seg),
+      key: 'shortlistCount', title: 'مقاطع مرشّحة', sortable: true, cellClass: 'num',
+      value: (r) => r.shortlistCount ?? 0, render: (r) => fmt(r.shortlistCount),
     },
     {
-      key: 'green', title: 'أصول خضراء', sortable: true, cellClass: 'num',
-      value: (r) => r.green, render: (r) => fmt(r.green),
+      key: 'depressionCount', title: 'منخفضات', sortable: true, cellClass: 'num',
+      value: (r) => r.depressionCount ?? 0,
+      render: (r) => (
+        <span>
+          <i className="mech-dot" style={{ background: MECHANISMS.depression.color }} />
+          {fmt(r.depressionCount)}
+        </span>
+      ),
     },
     {
-      key: 'km2', title: 'المساحة كم²', sortable: true, cellClass: 'num',
-      value: (r) => r.km2, render: (r) => fmt(r.km2, 2),
+      key: 'convergenceCount', title: 'تجمّع جريان', sortable: true, cellClass: 'num',
+      value: (r) => r.convergenceCount ?? 0,
+      render: (r) => (
+        <span>
+          <i className="mech-dot" style={{ background: MECHANISMS.convergence.color }} />
+          {fmt(r.convergenceCount)}
+        </span>
+      ),
     },
     {
-      key: 'density', title: 'الكثافة /كم²', sortable: true, cellClass: 'num',
-      value: (r) => r.density, render: (r) => fmt(r.density, 1),
+      key: 'tunnelCount', title: 'أنفاق', sortable: true, cellClass: 'num',
+      value: (r) => r.tunnelCount ?? 0,
+      render: (r) => (
+        <span>
+          <i className="mech-dot" style={{ background: MECHANISMS.tunnel.color }} />
+          {fmt(r.tunnelCount)}
+        </span>
+      ),
+    },
+    {
+      key: 'incidentCount', title: 'بلاغات مؤكّدة', sortable: true, cellClass: 'num',
+      value: (r) => r.incidentCount ?? 0, render: (r) => fmt(r.incidentCount),
+    },
+    {
+      key: 'verified', title: 'مُتحقَّق ميدانياً', sortable: true,
+      value: (r) => (r.verified ? 1 : 0),
+      render: (r) => (r.verified ? (
+        <span
+          className="verified-badge"
+          title="ثلاث إحداثيات من ساكن، وستّ حوادث مؤكّدة بالأمطار"
+        >
+          ✔ مُتحقَّق
+        </span>
+      ) : <span className="dt-sub">—</span>),
     },
     {
       key: 'go', title: '', sortable: false,
@@ -70,9 +107,11 @@ export default function Districts() {
           <h1>الأحياء</h1>
           <p>
             <span className="num">{fmt(rows.length)}</span> حيّاً ·{' '}
-            <span className="num">{fmt(totals.seg)}</span> مقطع شارع ·{' '}
-            <span className="num">{fmt(totals.green)}</span> أصل أخضر ·{' '}
-            <span className="num">{fmt(totals.km2, 0)}</span> كم²
+            <span className="num">{fmt(totals.shortlist)}</span> مقطع مرشّح ·{' '}
+            <span className="num">{fmt(totals.depression)}</span> منخفض ·{' '}
+            <span className="num">{fmt(totals.convergence)}</span> تجمّع جريان ·{' '}
+            <span className="num">{fmt(totals.tunnel)}</span> نفق ·{' '}
+            <span className="num">{fmt(totals.verified)}</span> حيّ مُتحقَّق ميدانياً
           </p>
         </div>
       </header>
@@ -87,6 +126,7 @@ export default function Districts() {
             getKey={(r) => r.id}
             searchPlaceholder="ابحث باسم الحي…"
             emptyMessage="لا يوجد حيّ بهذا الاسم."
+            defaultSortKey="shortlistCount"
             onRowClick={(r) => router.push(`/dashboard/map?district=${encodeURIComponent(r.name)}`)}
           />
         ) : (
@@ -94,9 +134,9 @@ export default function Districts() {
         )}
 
         <p className="dnote">
-          حدود الأحياء مشتقّة من نقاط مراكزها بتجزئة Voronoi، وليست حدوداً رسمية — تختلف عند
-          التماس بين حيّين. تُستبدل فور توفّر حدود الأمانة الرسمية، ويمكن إسقاطها مباشرةً في
-          صفحة الخريطة.
+          الترتيب حسب عدد المقاطع المرشّحة من خط أنابيب الهيدرولوجيا، لا حسب المساحة أو عدد
+          الأصول الخضراء. حدود الأحياء نفسها مشتقّة من نقاط مراكزها بتجزئة Voronoi، وليست حدوداً
+          رسمية — تختلف عند التماس بين حيّين، وتُستبدل فور توفّر حدود الأمانة الرسمية.
         </p>
       </div>
     </main>

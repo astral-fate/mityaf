@@ -452,6 +452,75 @@
 }
 .dnote b { color: var(--lp-fg-2); font-weight: 600; }
 
+/* ── mechanism dots + verified badges (districts, evidence) ─── */
+.mech-dot {
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+  margin-inline-end: 6px; vertical-align: middle;
+}
+.verified-badge, .unverified-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600;
+  white-space: nowrap;
+}
+.verified-badge {
+  color: var(--lp-signal); background: rgba(80, 255, 74, .12);
+  border: 1px solid rgba(80, 255, 74, .3);
+}
+.unverified-badge {
+  color: var(--lp-fg-3); background: var(--lp-tint);
+  border: 1px dashed var(--lp-line-2);
+}
+
+/* ── evidence page ───────────────────────────────────────────
+   An argument, not a dashboard: fewer, wider panels than the rest of the
+   console, and the caveat panel is styled to be read, not skimmed past. */
+.evidence .panel {
+  border: 1px solid var(--lp-line); border-radius: 14px; padding: 18px 20px;
+  background: var(--lp-surface); display: flex; flex-direction: column; gap: 11px;
+}
+.evidence .panel h2 {
+  font-family: var(--font-display); font-size: 16px; font-weight: 600;
+}
+.evidence .panel p { font-size: 13px; line-height: 1.75; color: var(--lp-fg-2); }
+.evidence .panel p b { color: var(--lp-fg); }
+.evidence .panel.highlight {
+  border-color: rgba(80, 255, 74, .3);
+  background: linear-gradient(160deg, rgba(80, 255, 74, .07), var(--lp-surface));
+}
+.evidence .panel.caution {
+  border-color: rgba(240, 163, 90, .4);
+  background: linear-gradient(160deg, rgba(240, 163, 90, .08), var(--lp-surface));
+}
+.evidence-facts { display: flex; flex-direction: column; gap: 5px; padding-inline-start: 18px; }
+.evidence-facts li { font-size: 13px; color: var(--lp-fg-2); }
+
+.evidence-table-wrap { max-height: 60vh; border: 1px solid var(--lp-line); border-radius: 11px; }
+.evidence-register th {
+  position: sticky; top: 0; z-index: 1; text-align: start; padding: 9px 12px;
+  background: var(--lp-ground-2); border-bottom: 1px solid var(--lp-line);
+  font-size: 11.5px; color: var(--lp-fg-3); font-weight: 600;
+}
+.evidence-register td {
+  padding: 8px 12px; border-bottom: 1px solid var(--lp-line);
+  color: var(--lp-fg-2); font-size: 12.5px; vertical-align: top;
+}
+.evidence-register td.num { font-variant-numeric: tabular-nums; direction: ltr; text-align: start; }
+.evidence-register td.place { color: var(--lp-fg-3); }
+.evidence-register tr.unverified td { color: var(--lp-fg-3); }
+.evidence-register tr.unverified { background: repeating-linear-gradient(135deg,
+  transparent, transparent 9px, var(--lp-tint) 9px, var(--lp-tint) 10px); }
+.evidence-register tr.confirmed td:first-child { border-inline-start: 2px solid var(--lp-signal); }
+
+.mech-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.mech-card {
+  border: 1px solid var(--lp-line); border-inline-start-width: 3px; border-radius: 11px;
+  padding: 13px 14px; background: var(--lp-ground-2); display: flex; flex-direction: column; gap: 6px;
+}
+.mech-card h3 { font-size: 14px; font-weight: 700; }
+
+.hint { font-size: 12px; line-height: 1.7; color: var(--lp-fg-3); }
+.action { font-size: 12.5px; font-weight: 600; color: var(--lp-fg-2); }
+
 
 /* ── filters ─────────────────────────────────────────────── */
 .fbar { display: flex; flex-direction: column; gap: 12px; padding: 13px;

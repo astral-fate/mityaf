@@ -26,11 +26,13 @@ export default function DataTable({
   pageSize = 25,
   emptyMessage = 'لا توجد نتائج.',
   toolbar = null,
+  defaultSortKey = null,
+  defaultSortDir = 'desc',
 }) {
   const [q, setQ] = useState('');
   const [sort, setSort] = useState(() => {
-    const first = columns.find((c) => c.sortable);
-    return first ? { key: first.key, dir: 'desc' } : null;
+    const key = defaultSortKey ?? columns.find((c) => c.sortable)?.key;
+    return key ? { key, dir: defaultSortDir } : null;
   });
   const [page, setPage] = useState(0);
 
