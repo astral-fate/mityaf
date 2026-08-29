@@ -683,7 +683,7 @@
 .hf select, .hf input[type="date"] {
   padding: 8px 11px; border-radius: 9px; font: inherit; font-size: 12.5px;
   background: var(--lp-tint-2); border: 1px solid var(--lp-line-2);
-  color: var(--lp-fg); min-width: 160px; color-scheme: dark;
+  color: var(--lp-fg); min-width: 160px;
 }
 .hf select:focus-visible, .hf input:focus-visible { outline: 2px solid var(--lp-water); outline-offset: 1px; }
 .hf-dates { display: flex; gap: 6px; }
@@ -901,3 +901,55 @@
   min-width: 62px; text-align: end;
 }
 .dr-inc.muted { opacity: .45; }
+
+/* Detail-page heading for a derived label: the same signal as the table's
+   .is-derived, sized for a heading. It must not read as the street's name. */
+.pg-head h1.is-derived { font-weight: 600; color: var(--lp-fg-2); }
+.derived-note { font-style: normal; color: var(--lp-fg-3); }
+
+/* ── native select popups ──────────────────────────────────────────────────
+   Two bugs made the district list unreadable. color-scheme was pinned to
+   `dark` on every select regardless of the active theme, and <option> popups
+   are painted by the browser rather than the page — so they ignored the
+   select's own colours and rendered dark text on a dark sheet.
+
+   The scheme now follows the theme (light is the product default here, not a
+   prefers-color-scheme guess), and each option states its own colours. */
+.hf select, .hf input[type="date"], .fbar-date { color-scheme: light; }
+:root[data-theme="dark"] .hf select,
+:root[data-theme="dark"] .hf input[type="date"],
+:root[data-theme="dark"] .fbar-date { color-scheme: dark; }
+
+.hf select option {
+  background: var(--lp-surface);
+  color: var(--lp-fg);
+  padding: 6px 10px;
+}
+.hf select option:checked { background: var(--lp-tint-2); font-weight: 600; }
+
+/* A derived label can be long («قرب طريق الملك خالد - الدائري الثالث — 508 م»)
+   and the name column is 28% wide. Wrap rather than clip: a truncated street
+   label is worse than a two-line one. */
+.dt-strong { overflow-wrap: anywhere; }
+
+/* Checkbox filters inside an .hf column, and the running tally beside them. */
+.hf-checks { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; padding: 7px 0; }
+.hf-check {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  font-size: 12.5px; color: var(--lp-fg-2); white-space: nowrap;
+}
+.hf-check input { accent-color: var(--lp-signal); width: 15px; height: 15px; cursor: pointer; }
+.hf-check:hover { color: var(--lp-fg); }
+.hf-tally {
+  margin-inline-start: auto; align-self: flex-end; padding-bottom: 9px;
+  font-size: 12px; color: var(--lp-fg-3);
+}
+.hf-tally b { color: var(--lp-fg); font-weight: 600; }
+
+/* Cases: the dated register beside the selected case. Columns align to the
+   top — the two panels are independent, and centring the shorter one against
+   the taller left a band of dead space above the table. */
+.cases-cols {
+  display: grid; grid-template-columns: 1fr 1.15fr; gap: 16px; align-items: start;
+}
+@media (max-width: 900px) { .cases-cols { grid-template-columns: 1fr; } }

@@ -100,52 +100,61 @@ export default function Cases() {
       </section>
 
       {/* ── filters ──────────────────────────────────────────── */}
-      <section className="card" style={{ padding: '.9rem 1.1rem', margin: '1rem 0' }}>
-        <div className="chiprow" style={{
-          gap: '1.4rem', flexWrap: 'wrap', alignItems: 'center', rowGap: '.7rem',
-        }}>
-          <label>
-            <span className="drv-lab">السنة</span>{' '}
-            <select value={year} onChange={(e) => setYear(e.target.value)}>
-              <option value="all">كل السنوات ({data.items.length})</option>
-              {data.years.map((y) => (
-                <option key={y} value={y}>
-                  {y} ({data.items.filter((x) => x.date.startsWith(y)).length})
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span className="drv-lab">الحيّ</span>{' '}
-            <select value={district} onChange={(e) => setDistrict(e.target.value)}>
-              <option value="all">كل الأحياء</option>
-              {data.districts.map((d) => (
-                <option key={d} value={d}>
-                  {d} ({data.items.filter((x) => x.district === d).length})
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <input type="checkbox" checked={onlyCorrob}
-                   onChange={(e) => setOnlyCorrob(e.target.checked)} />{' '}
-            المؤكَّد بالمطر فقط
-          </label>
-          <label>
-            <input type="checkbox" checked={onlyLocated}
-                   onChange={(e) => setOnlyLocated(e.target.checked)} />{' '}
-            الذي له إحداثيات فقط
-          </label>
-          <span className="dnote" style={{ marginInlineStart: 'auto' }}>
-            {fmt(rows.length)} حالة · {fmt(hit)} منها في أسوأ 10% من المدينة
-          </span>
+      {/* The controls were bare <select> and <input> with no dashboard classes,
+          so they inherited nothing and rendered as near-invisible native
+          widgets on the card. .hbar-row / .hf is the same pattern FilterBar
+          uses on every other page. */}
+      <div className="hbar-row" style={{ margin: '1rem 0' }}>
+        <label className="hf">
+          <span>السنة</span>
+          <select value={year} onChange={(e) => setYear(e.target.value)}>
+            <option value="all">كل السنوات ({data.items.length})</option>
+            {data.years.map((y) => (
+              <option key={y} value={y}>
+                {y} ({data.items.filter((x) => x.date.startsWith(y)).length})
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="hf">
+          <span>الحيّ</span>
+          <select value={district} onChange={(e) => setDistrict(e.target.value)}>
+            <option value="all">كل الأحياء</option>
+            {data.districts.map((d) => (
+              <option key={d} value={d}>
+                {d} ({data.items.filter((x) => x.district === d).length})
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="hf">
+          <span>التصفية</span>
+          <div className="hf-checks">
+            <label className="hf-check">
+              <input type="checkbox" checked={onlyCorrob}
+                     onChange={(e) => setOnlyCorrob(e.target.checked)} />
+              المؤكَّد بالمطر فقط
+            </label>
+            <label className="hf-check">
+              <input type="checkbox" checked={onlyLocated}
+                     onChange={(e) => setOnlyLocated(e.target.checked)} />
+              الذي له إحداثيات فقط
+            </label>
+          </div>
         </div>
-      </section>
+        <span className="hf-tally">
+          <b className="num">{fmt(rows.length)}</b> حالة ·{' '}
+          <b className="num">{fmt(hit)}</b> منها في أسوأ 10% من المدينة
+        </span>
+      </div>
 
-      <div className="drow" style={{ display: 'grid', gridTemplateColumns: '1fr 1.15fr', gap: '1rem' }}>
+      {/* Not .drow — that is the clickable list-row style, and using it here
+          dragged in align-items:center (which floated the shorter column to the
+          middle), cursor:pointer and a hover tint across the whole layout. */}
+      <div className="cases-cols">
         {/* ── the list ───────────────────────────────────────── */}
         <section className="card" style={{ padding: 0, maxHeight: '32rem', overflowY: 'auto' }}>
-          <table className="dlist" style={{ width: '100%' }}>
+          <table className="stbl">
             <thead>
               <tr><th>التاريخ</th><th>الحيّ</th><th>المطر</th><th>الرتبة</th></tr>
             </thead>
@@ -153,12 +162,9 @@ export default function Cases() {
               {rows.map((r) => (
                 <tr key={`${r.date}-${r.place}`}
                     onClick={() => setSel(r)}
-                    style={{
-                      cursor: 'pointer',
-                      background: sel === r ? 'rgba(63,212,110,.10)' : undefined,
-                    }}>
-                  <td dir="ltr">{r.date}</td>
-                  <td>{r.district}</td>
+                    className={`rowlink${sel === r ? ' on' : ''}`}>
+                  <td className="num" dir="ltr">{r.date}</td>
+                  <td className="k">{r.district}</td>
                   <td dir="ltr" style={{ color: r.rain.corroborated ? '#3FD46E' : '#7686B8' }}>
                     {r.rain.peak_mm != null ? `${r.rain.peak_mm} mm` : '—'}
                   </td>
@@ -222,7 +228,14 @@ export default function Cases() {
               {sel.segment ? (
                 <>
                   <p style={{ marginTop: '.9rem' }}>
-                    {sel.segment.name ? <b>{sel.segment.name}</b> : <b>مقطع بلا اسم</b>}
+                    {/* nameDerived is stamped in by derive_segment_labels.py so
+                        this page never downloads the 9 MB collection for a
+                        label. It is not the street's name and is styled apart. */}
+                    {sel.segment.name
+                      ? <b>{sel.segment.name}</b>
+                      : sel.segment.nameDerived
+                        ? <b className="is-derived">{sel.segment.nameDerived}</b>
+                        : <b>مقطع بلا اسم</b>}
                     {sel.segment.mechanism && MECHANISMS[sel.segment.mechanism] && (
                       <span className="badge" style={{
                         marginInlineStart: '.5rem',
@@ -234,7 +247,7 @@ export default function Cases() {
                   </p>
                   <p className="dnote">{sel.location.qualityNote}</p>
 
-                  <table className="dlist" style={{ width: '100%', marginTop: '.7rem' }}>
+                  <table className="stbl" style={{ marginTop: '.7rem' }}>
                     <tbody>
                       <tr><td>هيدرولوجي</td>
                           <td dir="ltr">{sel.segment.rankHydrology.toFixed(3)}</td></tr>
@@ -250,7 +263,7 @@ export default function Cases() {
                       <p className="drv-lab" style={{ marginTop: '.8rem' }}>
                         احتمال كل نموذج لهذا الشارع
                       </p>
-                      <table className="dlist" style={{ width: '100%' }}>
+                      <table className="stbl">
                         <tbody>
                           {Object.entries(sel.segment.predictions)
                             .sort((a, b) => b[1] - a[1])

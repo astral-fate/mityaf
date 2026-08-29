@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { fmt, loadSegments, loadTopSegments, loadPondingShortlist, loadPondingSegments } from '@/lib/data';
+import { segmentLabel } from '@/lib/segmentLabel';
 import { BANDS } from '@/lib/bands';
 import { mechanismOf } from '@/lib/mechanisms';
 
@@ -81,11 +82,17 @@ export default function SegmentDetail() {
   const [detail, setDetail] = useState(null);
   const [state, setState] = useState('loading');
   const [pondingSeg, setPondingSeg] = useState(null);
+  // roadNames backs the derived label; total is read from the file rather than
+  // written into the copy, so the denominator cannot drift from the data.
+  const [roadNames, setRoadNames] = useState([]);
+  const [total, setTotal] = useState(null);
 
   useEffect(() => {
     Promise.all([loadSegments(), loadTopSegments()]).then(([segs, top]) => {
       const f = (segs?.features ?? []).find((x) => x.properties.id === id) ?? null;
       setFeat(f);
+      setRoadNames(segs?.roadNames ?? []);
+      setTotal(segs?.features?.length ?? null);
       setDetail((top?.items ?? []).find((x) => x.segmentUnitId === id) ?? null);
       setState(f ? 'ok' : 'missing');
     });
@@ -132,6 +139,7 @@ export default function SegmentDetail() {
 
   const p = feat.properties;
   const b = BANDS[p.b ?? 'insufficient_data'];
+  const lab = segmentLabel(p, roadNames);
   const maxAbs = Math.max(1e-6, ...drivers.map((d) => Math.abs(d.c)));
   const seg = pondingSeg;
   const mech = mechanismOf(seg);
@@ -144,10 +152,20 @@ export default function SegmentDetail() {
                   onClick={() => router.push('/dashboard/segments')}>
             ← قابلية الشوارع
           </button>
-          <h1>{p.name || 'شارع بلا اسم'}</h1>
+          <h1 className={lab.derived ? 'is-derived' : undefined}>{lab.text}</h1>
           <p>
             حي {p.d ?? '—'}
-            {p.rk != null && <> · الترتيب <span className="num">{fmt(p.rk)}</span> من ٣٠٬٣٣٧</>}
+            {/* Latin on both sides. fmt() renders Latin, so a hard-coded
+                ٣٠٬٣٣٧ put two numeral systems in one sentence. */}
+            {p.rk != null && total != null && (
+              <> · الترتيب <span className="num">{fmt(p.rk)}</span> من{' '}
+                <span className="num">{fmt(total)}</span></>
+            )}
+            {lab.derived && (
+              <> · <em className="derived-note">
+                اسمٌ مشتقّ من أقرب طريق مُسمّى — ليس اسماً رسمياً
+              </em></>
+            )}
           </p>
         </div>
         <div className="head-score">

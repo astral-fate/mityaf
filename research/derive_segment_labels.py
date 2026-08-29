@@ -176,6 +176,26 @@ def main() -> None:
         alt["labelNote"] = NOTE
         SEGS.write_text(json.dumps(alt, ensure_ascii=False), encoding="utf-8")
         print(f"  and {SEGS.name} kept in step")
+    # The cases page shows one segment at a time and must not download the 9 MB
+    # collection for a label, so the composed string is stamped in here instead.
+    cases = WEB / "ponding-cases.json"
+    if cases.exists():
+        cj = json.loads(cases.read_text(encoding="utf-8"))
+        stamped = 0
+        for c in cj.get("items", []):
+            seg = c.get("segment")
+            if not seg or seg.get("name"):
+                continue
+            nd = by_id.get(seg.get("id"))
+            seg.pop("nameDerived", None)
+            if nd:
+                i, m = nd
+                seg["nameDerived"] = (f"امتداد {roads[i]}" if m <= SAME_CORRIDOR_M
+                                      else f"قرب {roads[i]} — {m} م")
+                stamped += 1
+        cases.write_text(json.dumps(cj, ensure_ascii=False), encoding="utf-8")
+        print(f"  stamped {stamped} derived labels into {cases.name}")
+
     if OUT.exists():
         OUT.unlink()
         print(f"removed the standalone {OUT.name}")
