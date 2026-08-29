@@ -688,6 +688,14 @@
 .hf select:focus-visible, .hf input:focus-visible { outline: 2px solid var(--lp-water); outline-offset: 1px; }
 .hf-dates { display: flex; gap: 6px; }
 .hf-dates input { min-width: 132px; }
+/* The window a preset resolved to. Shown because these presets count back from
+   the newest record, not from today, and an empty result is otherwise a
+   mystery the operator cannot debug. */
+.hf-win {
+  font-style: normal; font-weight: 500; font-size: 10px;
+  color: var(--lp-fg-3); opacity: .8; margin-inline-start: 7px;
+  font-feature-settings: "tnum"; font-variant-numeric: tabular-nums;
+}
 .hf-clear {
   padding: 8px 14px; border-radius: 9px; cursor: pointer; font: inherit;
   font-size: 11.5px; font-weight: 600; align-self: flex-end;
@@ -805,3 +813,91 @@
   --sev-2: #f08a5a;
   --sev-3: #e8596b;
 }
+
+/* A label derived from the nearest named road is not the street's name, and
+   must not read like one. Lighter weight and a dotted underline mark it as
+   inferred; see lib/segmentLabel.js. */
+.dt-strong.is-derived {
+  font-weight: 500; color: var(--lp-fg-2);
+  text-decoration: underline dotted var(--lp-line-2); text-underline-offset: 3px;
+}
+
+/* ── rain archive: clickable storm timeline ────────────────────────────────
+   One bar per event, height proportional to the storm total. The accent marks
+   the storms that produced a dated report — which is a minority, and the
+   emptiness of the rest is the point being made, not a gap in the chart. */
+.rain-tl {
+  display: flex; align-items: flex-end; gap: 3px;
+  height: 132px; padding: 6px 0 0; direction: ltr;
+}
+.rain-bar {
+  flex: 1 1 0; min-width: 5px; height: 100%; padding: 0;
+  display: flex; align-items: flex-end;
+  background: none; border: 0; cursor: pointer; border-radius: 3px;
+}
+.rain-bar .rb-fill {
+  display: block; width: 100%; height: var(--h, 6%);
+  background: var(--lp-line-2); border-radius: 3px 3px 0 0;
+  transition: background .15s ease, height .2s ease;
+}
+.rain-bar.has .rb-fill { background: var(--lp-water); }
+.rain-bar:hover .rb-fill { background: var(--lp-fg-3); }
+.rain-bar.has:hover .rb-fill { background: var(--lp-signal); }
+.rain-bar.on .rb-fill { background: var(--lp-signal); }
+.rain-bar:focus-visible { outline: 2px solid var(--lp-water); outline-offset: 2px; }
+
+.rain-legend {
+  display: flex; flex-wrap: wrap; gap: 16px; align-items: center;
+  margin-top: 10px; font-size: 11.5px; color: var(--lp-fg-3);
+}
+.rain-legend i {
+  display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+  background: var(--lp-line-2); margin-inline-end: 6px; vertical-align: -1px;
+}
+.rain-legend i.has { background: var(--lp-water); }
+.rain-legend .num { margin-inline-start: auto; }
+
+/* a table row that opens a detail panel */
+.rowlink { cursor: pointer; }
+.rowlink:hover td { background: var(--lp-tint-2); }
+.rowlink.on td { background: rgba(47, 216, 239, .09); }
+.stbl td .muted { color: var(--lp-fg-3); }
+.corr { color: var(--lp-signal); font-style: normal; font-weight: 600; }
+
+/* ── overview: mechanism legend and district ranking ───────────────────────
+   The overview leads with ponding now, so these carry the two questions it has
+   to answer at a glance: what kind of work the shortlist is, and where it is. */
+.mech-legend {
+  display: grid; gap: 10px; margin: 12px 0 4px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+.mech-item { display: flex; gap: 9px; align-items: flex-start; }
+.mech-item i {
+  width: 9px; height: 9px; border-radius: 50%; flex: none; margin-top: 5px;
+}
+.mech-item > div { display: flex; flex-direction: column; min-width: 0; }
+.mech-item b { font-family: var(--font-display); font-size: 19px; font-weight: 600; }
+.mech-item span { font-size: 12.5px; color: var(--lp-fg); font-weight: 600; }
+.mech-item em {
+  font-style: normal; font-size: 11.5px; color: var(--lp-fg-3); margin-top: 2px;
+}
+
+.dist-row {
+  display: grid; align-items: center; gap: 10px;
+  grid-template-columns: minmax(90px, 1fr) minmax(60px, 2fr) auto auto;
+  padding: 7px 0; text-decoration: none; color: inherit;
+  border-bottom: 1px solid var(--lp-line);
+}
+.dist-row:last-of-type { border-bottom: 0; }
+.dist-row:hover .dr-name { color: var(--lp-signal); }
+.dr-name { font-size: 12.5px; font-weight: 600; }
+.dr-bar {
+  height: 7px; border-radius: 4px; background: var(--lp-tint-2); overflow: hidden;
+}
+.dr-bar i { display: block; height: 100%; background: var(--lp-water); border-radius: 4px; }
+.dist-row b { font-size: 13px; min-width: 42px; text-align: end; }
+.dr-inc {
+  font-style: normal; font-size: 11px; color: var(--lp-fg-3);
+  min-width: 62px; text-align: end;
+}
+.dr-inc.muted { opacity: .45; }

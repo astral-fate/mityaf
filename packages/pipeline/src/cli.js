@@ -29,6 +29,7 @@ import { loadSegmentRisk } from './risk.js';
 import * as weather from './weather.js';
 import { exportStatic } from './export.js';
 import { backfillS2 } from './s2.js';
+import { generatePreRainAlerts } from './alerts.js';
 
 const cmd = process.argv[2] ?? 'help';
 
@@ -88,6 +89,16 @@ async function doctor() {
 // ── main ───────────────────────────────────────────────────────────────────
 const commands = {
   doctor,
+
+  // Forecast x susceptibility. There is no public flood-alert feed for this
+  // city to relay, and a national warning would not name streets anyway.
+  'gen-alerts': () =>
+    withRun('gen_alerts', {}, async (run) => {
+      await initSchema();
+      run.add(await generatePreRainAlerts({
+        dryRun: process.argv.includes('--dry-run'),
+      }));
+    }),
 
   'label-assets': () =>
     withRun('label_assets', {}, async (run) => {
@@ -158,6 +169,9 @@ const commands = {
     await commands['backfill-weather']();
     if (config.geeServiceAccountKey) await commands['backfill-s2']();
     else console.log('\n[skip] backfill-s2 — GEE_SERVICE_ACCOUNT_KEY not set');
+    // Alerts read the forecast and the risk table, so they run after both are
+    // current and before the export that publishes them.
+    await commands['gen-alerts']();
     await commands['export-static']();
   },
 

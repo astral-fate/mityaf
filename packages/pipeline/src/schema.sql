@@ -244,8 +244,26 @@ CREATE TABLE IF NOT EXISTS weather_daily (
   et0_fao DOUBLE PRECISION,
   rain_72h_mm DOUBLE PRECISION,
   days_since_rain INTEGER,
-  source TEXT DEFAULT 'open_meteo_archive'
+  source TEXT DEFAULT 'open_meteo_archive',
+  -- A second, independent rainfall source. Kept in its own column rather than
+  -- overwriting precipitation_sum_mm: on 2026-08-26 Open-Meteo reported 0.0 mm
+  -- at nine points across the AOI while NASA POWER reported 0.18 mm, and a
+  -- resident reported rain. Which product missed what is itself evidence, so
+  -- neither is allowed to erase the other.
+  power_precip_mm DOUBLE PRECISION,
+  -- max(open_meteo, power). MAX not mean: these are detections of a physical
+  -- event, and averaging a caught cell against a smoothed one pushes real
+  -- rainfall back below the threshold it should have crossed.
+  precip_best_mm DOUBLE PRECISION,
+  -- |open_meteo - power| where both published; null where only one did, since
+  -- a silent source is a gap and not a disagreement.
+  precip_disagree_mm DOUBLE PRECISION
 );
+
+-- Existing deployments predate the two-source columns.
+ALTER TABLE weather_daily ADD COLUMN IF NOT EXISTS power_precip_mm DOUBLE PRECISION;
+ALTER TABLE weather_daily ADD COLUMN IF NOT EXISTS precip_best_mm DOUBLE PRECISION;
+ALTER TABLE weather_daily ADD COLUMN IF NOT EXISTS precip_disagree_mm DOUBLE PRECISION;
 
 CREATE TABLE IF NOT EXISTS rain_events (
   rain_event_id TEXT PRIMARY KEY,

@@ -23,8 +23,25 @@ const PRESETS = [
 
 const iso = (d) => d.toISOString().slice(0, 10);
 
+/**
+ * The window a preset resolves to, counted back from `anchor`.
+ *
+ * `anchor` is the newest record in the data being filtered, NOT today. This is
+ * an archive: the most recent storm on record is months old, so counting back
+ * from the wall clock made «آخر ٣٠ يوماً» and «آخر ٣ أشهر» select a window that
+ * ends after every row in the file, and both silently returned nothing. Worse,
+ * they did it inconsistently -- the reports page has posts from this month and
+ * kept showing results while the rain page went blank, which reads as a broken
+ * filter rather than an empty window.
+ */
+function windowOf(days, anchor) {
+  const to = anchor ? new Date(`${anchor}T00:00:00Z`) : new Date();
+  return { from: iso(new Date(to.getTime() - days * 864e5)), to: iso(to) };
+}
+
 export default function FilterBar({
   filters, update, clear, active, extra = null, showMechanism = false,
+  anchor = null,
 }) {
   const [districts, setDistricts] = useState([]);
   const [custom, setCustom] = useState(false);
@@ -39,10 +56,18 @@ export default function FilterBar({
   }, []);
 
   // A stored range that matches no preset is a custom range; reflect that on
-  // load so a shared link does not open showing "الأرشيف كاملاً".
+  // load so a shared link does not open showing "الأرشيف كاملاً". Matching
+  // presets are excluded, or choosing one would immediately flip the control
+  // to «مدى مخصّص» and the user could never see their own selection.
   useEffect(() => {
-    if (filters.from || filters.to) setCustom(true);
-  }, [filters.from, filters.to]);
+    if (!filters.from && !filters.to) { setCustom(false); return; }
+    const known = PRESETS.some((p) => {
+      if (typeof p.days !== 'number') return false;
+      const w = windowOf(p.days, anchor);
+      return w.from === filters.from && w.to === filters.to;
+    });
+    setCustom(!known);
+  }, [filters.from, filters.to, anchor]);
 
   const onPreset = (v) => {
     const p = PRESETS.find((x) => x.k === v);
@@ -50,13 +75,17 @@ export default function FilterBar({
     if (p.days === 'custom') { setCustom(true); return; }
     setCustom(false);
     if (!p.days) return update({ from: null, to: null });
-    const to = new Date();
-    return update({ from: iso(new Date(to.getTime() - p.days * 864e5)), to: iso(to) });
+    return update(windowOf(p.days, anchor));
   };
 
+  // Reflect the actual selection: find the preset whose window matches.
   const presetValue = custom ? 'custom'
     : (!filters.from && !filters.to) ? 'all'
-      : 'custom';
+      : (PRESETS.find((p) => {
+        if (typeof p.days !== 'number') return false;
+        const w = windowOf(p.days, anchor);
+        return w.from === filters.from && w.to === filters.to;
+      })?.k ?? 'custom');
 
   return (
     <div className="hbar-row">
@@ -74,7 +103,14 @@ export default function FilterBar({
       </label>
 
       <label className="hf">
-        <span>المدى الزمني</span>
+        <span>
+          المدى الزمني
+          {(filters.from || filters.to) && (
+            <em className="hf-win" dir="ltr">
+              {filters.from ?? '…'} → {filters.to ?? '…'}
+            </em>
+          )}
+        </span>
         <select value={presetValue} onChange={(e) => onPreset(e.target.value)}>
           {PRESETS.map((p) => <option key={p.k} value={p.k}>{p.label}</option>)}
         </select>

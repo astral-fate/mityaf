@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import DataTable from '@/components/DataTable';
 import FilterBar from '@/components/FilterBar';
 import { fmt, loadSegments } from '@/lib/data';
+import { segmentLabel } from '@/lib/segmentLabel';
 import { useFilters } from '@/lib/useFilters';
 import { exportSegmentsWorkbook } from '@/lib/excel';
 import { BANDS, BAND_ORDER } from '@/lib/bands';
@@ -34,8 +35,13 @@ export default function Segments() {
   const [band, setBand] = useState('all');
   const [exporting, setExporting] = useState(false);
 
+  const [roadNames, setRoadNames] = useState([]);
+
   useEffect(() => {
     loadSegments().then((s) => {
+      // roadNames is the interned lookup the derived labels index into; it
+      // lives on the collection, so it has to be kept off the feature map.
+      setRoadNames(s?.roadNames ?? []);
       setRows((s?.features ?? []).map((f) => f.properties));
       setLoaded(true);
     });
@@ -66,14 +72,21 @@ export default function Segments() {
     },
     {
       key: 'name', title: 'المقطع', sortable: true, width: '28%',
-      value: (r) => r.name ?? r.id,
-      search: (r) => `${r.name ?? ''} ${r.id} ${r.d ?? ''}`,
-      render: (r) => (
-        <>
-          <span className="dt-strong">{r.name || 'شارع بلا اسم'}</span>
-          <span className="dt-sub">{r.d ?? '—'}</span>
-        </>
-      ),
+      // Sort and search on the label actually shown, or the column sorts by a
+      // value the reader cannot see.
+      value: (r) => segmentLabel(r, roadNames).text,
+      search: (r) => `${segmentLabel(r, roadNames).text} ${r.id} ${r.d ?? ''}`,
+      render: (r) => {
+        const lab = segmentLabel(r, roadNames);
+        return (
+          <>
+            <span className={lab.derived ? 'dt-strong is-derived' : 'dt-strong'}>
+              {lab.text}
+            </span>
+            <span className="dt-sub">{r.d ?? '—'}</span>
+          </>
+        );
+      },
     },
     {
       key: 'score', title: 'قابلية احتجاز الماء', sortable: true, width: '22%',
@@ -106,7 +119,10 @@ export default function Segments() {
       value: (r) => r.sink,
       render: (r) => (r.sink != null ? <>{fmt(r.sink, 2)} م</> : '—'),
     },
-  ], []);
+    // roadNames arrives with the fetch, after the first render. Without it in
+    // the deps the columns keep the empty lookup they closed over and every
+    // derived label silently falls back to «شارع بلا اسم».
+  ], [roadNames]);
 
   const chips = [['all', 'الكل', '#a3b0d2'],
     ...ORDER.map((k) => [k, BANDS[k].ar, BANDS[k].color])]

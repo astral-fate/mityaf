@@ -1,0 +1,106 @@
+{
+ "sar_per_usd": 3.75,
+ "aoi_km2": 545,
+ "azure_monthly_usd": 465,
+ "azure_annual_usd": 5580,
+ "azure_annual_usd_reserved": 4715,
+ "azure_lines": [
+  {
+   "item": "Container Apps",
+   "spec": "2 vCPU · 4 GB · always-on",
+   "usd_month": 110
+  },
+  {
+   "item": "PostgreSQL Flexible",
+   "spec": "B4ms · 256 GB · PostGIS · نسخ احتياطي",
+   "usd_month": 195
+  },
+  {
+   "item": "Blob Storage",
+   "spec": "750 GB ساخن + عمليات",
+   "usd_month": 22
+  },
+  {
+   "item": "Egress",
+   "spec": "500 GB/شهر",
+   "usd_month": 40
+  },
+  {
+   "item": "Front Door / CDN",
+   "spec": "Standard",
+   "usd_month": 45
+  },
+  {
+   "item": "Batch compute",
+   "spec": "D8as_v5 spot · 60 ساعة/شهر",
+   "usd_month": 28
+  },
+  {
+   "item": "Log Analytics",
+   "spec": "5 GB/شهر",
+   "usd_month": 15
+  },
+  {
+   "item": "Key Vault + misc",
+   "spec": "",
+   "usd_month": 10
+  }
+ ],
+ "imagery": [
+  {
+   "vendor": "Planet PlanetScope",
+   "spec": "بصري 3 م · يومي · مراقبة مستمرة",
+   "usd_lo": 25000,
+   "usd_hi": 45000,
+   "basis": "الحد الأدنى للعقد التجاري يحكم السعر عند 545 كم²، لا سعر الكيلومتر"
+  },
+  {
+   "vendor": "Airbus Pléiades Neo",
+   "spec": "بصري 30 سم · تكليف موجَّه · 100 كم²",
+   "usd_lo": 2500,
+   "usd_hi": 4500,
+   "basis": "‎25–45 دولاراً/كم² فوق حدّ أدنى للطلب — لا نغطّي المدينة كاملة"
+  },
+  {
+   "vendor": "ICEYE / Capella SAR",
+   "spec": "رادار · يخترق الغيم · لكل مشهد",
+   "usd_lo": 4000,
+   "usd_hi": 8000,
+   "basis": "سعر المشهد المكلَّف؛ الرادار وحده يعمل أثناء العاصفة"
+  }
+ ],
+ "lidar_one_off_usd": [
+  54500,
+  109000
+ ],
+ "tiers": {
+  "tier1": {
+   "name": "البيانات المفتوحة فقط",
+   "lo": 4715.099999999999,
+   "hi": 5580,
+   "what": "المنصّة كما هي اليوم — لا صور تجارية إطلاقاً",
+   "sar_lo": 17682,
+   "sar_hi": 20925
+  },
+  "tier2": {
+   "name": "مع مراقبة بصرية يومية",
+   "lo": 29715.1,
+   "hi": 50580,
+   "what": "إضافة تدفّق Planet اليومي لكشف التغيّر",
+   "sar_lo": 111432,
+   "sar_hi": 189675
+  },
+  "tier3": {
+   "name": "مع تكليف عند الحدث",
+   "lo": 53215.1,
+   "hi": 96080,
+   "what": "إضافة 3 تكليفات عالية الدقّة و4 مشاهد رادارية سنوياً",
+   "sar_lo": 199557,
+   "sar_hi": 360300
+  }
+ },
+ "confidence": {
+  "azure": "high — published rate card, +/-15% on region and egress",
+  "imagery": "indicative only — vendors price by negotiated contract"
+ }
+}

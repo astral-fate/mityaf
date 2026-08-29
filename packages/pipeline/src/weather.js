@@ -10,6 +10,7 @@
  */
 import { bulkUpsert, query } from './db.js';
 import { config } from './config.js';
+import { fetchPowerDaily, reconcile } from './power.js';
 
 const ARCHIVE_URL = 'https://archive-api.open-meteo.com/v1/archive';
 const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
@@ -149,12 +150,72 @@ export async function backfill({ start = '2015-01-01' } = {}) {
   console.log(`  archive : ${rows.length.toLocaleString()} days  ` +
               `${iso(rows[0].date)} -> ${iso(rows[rows.length - 1].date)}`);
 
+  // Second source. Open-Meteo's archive endpoint also clamps ~6 days behind
+  // real time, so the most recent week is exactly where a single source is
+  // weakest — and it is the week an operator is actually asking about.
+  let power = new Map();
+  try {
+    const got = await fetchPowerDaily({
+      start, end: iso(new Date()),
+    });
+    power = new Map(got.map((r) => [r.date, r.powerMm]));
+    console.log(`  power   : ${power.size.toLocaleString()} days from NASA POWER`);
+  } catch (err) {
+    // A second opinion is an upgrade, not a dependency: losing it must not
+    // cost us the archive we already fetched.
+    console.log(`  power   : unavailable (${err.message}) — continuing on Open-Meteo alone`);
+  }
+
+  let missed = 0;
+  const merged = rows.map((r) => {
+    const d = iso(r.date);
+    const p = power.get(d);
+    const rec = reconcile(r.precipitationSumMm, p);
+    if (p > 0 && !(r.precipitationSumMm > 0)) missed += 1;
+    return { ...r, powerMm: p ?? null, best: rec };
+  });
+
+  // POWER publishes past the archive's 6-day clamp, and those trailing days are
+  // the ones an operator asks about — «did it rain this week». Iterating only
+  // the archive silently dropped them: POWER had 2026-08-26 while the archive
+  // stopped at 08-23, so the one day someone remembered rain was the one day
+  // never written. Carry the tail, with the Open-Meteo columns left null rather
+  // than zeroed, because we did not measure them — we simply have no reading.
+  const have = new Set(rows.map((r) => iso(r.date)));
+  const tail = [...power.entries()]
+    .filter(([d]) => !have.has(d))
+    .sort(([a], [b]) => (a < b ? -1 : 1))
+    .map(([d, mm]) => ({
+      date: new Date(`${d}T00:00:00Z`),
+      precipitationSumMm: null,
+      precipitationHours: null,
+      temperature2mMax: null,
+      temperature2mMin: null,
+      shortwaveRadiationSum: null,
+      et0Fao: null,
+      rain72hMm: null,
+      daysSinceRain: null,
+      powerMm: mm,
+      best: reconcile(null, mm),
+    }));
+  if (tail.length) {
+    const wet = tail.filter((r) => r.powerMm > 0);
+    console.log(`  tail    : ${tail.length} day(s) past the archive clamp, from POWER only` +
+                (wet.length ? ` — ${wet.map((r) => `${iso(r.date)} ${r.powerMm}mm`).join(', ')}` : ''));
+    merged.push(...tail);
+  }
+  if (missed) {
+    console.log(`  ${missed} day(s) where POWER saw rain and Open-Meteo saw none ` +
+                `— kept, because a missed cell is the failure mode that matters`);
+  }
+
   await bulkUpsert({
     table: 'weather_daily',
     columns: ['date', 'precipitation_sum_mm', 'precipitation_hours',
               'temperature_2m_max', 'temperature_2m_min', 'shortwave_radiation_sum',
-              'et0_fao', 'rain_72h_mm', 'days_since_rain'],
-    rows: rows.map((r) => ({
+              'et0_fao', 'rain_72h_mm', 'days_since_rain',
+              'power_precip_mm', 'precip_best_mm', 'precip_disagree_mm'],
+    rows: merged.map((r) => ({
       date: iso(r.date),
       precipitation_sum_mm: r.precipitationSumMm,
       precipitation_hours: r.precipitationHours,
@@ -164,6 +225,9 @@ export async function backfill({ start = '2015-01-01' } = {}) {
       et0_fao: r.et0Fao,
       rain_72h_mm: r.rain72hMm,
       days_since_rain: r.daysSinceRain,
+      power_precip_mm: r.powerMm,
+      precip_best_mm: r.best.mm,
+      precip_disagree_mm: r.best.disagreeMm,
     })),
     conflictTarget: ['date'],
   });

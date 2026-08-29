@@ -1,0 +1,2368 @@
+{
+ "ways": [
+  {
+   "id": 54736857,
+   "name": "طريق مكة - المدينة / طريق الهجرة",
+   "name_en": "Al Hijra Road",
+   "highway": "motorway",
+   "lanes": "3",
+   "oneway": true,
+   "layer": -1,
+   "roofed": false,
+   "cutting": true,
+   "ref": null,
+   "length_m": 225.5,
+   "geometry": [
+    [
+     39.61771,
+     24.440319
+    ],
+    [
+     39.615537,
+     24.439871
+    ]
+   ],
+   "district": "قباء",
+   "rank_hydrology": 0.8833,
+   "sink": 0.0,
+   "hand": -2.67,
+   "slope": 0.36,
+   "dem_profile": [
+    607.9,
+    608.0,
+    608.0,
+    608.4,
+    608.4,
+    608.3,
+    608.3,
+    608.3,
+    608.3,
+    608.0,
+    608.0,
+    607.4,
+    607.4,
+    608.6,
+    608.5,
+    608.5,
+    608.5
+   ],
+   "dem_range_m": 1.2
+  },
+  {
+   "id": 54736862,
+   "name": "طريق مكة - المدينة / طريق الهجرة",
+   "name_en": "Al Hijra Road",
+   "highway": "motorway",
+   "lanes": "3",
+   "oneway": true,
+   "layer": -1,
+   "roofed": false,
+   "cutting": true,
+   "ref": null,
+   "length_m": 224.9,
+   "geometry": [
+    [
+     39.615585,
+     24.43974
+    ],
+    [
+     39.617748,
+     24.440201
+    ]
+   ],
+   "district": "قباء",
+   "rank_hydrology": 0.5255,
+   "sink": 0.0,
+   "hand": -1.04,
+   "slope": 2.01,
+   "dem_profile": [
+    609.1,
+    608.6,
+    608.6,
+    607.8,
+    607.4,
+    608.0,
+    608.0,
+    608.3,
+    608.3,
+    608.9,
+    608.9,
+    609.4,
+    609.4,
+    608.0,
+    608.0,
+    607.9
+   ],
+   "dem_range_m": 2.0
+  },
+  {
+   "id": 54752175,
+   "name": "طريق الملك عبدالله",
+   "name_en": "King Abdullah Road - 2nd Ring Road",
+   "highway": "motorway",
+   "lanes": "3",
+   "oneway": true,
+   "layer": 0,
+   "roofed": true,
+   "cutting": false,
+   "ref": "15",
+   "length_m": 67.3,
+   "geometry": [
+    [
+     39.609162,
+     24.496173
+    ],
+    [
+     39.608501,
+     24.496107
+    ]
+   ],
+   "district": "مسجد الدرع",
+   "rank_hydrology": 0.7474,
+   "sink": 0.0,
+   "hand": -1.53,
+   "slope": 1.51,
+   "dem_profile": [
+    599.2,
+    602.0,
+    602.0,
+    595.9,
+    595.9,
+    595.9
+   ],
+   "dem_range_m": 6.1
+  },
+  {
+   "id": 65540930,
+   "name": "Manakah Tunnel",
+   "name_en": null,
+   "highway": "primary",
+   "lanes": "2",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 734.7,
+   "geometry": [
+    [
+     39.607977,
+     24.465017
+    ],
+    [
+     39.607822,
+     24.465179
+    ],
+    [
+     39.607594,
+     24.465515
+    ],
+    [
+     39.60739,
+     24.465833
+    ],
+    [
+     39.607161,
+     24.466413
+    ],
+    [
+     39.607003,
+     24.466995
+    ],
+    [
+     39.606666,
+     24.468751
+    ],
+    [
+     39.606394,
+     24.470498
+    ],
+    [
+     39.606296,
+     24.470796
+    ],
+    [
+     39.606167,
+     24.471049
+    ],
+    [
+     39.606077,
+     24.471313
+    ]
+   ],
+   "district": "المناخة",
+   "rank_hydrology": 0.9932,
+   "sink": 0.09,
+   "hand": -2.26,
+   "slope": 0.07,
+   "dem_profile": [
+    602.8,
+    600.8,
+    601.6,
+    601.6,
+    603.9,
+    603.9,
+    603.9,
+    604.0,
+    605.3,
+    604.5,
+    604.5,
+    602.6,
+    602.6,
+    606.0,
+    606.0,
+    605.2,
+    605.2,
+    604.4,
+    604.4,
+    604.4,
+    603.3,
+    603.3,
+    605.2,
+    605.2,
+    604.8,
+    604.8,
+    604.4,
+    604.4,
+    604.8,
+    604.8,
+    605.1,
+    605.1,
+    605.2,
+    605.2,
+    605.1,
+    605.1,
+    605.6,
+    604.2,
+    606.0,
+    606.0,
+    608.5,
+    608.5,
+    607.3,
+    607.3,
+    607.3,
+    605.7,
+    605.8,
+    610.5,
+    610.5,
+    612.8
+   ],
+   "dem_range_m": 12.0
+  },
+  {
+   "id": 65542684,
+   "name": "Manakah Tunnel",
+   "name_en": null,
+   "highway": "primary",
+   "lanes": "2",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 738.6,
+   "geometry": [
+    [
+     39.605959,
+     24.471274
+    ],
+    [
+     39.60603,
+     24.471098
+    ],
+    [
+     39.606152,
+     24.470793
+    ],
+    [
+     39.606263,
+     24.470469
+    ],
+    [
+     39.60676,
+     24.467593
+    ],
+    [
+     39.606902,
+     24.466949
+    ],
+    [
+     39.607059,
+     24.466321
+    ],
+    [
+     39.607288,
+     24.465788
+    ],
+    [
+     39.607472,
+     24.465471
+    ],
+    [
+     39.607666,
+     24.465191
+    ],
+    [
+     39.607891,
+     24.464949
+    ]
+   ],
+   "district": "المناخة",
+   "rank_hydrology": 0.9932,
+   "sink": 0.09,
+   "hand": -2.26,
+   "slope": 0.07,
+   "dem_profile": [
+    605.4,
+    610.5,
+    610.5,
+    605.8,
+    605.8,
+    605.1,
+    605.1,
+    608.5,
+    608.5,
+    606.0,
+    606.0,
+    604.2,
+    604.2,
+    604.3,
+    604.3,
+    604.3,
+    604.3,
+    604.3,
+    605.1,
+    605.1,
+    604.8,
+    604.8,
+    604.4,
+    604.4,
+    604.8,
+    604.8,
+    605.7,
+    605.7,
+    605.8,
+    605.8,
+    604.4,
+    604.4,
+    605.2,
+    605.2,
+    604.1,
+    604.1,
+    604.2,
+    604.2,
+    602.6,
+    604.5,
+    604.5,
+    605.3,
+    605.3,
+    603.9,
+    603.9,
+    603.7,
+    603.7,
+    601.6,
+    600.8,
+    600.8,
+    600.8
+   ],
+   "dem_range_m": 9.7
+  },
+  {
+   "id": 65543166,
+   "name": "طريق سلطانة",
+   "name_en": "Sultana Road",
+   "highway": "primary",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 88.2,
+   "geometry": [
+    [
+     39.605588,
+     24.473532
+    ],
+    [
+     39.60544,
+     24.474314
+    ]
+   ],
+   "district": "بضاعة",
+   "rank_hydrology": 0.9893,
+   "sink": 0.12,
+   "hand": -2.49,
+   "slope": 0.12,
+   "dem_profile": [
+    603.2,
+    603.2,
+    602.6,
+    602.6,
+    603.0,
+    603.0,
+    598.4
+   ],
+   "dem_range_m": 4.8
+  },
+  {
+   "id": 65543220,
+   "name": "طريق سلطانة",
+   "name_en": "Sultana Road",
+   "highway": "primary",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 88.9,
+   "geometry": [
+    [
+     39.605313,
+     24.4743
+    ],
+    [
+     39.605471,
+     24.473513
+    ]
+   ],
+   "district": "بضاعة",
+   "rank_hydrology": 0.9893,
+   "sink": 0.12,
+   "hand": -2.49,
+   "slope": 0.12,
+   "dem_profile": [
+    605.2,
+    605.2,
+    605.2,
+    602.5,
+    602.6,
+    603.2,
+    603.2
+   ],
+   "dem_range_m": 2.7
+  },
+  {
+   "id": 135281042,
+   "name": "2nd Ring Road",
+   "name_en": null,
+   "highway": "motorway",
+   "lanes": null,
+   "oneway": true,
+   "layer": 0,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 61.4,
+   "geometry": [
+    [
+     39.608604,
+     24.495891
+    ],
+    [
+     39.609197,
+     24.496012
+    ]
+   ],
+   "district": "مسجد الدرع",
+   "rank_hydrology": 0.2514,
+   "sink": 0.0,
+   "hand": 0.85,
+   "slope": 1.33,
+   "dem_profile": [
+    598.5,
+    598.5,
+    601.9,
+    599.2,
+    599.2,
+    599.2
+   ],
+   "dem_range_m": 3.4
+  },
+  {
+   "id": 135481789,
+   "name": "الامير عبدالمجيد بن عبدالعزيز",
+   "name_en": "Price Abdul Majeed Road",
+   "highway": "primary",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 99.5,
+   "geometry": [
+    [
+     39.59533,
+     24.483618
+    ],
+    [
+     39.59593,
+     24.484327
+    ]
+   ],
+   "district": "الراية",
+   "rank_hydrology": 0.9972,
+   "sink": 0.11,
+   "hand": -2.87,
+   "slope": 0.01,
+   "dem_profile": [
+    599.7,
+    601.4,
+    602.4,
+    602.4,
+    600.5,
+    600.0,
+    600.0,
+    596.9
+   ],
+   "dem_range_m": 5.5
+  },
+  {
+   "id": 135481800,
+   "name": "الامير عبدالمجيد بن عبدالعزيز",
+   "name_en": "Price Abdul Majeed Road",
+   "highway": "primary",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 17.8,
+   "geometry": [
+    [
+     39.610714,
+     24.485588
+    ],
+    [
+     39.610889,
+     24.485585
+    ]
+   ],
+   "district": "مسجد الدرع",
+   "rank_hydrology": 0.7573,
+   "sink": 0.0,
+   "hand": 0.88,
+   "slope": 0.24,
+   "dem_profile": [
+    601.0,
+    601.0,
+    601.0
+   ],
+   "dem_range_m": 0.0
+  },
+  {
+   "id": 135481805,
+   "name": "الامير عبدالمجيد بن عبدالعزيز",
+   "name_en": "Price Abdul Majeed Road",
+   "highway": "primary",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 16.9,
+   "geometry": [
+    [
+     39.608838,
+     24.485714
+    ],
+    [
+     39.60867,
+     24.485719
+    ]
+   ],
+   "district": "مسجد الدرع",
+   "rank_hydrology": 0.9446,
+   "sink": 0.01,
+   "hand": 0.54,
+   "slope": 0.46,
+   "dem_profile": [
+    599.7,
+    603.0,
+    603.0
+   ],
+   "dem_range_m": 3.2
+  },
+  {
+   "id": 135481807,
+   "name": "الامير عبدالمجيد بن عبدالعزيز",
+   "name_en": "Price Abdul Majeed Road",
+   "highway": "primary",
+   "lanes": "2",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 18.3,
+   "geometry": [
+    [
+     39.60794,
+     24.485641
+    ],
+    [
+     39.60812,
+     24.485638
+    ]
+   ],
+   "district": "الراية",
+   "rank_hydrology": 0.987,
+   "sink": 0.11,
+   "hand": 0.44,
+   "slope": 0.06,
+   "dem_profile": [
+    601.9,
+    601.9,
+    601.9
+   ],
+   "dem_range_m": 0.0
+  },
+  {
+   "id": 256322761,
+   "name": "طريق مكة المكرمة المدينة المنورة(طريق الهجرة)",
+   "name_en": null,
+   "highway": "motorway",
+   "lanes": "3",
+   "oneway": true,
+   "layer": -1,
+   "roofed": false,
+   "cutting": false,
+   "ref": null,
+   "length_m": 147.7,
+   "geometry": [
+    [
+     39.625794,
+     24.441106
+    ],
+    [
+     39.624337,
+     24.441164
+    ]
+   ],
+   "district": "قباء",
+   "rank_hydrology": 0.9753,
+   "sink": 0.0,
+   "hand": -3.02,
+   "slope": 0.12,
+   "dem_profile": [
+    610.2,
+    609.0,
+    609.0,
+    608.4,
+    608.4,
+    605.5,
+    605.5,
+    609.8,
+    609.8,
+    606.7,
+    606.7
+   ],
+   "dem_range_m": 4.8
+  },
+  {
+   "id": 256323655,
+   "name": "طريق مكة - المدينة / طريق الهجرة",
+   "name_en": "Al Hijra Road",
+   "highway": "motorway",
+   "lanes": "3",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 154.9,
+   "geometry": [
+    [
+     39.581729,
+     24.432337
+    ],
+    [
+     39.583204,
+     24.432708
+    ]
+   ],
+   "district": "القصواء",
+   "rank_hydrology": 0.4089,
+   "sink": 0.0,
+   "hand": 3.3,
+   "slope": 0.74,
+   "dem_profile": [
+    639.4,
+    639.3,
+    639.3,
+    638.7,
+    638.7,
+    640.0,
+    640.0,
+    638.8,
+    638.8,
+    637.0,
+    637.0,
+    635.3
+   ],
+   "dem_range_m": 4.7
+  },
+  {
+   "id": 352792622,
+   "name": "طريق الملك عبد العزيز",
+   "name_en": "King Abdul Aziz Road",
+   "highway": "primary",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 104.9,
+   "geometry": [
+    [
+     39.634171,
+     24.469748
+    ],
+    [
+     39.635204,
+     24.469831
+    ]
+   ],
+   "district": "بني ظفر",
+   "rank_hydrology": 0.7024,
+   "sink": 0.0,
+   "hand": 3.76,
+   "slope": 0.35,
+   "dem_profile": [
+    618.4,
+    619.0,
+    619.0,
+    620.1,
+    620.1,
+    619.9,
+    619.9,
+    619.0
+   ],
+   "dem_range_m": 1.6
+  },
+  {
+   "id": 352792623,
+   "name": "طريق الملك عبد العزيز",
+   "name_en": "King Abdul Aziz Road",
+   "highway": "primary",
+   "lanes": "2",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 282.7,
+   "geometry": [
+    [
+     39.635204,
+     24.469831
+    ],
+    [
+     39.635552,
+     24.469849
+    ],
+    [
+     39.637989,
+     24.470029
+    ]
+   ],
+   "district": "بني ظفر",
+   "rank_hydrology": 0.4679,
+   "sink": 0.0,
+   "hand": 4.3,
+   "slope": 0.77,
+   "dem_profile": [
+    619.0,
+    619.0,
+    622.7,
+    622.7,
+    619.4,
+    619.4,
+    617.1,
+    617.1,
+    620.4,
+    617.5,
+    617.5,
+    621.0,
+    621.0,
+    620.7,
+    620.7,
+    619.2,
+    619.2,
+    621.9,
+    621.9,
+    621.7
+   ],
+   "dem_range_m": 5.5
+  },
+  {
+   "id": 352792626,
+   "name": "طريق الملك عبد العزيز",
+   "name_en": "King Abdul Aziz Road",
+   "highway": "primary",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 107.0,
+   "geometry": [
+    [
+     39.635197,
+     24.469955
+    ],
+    [
+     39.634144,
+     24.469866
+    ]
+   ],
+   "district": "بني ظفر",
+   "rank_hydrology": 0.7024,
+   "sink": 0.0,
+   "hand": 3.76,
+   "slope": 0.35,
+   "dem_profile": [
+    617.6,
+    619.2,
+    619.2,
+    618.5,
+    618.5,
+    618.6,
+    618.6,
+    615.7,
+    615.7
+   ],
+   "dem_range_m": 3.5
+  },
+  {
+   "id": 566312722,
+   "name": "الدائري الأول - طريق الملك فيصل",
+   "name_en": "First Ring Road (King Faisal Road)",
+   "highway": "trunk",
+   "lanes": "3",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 162.0,
+   "geometry": [
+    [
+     39.611885,
+     24.474211
+    ],
+    [
+     39.611651,
+     24.474245
+    ],
+    [
+     39.610607,
+     24.474325
+    ],
+    [
+     39.610291,
+     24.474318
+    ]
+   ],
+   "district": "بضاعة",
+   "rank_hydrology": 0.9873,
+   "sink": 0.17,
+   "hand": -4.7,
+   "slope": 0.27,
+   "dem_profile": [
+    600.1,
+    600.4,
+    600.4,
+    601.3,
+    601.3,
+    600.7,
+    600.7,
+    600.3,
+    600.3,
+    602.1,
+    602.4,
+    602.4
+   ],
+   "dem_range_m": 2.3
+  },
+  {
+   "id": 566312729,
+   "name": "الدائري الأول - طريق الملك فيصل",
+   "name_en": "First Ring Road (King Faisal Road)",
+   "highway": "trunk",
+   "lanes": "3",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 159.4,
+   "geometry": [
+    [
+     39.610294,
+     24.474176
+    ],
+    [
+     39.61107,
+     24.474153
+    ],
+    [
+     39.611236,
+     24.474142
+    ],
+    [
+     39.611631,
+     24.474093
+    ],
+    [
+     39.61186,
+     24.474047
+    ]
+   ],
+   "district": "بضاعة",
+   "rank_hydrology": 0.9873,
+   "sink": 0.17,
+   "hand": -4.7,
+   "slope": 0.27,
+   "dem_profile": [
+    602.2,
+    601.4,
+    601.4,
+    600.8,
+    600.8,
+    600.7,
+    600.7,
+    601.3,
+    601.3,
+    600.4,
+    600.4,
+    600.1
+   ],
+   "dem_range_m": 2.1
+  },
+  {
+   "id": 625948877,
+   "name": "طريق الملك عبدالله",
+   "name_en": "King Abdullah Road - 2nd Ring Road",
+   "highway": "motorway",
+   "lanes": "3",
+   "oneway": true,
+   "layer": 0,
+   "roofed": true,
+   "cutting": false,
+   "ref": "15",
+   "length_m": 63.8,
+   "geometry": [
+    [
+     39.608568,
+     24.495977
+    ],
+    [
+     39.609197,
+     24.496012
+    ]
+   ],
+   "district": "مسجد الدرع",
+   "rank_hydrology": 0.7474,
+   "sink": 0.0,
+   "hand": -1.53,
+   "slope": 1.51,
+   "dem_profile": [
+    595.9,
+    595.9,
+    602.0,
+    602.0,
+    599.2,
+    599.2
+   ],
+   "dem_range_m": 6.1
+  },
+  {
+   "id": 625949954,
+   "name": "طريق الملك عبدالله",
+   "name_en": "King Abdullah Road - 2nd Ring Road",
+   "highway": "motorway",
+   "lanes": "3",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": "15",
+   "length_m": 72.7,
+   "geometry": [
+    [
+     39.601154,
+     24.495528
+    ],
+    [
+     39.60187,
+     24.495592
+    ]
+   ],
+   "district": "مسجد الدرع",
+   "rank_hydrology": 0.9398,
+   "sink": 0.0,
+   "hand": -15.56,
+   "slope": 0.18,
+   "dem_profile": [
+    592.1,
+    595.5,
+    595.5,
+    597.8,
+    597.8,
+    593.1
+   ],
+   "dem_range_m": 5.8
+  },
+  {
+   "id": 625949957,
+   "name": "طريق الملك عبدالله",
+   "name_en": "King Abdullah Road - 2nd Ring Road",
+   "highway": "motorway",
+   "lanes": "3",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": "15",
+   "length_m": 71.0,
+   "geometry": [
+    [
+     39.601833,
+     24.495708
+    ],
+    [
+     39.601132,
+     24.495667
+    ]
+   ],
+   "district": "الشهداء",
+   "rank_hydrology": 0.9882,
+   "sink": 0.0,
+   "hand": -16.14,
+   "slope": 0.08,
+   "dem_profile": [
+    593.5,
+    596.8,
+    597.8,
+    595.5,
+    592.1,
+    592.1
+   ],
+   "dem_range_m": 5.8
+  },
+  {
+   "id": 625949962,
+   "name": "طريق الملك عبدالله",
+   "name_en": "King Abdullah Road - 2nd Ring Road",
+   "highway": "motorway",
+   "lanes": "3",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": "15",
+   "length_m": 81.1,
+   "geometry": [
+    [
+     39.587868,
+     24.487691
+    ],
+    [
+     39.587782,
+     24.487538
+    ],
+    [
+     39.587483,
+     24.487051
+    ]
+   ],
+   "district": "بئر عثمان",
+   "rank_hydrology": 0.9872,
+   "sink": 0.14,
+   "hand": -3.9,
+   "slope": 0.18,
+   "dem_profile": [
+    596.5,
+    599.6,
+    599.6,
+    598.9,
+    597.6,
+    597.6,
+    594.4
+   ],
+   "dem_range_m": 5.2
+  },
+  {
+   "id": 625949964,
+   "name": "طريق الملك عبدالله",
+   "name_en": "King Abdullah Road - 2nd Ring Road",
+   "highway": "motorway",
+   "lanes": "3",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": "15",
+   "length_m": 76.0,
+   "geometry": [
+    [
+     39.587682,
+     24.486999
+    ],
+    [
+     39.587953,
+     24.487487
+    ],
+    [
+     39.588022,
+     24.487609
+    ]
+   ],
+   "district": "بئر عثمان",
+   "rank_hydrology": 0.5507,
+   "sink": 0.0,
+   "hand": -3.49,
+   "slope": 0.82,
+   "dem_profile": [
+    598.3,
+    598.9,
+    598.9,
+    598.9,
+    597.7,
+    597.7,
+    597.7
+   ],
+   "dem_range_m": 1.3
+  },
+  {
+   "id": 630513952,
+   "name": "Amir Abdul Majeed Ibn Abdul Aziz Road",
+   "name_en": null,
+   "highway": "primary",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 17.7,
+   "geometry": [
+    [
+     39.611767,
+     24.485638
+    ],
+    [
+     39.611591,
+     24.48564
+    ]
+   ],
+   "district": "مسجد الدرع",
+   "rank_hydrology": 0.9838,
+   "sink": 0.0,
+   "hand": -10.72,
+   "slope": 0.21,
+   "dem_profile": [
+    600.0,
+    600.0,
+    600.0
+   ],
+   "dem_range_m": 0.0
+  },
+  {
+   "id": 630513954,
+   "name": "Amir Abdul Majeed Ibn Abdul Aziz Road",
+   "name_en": null,
+   "highway": "primary",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 17.6,
+   "geometry": [
+    [
+     39.611592,
+     24.485573
+    ],
+    [
+     39.611766,
+     24.48557
+    ]
+   ],
+   "district": "مسجد الدرع",
+   "rank_hydrology": 0.9838,
+   "sink": 0.0,
+   "hand": -10.72,
+   "slope": 0.21,
+   "dem_profile": [
+    600.0,
+    600.0,
+    600.0
+   ],
+   "dem_range_m": 0.0
+  },
+  {
+   "id": 630517672,
+   "name": "الامير عبدالمجيد بن عبدالعزيز",
+   "name_en": "Price Abdul Majeed Road",
+   "highway": "primary",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 43.2,
+   "geometry": [
+    [
+     39.611439,
+     24.48564
+    ],
+    [
+     39.611012,
+     24.485647
+    ]
+   ],
+   "district": "مسجد الدرع",
+   "rank_hydrology": 0.8834,
+   "sink": 0.0,
+   "hand": 0.87,
+   "slope": 0.27,
+   "dem_profile": [
+    603.3,
+    603.3,
+    601.5,
+    601.5
+   ],
+   "dem_range_m": 1.7
+  },
+  {
+   "id": 630517675,
+   "name": "الامير عبدالمجيد بن عبدالعزيز",
+   "name_en": "Price Abdul Majeed Road",
+   "highway": "primary",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 17.5,
+   "geometry": [
+    [
+     39.610883,
+     24.485649
+    ],
+    [
+     39.61071,
+     24.485651
+    ]
+   ],
+   "district": "مسجد الدرع",
+   "rank_hydrology": 0.7573,
+   "sink": 0.0,
+   "hand": 0.88,
+   "slope": 0.24,
+   "dem_profile": [
+    601.0,
+    601.0,
+    601.0
+   ],
+   "dem_range_m": 0.0
+  },
+  {
+   "id": 630517677,
+   "name": "الامير عبدالمجيد بن عبدالعزيز",
+   "name_en": "Price Abdul Majeed Road",
+   "highway": "primary",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 42.0,
+   "geometry": [
+    [
+     39.61102,
+     24.485582
+    ],
+    [
+     39.611435,
+     24.485575
+    ]
+   ],
+   "district": "مسجد الدرع",
+   "rank_hydrology": 0.9657,
+   "sink": 0.0,
+   "hand": -10.64,
+   "slope": 0.1,
+   "dem_profile": [
+    601.5,
+    601.5,
+    603.3,
+    603.3
+   ],
+   "dem_range_m": 1.7
+  },
+  {
+   "id": 630517679,
+   "name": "الامير عبدالمجيد بن عبدالعزيز",
+   "name_en": "Price Abdul Majeed Road",
+   "highway": "primary",
+   "lanes": "2",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 18.6,
+   "geometry": [
+    [
+     39.608113,
+     24.485727
+    ],
+    [
+     39.607929,
+     24.485723
+    ]
+   ],
+   "district": "الراية",
+   "rank_hydrology": 0.987,
+   "sink": 0.11,
+   "hand": 0.44,
+   "slope": 0.06,
+   "dem_profile": [
+    602.3,
+    602.3,
+    602.3
+   ],
+   "dem_range_m": 0.0
+  },
+  {
+   "id": 630517681,
+   "name": "الامير عبدالمجيد بن عبدالعزيز",
+   "name_en": "Price Abdul Majeed Road",
+   "highway": "primary",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 18.7,
+   "geometry": [
+    [
+     39.60829,
+     24.485635
+    ],
+    [
+     39.608475,
+     24.485632
+    ]
+   ],
+   "district": "المصانع",
+   "rank_hydrology": 0.9872,
+   "sink": 0.06,
+   "hand": 0.49,
+   "slope": 0.14,
+   "dem_profile": [
+    600.5,
+    600.5,
+    600.3
+   ],
+   "dem_range_m": 0.2
+  },
+  {
+   "id": 630517682,
+   "name": "الامير عبدالمجيد بن عبدالعزيز",
+   "name_en": "Price Abdul Majeed Road",
+   "highway": "primary",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 19.6,
+   "geometry": [
+    [
+     39.608503,
+     24.485725
+    ],
+    [
+     39.608309,
+     24.485724
+    ]
+   ],
+   "district": "المصانع",
+   "rank_hydrology": 0.9872,
+   "sink": 0.06,
+   "hand": 0.49,
+   "slope": 0.14,
+   "dem_profile": [
+    603.0,
+    601.6,
+    601.6
+   ],
+   "dem_range_m": 1.3
+  },
+  {
+   "id": 630517684,
+   "name": "الامير عبدالمجيد بن عبدالعزيز",
+   "name_en": "Price Abdul Majeed Road",
+   "highway": "primary",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 17.9,
+   "geometry": [
+    [
+     39.608659,
+     24.485629
+    ],
+    [
+     39.608836,
+     24.485626
+    ]
+   ],
+   "district": "مسجد الدرع",
+   "rank_hydrology": 0.9446,
+   "sink": 0.01,
+   "hand": 0.54,
+   "slope": 0.46,
+   "dem_profile": [
+    600.3,
+    599.3,
+    599.3
+   ],
+   "dem_range_m": 1.0
+  },
+  {
+   "id": 630518989,
+   "name": "الامير عبدالمجيد بن عبدالعزيز",
+   "name_en": "Price Abdul Majeed Road",
+   "highway": "primary",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 100.6,
+   "geometry": [
+    [
+     39.595864,
+     24.484364
+    ],
+    [
+     39.595252,
+     24.483652
+    ]
+   ],
+   "district": "الراية",
+   "rank_hydrology": 0.9972,
+   "sink": 0.11,
+   "hand": -2.87,
+   "slope": 0.01,
+   "dem_profile": [
+    596.9,
+    600.0,
+    600.5,
+    600.5,
+    602.4,
+    601.0,
+    599.7,
+    599.7
+   ],
+   "dem_range_m": 5.5
+  },
+  {
+   "id": 630542558,
+   "name": "طريق مكة - المدينة / طريق الهجرة",
+   "name_en": "Al Hijra Road",
+   "highway": "motorway",
+   "lanes": "3",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 151.2,
+   "geometry": [
+    [
+     39.583127,
+     24.432841
+    ],
+    [
+     39.582102,
+     24.432596
+    ],
+    [
+     39.581686,
+     24.432486
+    ]
+   ],
+   "district": "القصواء",
+   "rank_hydrology": 0.4089,
+   "sink": 0.0,
+   "hand": 3.3,
+   "slope": 0.74,
+   "dem_profile": [
+    637.0,
+    637.0,
+    638.8,
+    638.8,
+    639.7,
+    639.7,
+    638.7,
+    638.7,
+    639.3,
+    639.3,
+    640.1,
+    640.1
+   ],
+   "dem_range_m": 3.1
+  },
+  {
+   "id": 647036230,
+   "name": "Abdullah Bin Wadiah Street",
+   "name_en": null,
+   "highway": "secondary",
+   "lanes": null,
+   "oneway": false,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 105.0,
+   "geometry": [
+    [
+     39.677854,
+     24.578778
+    ],
+    [
+     39.678385,
+     24.577967
+    ]
+   ],
+   "district": "المطار",
+   "rank_hydrology": 0.9089,
+   "sink": 0.0,
+   "hand": -4.98,
+   "slope": 0.66,
+   "dem_profile": [
+    648.3,
+    648.0,
+    648.0,
+    649.4,
+    649.4,
+    648.3,
+    648.7,
+    648.7,
+    648.7
+   ],
+   "dem_range_m": 1.4
+  },
+  {
+   "id": 693794010,
+   "name": "طريق الملك عبدالله",
+   "name_en": "King Abdullah Road - 2nd Ring Road",
+   "highway": "motorway",
+   "lanes": "3",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": "15",
+   "length_m": 70.7,
+   "geometry": [
+    [
+     39.620857,
+     24.42063
+    ],
+    [
+     39.620161,
+     24.42069
+    ]
+   ],
+   "district": "الخاتم",
+   "rank_hydrology": 0.5511,
+   "sink": 0.0,
+   "hand": 0.45,
+   "slope": 0.83,
+   "dem_profile": [
+    626.8,
+    626.8,
+    625.4,
+    626.3,
+    626.3,
+    626.3
+   ],
+   "dem_range_m": 1.4
+  },
+  {
+   "id": 693794013,
+   "name": "طريق الملك عبدالله",
+   "name_en": "King Abdullah Road - 2nd Ring Road",
+   "highway": "motorway",
+   "lanes": "3",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": "15",
+   "length_m": 75.8,
+   "geometry": [
+    [
+     39.620175,
+     24.420557
+    ],
+    [
+     39.620921,
+     24.420497
+    ]
+   ],
+   "district": "الخاتم",
+   "rank_hydrology": 0.3391,
+   "sink": 0.0,
+   "hand": 1.48,
+   "slope": 1.58,
+   "dem_profile": [
+    626.3,
+    626.3,
+    625.4,
+    625.4,
+    626.8,
+    626.8,
+    626.8
+   ],
+   "dem_range_m": 1.4
+  },
+  {
+   "id": 693973312,
+   "name": "طريق الملك عبد العزيز",
+   "name_en": "King Abdul Aziz Road",
+   "highway": "primary",
+   "lanes": "2",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 283.3,
+   "geometry": [
+    [
+     39.637987,
+     24.470165
+    ],
+    [
+     39.637322,
+     24.470112
+    ],
+    [
+     39.635197,
+     24.469955
+    ]
+   ],
+   "district": "العريض",
+   "rank_hydrology": 0.855,
+   "sink": 0.0,
+   "hand": 4.09,
+   "slope": 0.18,
+   "dem_profile": [
+    619.0,
+    620.0,
+    620.0,
+    619.2,
+    619.2,
+    620.7,
+    620.7,
+    621.0,
+    617.5,
+    617.5,
+    620.4,
+    620.4,
+    617.1,
+    617.1,
+    619.4,
+    619.4,
+    618.3,
+    618.3,
+    617.6,
+    617.6
+   ],
+   "dem_range_m": 3.9
+  },
+  {
+   "id": 754106352,
+   "name": null,
+   "name_en": null,
+   "highway": "unclassified",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 22.7,
+   "geometry": [
+    [
+     39.605886,
+     24.471249
+    ],
+    [
+     39.605958,
+     24.471146
+    ],
+    [
+     39.60603,
+     24.471098
+    ]
+   ],
+   "district": "المناخة",
+   "rank_hydrology": 0.4254,
+   "sink": 0.0,
+   "hand": -1.64,
+   "slope": 1.07,
+   "dem_profile": [
+    606.7,
+    606.7,
+    610.5
+   ],
+   "dem_range_m": 3.7
+  },
+  {
+   "id": 1067483389,
+   "name": null,
+   "name_en": null,
+   "highway": "residential",
+   "lanes": null,
+   "oneway": false,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 77.8,
+   "geometry": [
+    [
+     39.702853,
+     24.449014
+    ],
+    [
+     39.703575,
+     24.449256
+    ]
+   ],
+   "district": "الهدراء",
+   "rank_hydrology": 0.481,
+   "sink": 0.0,
+   "hand": -10.7,
+   "slope": 2.14,
+   "dem_profile": [
+    669.5,
+    668.8,
+    668.8,
+    668.4,
+    668.4,
+    668.4,
+    668.4
+   ],
+   "dem_range_m": 1.2
+  },
+  {
+   "id": 1197150443,
+   "name": "طريق الملك عبدالله",
+   "name_en": "King Abdullah Road - 2nd Ring Road",
+   "highway": "motorway",
+   "lanes": "3",
+   "oneway": true,
+   "layer": -1,
+   "roofed": false,
+   "cutting": true,
+   "ref": "15",
+   "length_m": 270.7,
+   "geometry": [
+    [
+     39.660758,
+     24.472937
+    ],
+    [
+     39.661332,
+     24.472195
+    ],
+    [
+     39.662212,
+     24.470896
+    ]
+   ],
+   "district": "الخالدية",
+   "rank_hydrology": 0.7699,
+   "sink": 0.0,
+   "hand": 3.87,
+   "slope": 0.16,
+   "dem_profile": [
+    618.2,
+    621.5,
+    621.5,
+    617.0,
+    617.0,
+    617.0,
+    618.6,
+    618.6,
+    619.8,
+    619.8,
+    618.5,
+    619.8,
+    619.8,
+    618.3,
+    618.3,
+    624.8,
+    624.8,
+    622.5,
+    619.5,
+    619.5
+   ],
+   "dem_range_m": 7.8
+  },
+  {
+   "id": 1197150444,
+   "name": "طريق الملك عبدالله",
+   "name_en": "King Abdullah Road - 2nd Ring Road",
+   "highway": "motorway",
+   "lanes": "3",
+   "oneway": true,
+   "layer": -1,
+   "roofed": false,
+   "cutting": true,
+   "ref": "15",
+   "length_m": 271.6,
+   "geometry": [
+    [
+     39.662373,
+     24.470987
+    ],
+    [
+     39.661975,
+     24.471594
+    ],
+    [
+     39.661529,
+     24.472221
+    ],
+    [
+     39.660906,
+     24.473032
+    ]
+   ],
+   "district": "الخالدية",
+   "rank_hydrology": 0.2568,
+   "sink": 0.0,
+   "hand": -0.61,
+   "slope": 1.85,
+   "dem_profile": [
+    625.8,
+    622.5,
+    622.5,
+    621.9,
+    618.3,
+    619.0,
+    619.0,
+    619.0,
+    618.5,
+    618.5,
+    621.2,
+    618.6,
+    618.6,
+    618.0,
+    618.0,
+    621.4,
+    621.4,
+    621.4,
+    618.2,
+    618.2
+   ],
+   "dem_range_m": 7.8
+  },
+  {
+   "id": 1419939066,
+   "name": "Prince Abdul Majeed Ibn Abdul Aziz Road",
+   "name_en": null,
+   "highway": "primary",
+   "lanes": null,
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 143.6,
+   "geometry": [
+    [
+     39.640528,
+     24.459316
+    ],
+    [
+     39.641146,
+     24.458154
+    ]
+   ],
+   "district": "الإسكان",
+   "rank_hydrology": 0.2344,
+   "sink": 0.0,
+   "hand": 5.58,
+   "slope": 2.04,
+   "dem_profile": [
+    627.6,
+    622.3,
+    622.3,
+    625.2,
+    625.2,
+    620.2,
+    620.2,
+    624.4,
+    624.4,
+    624.4,
+    620.9
+   ],
+   "dem_range_m": 7.4
+  },
+  {
+   "id": 1472735789,
+   "name": "Khalid Bin Al Waleed Road",
+   "name_en": null,
+   "highway": "trunk",
+   "lanes": "3",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 130.4,
+   "geometry": [
+    [
+     39.576502,
+     24.48611
+    ],
+    [
+     39.575415,
+     24.486739
+    ]
+   ],
+   "district": "بئر عثمان",
+   "rank_hydrology": 0.7232,
+   "sink": 0.0,
+   "hand": 10.99,
+   "slope": 0.08,
+   "dem_profile": [
+    604.2,
+    604.2,
+    604.2,
+    605.2,
+    605.2,
+    604.3,
+    602.9,
+    604.3,
+    604.3,
+    603.5
+   ],
+   "dem_range_m": 2.3
+  },
+  {
+   "id": 1472735790,
+   "name": "Khalid Bin Al Waleed Road",
+   "name_en": null,
+   "highway": "trunk",
+   "lanes": "3",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 130.8,
+   "geometry": [
+    [
+     39.575341,
+     24.486631
+    ],
+    [
+     39.576435,
+     24.486005
+    ]
+   ],
+   "district": "بئر عثمان",
+   "rank_hydrology": 0.7636,
+   "sink": 0.0,
+   "hand": 11.03,
+   "slope": 0.08,
+   "dem_profile": [
+    603.5,
+    604.3,
+    604.5,
+    604.3,
+    604.3,
+    604.3,
+    604.3,
+    604.3,
+    604.2,
+    604.2
+   ],
+   "dem_range_m": 1.0
+  },
+  {
+   "id": 1473783623,
+   "name": "Ali Bin Abi Talib (Awali Nazil)",
+   "name_en": "Ali Ibn Talib Road",
+   "highway": "secondary",
+   "lanes": "2",
+   "oneway": true,
+   "layer": -1,
+   "roofed": true,
+   "cutting": false,
+   "ref": null,
+   "length_m": 250.5,
+   "geometry": [
+    [
+     39.619487,
+     24.462371
+    ],
+    [
+     39.619167,
+     24.462793
+    ],
+    [
+     39.61892,
+     24.463027
+    ],
+    [
+     39.618716,
+     24.463186
+    ],
+    [
+     39.618389,
+     24.463376
+    ],
+    [
+     39.618003,
+     24.463396
+    ],
+    [
+     39.617499,
+     24.463318
+    ]
+   ],
+   "district": "بني خدرة",
+   "rank_hydrology": 0.7171,
+   "sink": 0.0,
+   "hand": -1.62,
+   "slope": 0.74,
+   "dem_profile": [
+    606.6,
+    606.6,
+    606.6,
+    606.5,
+    606.5,
+    606.5,
+    606.2,
+    606.2,
+    613.6,
+    611.9,
+    612.3,
+    612.3,
+    609.3,
+    609.3,
+    605.2,
+    605.2,
+    604.0,
+    604.0
+   ],
+   "dem_range_m": 9.6
+  }
+ ],
+ "structures": [
+  {
+   "name": "Manakah Tunnel",
+   "district": "المناخة",
+   "ways": 3,
+   "roofed": 3,
+   "cutting": 0,
+   "max_length_m": 738.6,
+   "highway": "primary",
+   "way_ids": [
+    65540930,
+    65542684,
+    754106352
+   ]
+  },
+  {
+   "name": "طريق الملك عبد العزيز",
+   "district": "بني ظفر",
+   "ways": 4,
+   "roofed": 4,
+   "cutting": 0,
+   "max_length_m": 283.3,
+   "highway": "primary",
+   "way_ids": [
+    352792622,
+    352792623,
+    352792626,
+    693973312
+   ]
+  },
+  {
+   "name": "طريق الملك عبدالله",
+   "district": "الخالدية",
+   "ways": 2,
+   "roofed": 0,
+   "cutting": 2,
+   "max_length_m": 271.6,
+   "highway": "motorway",
+   "way_ids": [
+    1197150443,
+    1197150444
+   ]
+  },
+  {
+   "name": "Ali Bin Abi Talib (Awali Nazil)",
+   "district": "بني خدرة",
+   "ways": 1,
+   "roofed": 1,
+   "cutting": 0,
+   "max_length_m": 250.5,
+   "highway": "secondary",
+   "way_ids": [
+    1473783623
+   ]
+  },
+  {
+   "name": "طريق مكة - المدينة / طريق الهجرة",
+   "district": "قباء",
+   "ways": 2,
+   "roofed": 0,
+   "cutting": 2,
+   "max_length_m": 225.5,
+   "highway": "motorway",
+   "way_ids": [
+    54736857,
+    54736862
+   ]
+  },
+  {
+   "name": "الدائري الأول - طريق الملك فيصل",
+   "district": "بضاعة",
+   "ways": 2,
+   "roofed": 2,
+   "cutting": 0,
+   "max_length_m": 162.0,
+   "highway": "trunk",
+   "way_ids": [
+    566312722,
+    566312729
+   ]
+  },
+  {
+   "name": "طريق مكة - المدينة / طريق الهجرة",
+   "district": "القصواء",
+   "ways": 2,
+   "roofed": 2,
+   "cutting": 0,
+   "max_length_m": 154.9,
+   "highway": "motorway",
+   "way_ids": [
+    256323655,
+    630542558
+   ]
+  },
+  {
+   "name": "طريق مكة المكرمة المدينة المنورة(طريق الهجرة)",
+   "district": "قباء",
+   "ways": 1,
+   "roofed": 0,
+   "cutting": 0,
+   "max_length_m": 147.7,
+   "highway": "motorway",
+   "way_ids": [
+    256322761
+   ]
+  },
+  {
+   "name": "Prince Abdul Majeed Ibn Abdul Aziz Road",
+   "district": "الإسكان",
+   "ways": 1,
+   "roofed": 1,
+   "cutting": 0,
+   "max_length_m": 143.6,
+   "highway": "primary",
+   "way_ids": [
+    1419939066
+   ]
+  },
+  {
+   "name": "Khalid Bin Al Waleed Road",
+   "district": "بئر عثمان",
+   "ways": 2,
+   "roofed": 2,
+   "cutting": 0,
+   "max_length_m": 130.8,
+   "highway": "trunk",
+   "way_ids": [
+    1472735789,
+    1472735790
+   ]
+  },
+  {
+   "name": "Abdullah Bin Wadiah Street",
+   "district": "المطار",
+   "ways": 1,
+   "roofed": 1,
+   "cutting": 0,
+   "max_length_m": 105.0,
+   "highway": "secondary",
+   "way_ids": [
+    647036230
+   ]
+  },
+  {
+   "name": "الامير عبدالمجيد بن عبدالعزيز",
+   "district": "الراية",
+   "ways": 2,
+   "roofed": 2,
+   "cutting": 0,
+   "max_length_m": 100.6,
+   "highway": "primary",
+   "way_ids": [
+    135481789,
+    630518989
+   ]
+  },
+  {
+   "name": "طريق سلطانة",
+   "district": "بضاعة",
+   "ways": 2,
+   "roofed": 2,
+   "cutting": 0,
+   "max_length_m": 88.9,
+   "highway": "primary",
+   "way_ids": [
+    65543166,
+    65543220
+   ]
+  },
+  {
+   "name": "طريق الملك عبدالله",
+   "district": "بئر عثمان",
+   "ways": 2,
+   "roofed": 2,
+   "cutting": 0,
+   "max_length_m": 81.1,
+   "highway": "motorway",
+   "way_ids": [
+    625949962,
+    625949964
+   ]
+  },
+  {
+   "name": null,
+   "district": "الهدراء",
+   "ways": 1,
+   "roofed": 1,
+   "cutting": 0,
+   "max_length_m": 77.8,
+   "highway": "residential",
+   "way_ids": [
+    1067483389
+   ]
+  },
+  {
+   "name": "طريق الملك عبدالله",
+   "district": "الخاتم",
+   "ways": 2,
+   "roofed": 2,
+   "cutting": 0,
+   "max_length_m": 75.8,
+   "highway": "motorway",
+   "way_ids": [
+    693794010,
+    693794013
+   ]
+  },
+  {
+   "name": "طريق الملك عبدالله",
+   "district": "مسجد الدرع",
+   "ways": 2,
+   "roofed": 2,
+   "cutting": 0,
+   "max_length_m": 72.7,
+   "highway": "motorway",
+   "way_ids": [
+    625949954,
+    625949957
+   ]
+  },
+  {
+   "name": "طريق الملك عبدالله",
+   "district": "مسجد الدرع",
+   "ways": 3,
+   "roofed": 3,
+   "cutting": 0,
+   "max_length_m": 67.3,
+   "highway": "motorway",
+   "way_ids": [
+    54752175,
+    135281042,
+    625948877
+   ]
+  },
+  {
+   "name": "الامير عبدالمجيد بن عبدالعزيز",
+   "district": "مسجد الدرع",
+   "ways": 6,
+   "roofed": 6,
+   "cutting": 0,
+   "max_length_m": 43.2,
+   "highway": "primary",
+   "way_ids": [
+    135481800,
+    630513952,
+    630513954,
+    630517672,
+    630517675,
+    630517677
+   ]
+  },
+  {
+   "name": "الامير عبدالمجيد بن عبدالعزيز",
+   "district": "مسجد الدرع",
+   "ways": 6,
+   "roofed": 6,
+   "cutting": 0,
+   "max_length_m": 19.6,
+   "highway": "primary",
+   "way_ids": [
+    135481805,
+    135481807,
+    630517679,
+    630517681,
+    630517682,
+    630517684
+   ]
+  }
+ ],
+ "cluster_m": 150.0,
+ "bbox": [
+  39.5,
+  24.36,
+  39.72,
+  24.58
+ ]
+}

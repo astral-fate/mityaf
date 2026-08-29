@@ -2,48 +2,85 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { fmt, loadDistricts, loadGreen, loadHealth, loadMeta, loadRain, loadSegments } from '@/lib/data';
+import {
+  fmt, loadIncidents, loadMeta, loadPondingDistricts, loadPondingShortlist,
+  loadRain, loadSegments,
+} from '@/lib/data';
+import { MECHANISMS, MECHANISM_ORDER } from '@/lib/mechanisms';
 
 /**
  * Overview — the page that answers "what should I care about today".
  *
  * Deliberately not a second map and not another table. It states the rain
  * condition, which decides how everything else on the platform is read, and
- * then points at the view that answers each question rather than trying to
- * answer all of them here.
+ * then points at the view that answers each question.
+ *
+ * It used to lead with green-asset health, which is a different module of a
+ * different product: the first thing a visitor saw was «696 أصل أخضر», and
+ * nothing about ponding. What belongs here is the shortlist, the three
+ * mechanisms, the districts that carry them and the dated record — the things
+ * this platform is actually for. Green health is still reachable from the
+ * sidebar; it is simply no longer the headline.
  */
 export default function Overview() {
-  const [d, setD] = useState({ meta: null, rain: null, districts: [], green: [], health: [], seg: 0 });
+  const [d, setD] = useState({
+    meta: null, rain: null, districts: [], shortlist: null, incidents: [],
+    seg: 0, bands: {},
+  });
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    Promise.all([loadMeta(), loadRain(), loadDistricts(), loadGreen(), loadHealth(), loadSegments()])
-      .then(([meta, rain, dist, green, health, seg]) => {
-        setD({
-          meta,
-          rain,
-          districts: (dist?.features ?? []).map((f) => f.properties),
-          green: (green?.features ?? []).map((f) => f.properties).filter((p) => p.t === 'green'),
-          health: health?.items ?? [],
-          seg: seg?.features?.length ?? 0,
-        });
-        setLoaded(true);
+    Promise.all([
+      loadMeta(), loadRain(), loadPondingDistricts(), loadPondingShortlist(),
+      loadIncidents(), loadSegments(),
+    ]).then(([meta, rain, dist, shortlist, inc, seg]) => {
+      const feats = seg?.features ?? [];
+      const bands = {};
+      for (const f of feats) {
+        const b = f.properties?.b ?? 'insufficient_data';
+        bands[b] = (bands[b] ?? 0) + 1;
+      }
+      setD({
+        meta,
+        rain,
+        districts: (dist?.features ?? []).map((f) => f.properties),
+        shortlist,
+        incidents: inc?.items ?? [],
+        seg: feats.length,
+        bands,
       });
+      setLoaded(true);
+    });
   }, []);
 
   const rain72 = useMemo(
-    () => (d.rain?.recent ?? []).slice(-3).reduce((a, x) => a + (x.precipitationSumMm ?? 0), 0),
+    () => (d.rain?.recent ?? []).slice(-3)
+      .reduce((a, x) => a + (x.precipitationSumMm ?? 0), 0),
     [d.rain],
   );
   const wet = rain72 >= 1;
 
-  const health = useMemo(() => {
-    const t = {};
-    for (const h of d.health) t[h.status] = (t[h.status] ?? 0) + 1;
-    return t;
-  }, [d.health]);
-  const assessed = d.health.length;
-  const needsAttention = (health.dead ?? 0) + (health.declining ?? 0) + (health.water_stress ?? 0);
+  const byMech = d.shortlist?.byMechanism ?? {};
+  const shortlistN = d.shortlist?.count ?? 0;
+
+  // Districts ordered by how much work they carry, not by name.
+  const topDistricts = useMemo(
+    () => [...d.districts]
+      .filter((x) => x.shortlistCount > 0)
+      .sort((a, b) => b.shortlistCount - a.shortlistCount)
+      .slice(0, 8),
+    [d.districts],
+  );
+
+  const corroborated = d.incidents.filter((i) => i.corroborated).length;
+  const recent = useMemo(
+    () => [...d.incidents]
+      .sort((a, b) => (String(a.date) < String(b.date) ? 1 : -1))
+      .slice(0, 6),
+    [d.incidents],
+  );
+
+  const critical = (d.bands.critical ?? 0) + (d.bands.high ?? 0);
 
   return (
     <main className="pg">
@@ -68,64 +105,144 @@ export default function Overview() {
           </div>
           <p>
             {wet
-              ? 'الماء الظاهر على الأسفلت الآن يُقرأ ضعف تصريف، لا هدر ريّ. المقاطع التي يبقى ماؤها بعد ٤٨ ساعة هي المرشّحة للفحص.'
-              : 'أي ماء على حزام التماس الآن لا يُفسَّر بالمطر — يُقرأ ريّاً مفرطاً أو تسرّباً. هذه أفضل نافذة لرصد الهدر.'}
+              ? 'الماء الظاهر على الأسفلت الآن يُقرأ ضعف تصريف. المقاطع التي يبقى ماؤها بعد ٤٨ ساعة هي المرشّحة للفحص، وترتيبها جاهز قبل نزول القطرة.'
+              : 'لا مطر الآن — وهذه أفضل نافذة للعمل الهندسي: الترتيب محسوب من شكل الأرض لا من البلاغات، فهو جاهز قبل الموسم لا بعده.'}
           </p>
         </div>
 
         <div className="ov-grid">
-          <Tile href="/dashboard/districts" k="حيّاً" v={loaded ? fmt(d.districts.length) : '—'}
-                s="مغطّاة بالكامل" />
-          <Tile href="/dashboard/segments" k="مقطع شارع" v={loaded ? fmt(d.seg) : '—'}
-                s={`${fmt(d.meta?.networkKm ?? 5280)} كم من الشبكة`} c="var(--lp-water)" />
-          <Tile href="/dashboard/green" k="أصل أخضر" v={loaded ? fmt(d.green.length) : '—'}
-                s="حدائق ومسطّحات" c="var(--lp-signal)" />
-          <Tile href="/dashboard/rain" k="حدث مطري" v={loaded ? fmt(d.rain?.events?.length) : '—'}
-                s="منذ ٢٠١٥ — أساس التحقّق" c="var(--sev-1)" />
+          <Tile href="/dashboard/segments" k="مقطع شارع مُقيَّم"
+                v={loaded ? fmt(d.seg) : '—'}
+                s={`${fmt(d.meta?.networkKm ?? 5280)} كم من الشبكة`}
+                c="var(--lp-water)" />
+          <Tile href="/dashboard/segments?band=critical" k="مقطعاً مرشّحاً للفحص"
+                v={loaded ? fmt(shortlistN) : '—'}
+                s={loaded ? `${((shortlistN / (d.seg || 1)) * 100).toFixed(1)}% من الشبكة` : '—'}
+                c="var(--sev-2)" />
+          <Tile href="/dashboard/districts" k="حيّاً مغطّى"
+                v={loaded ? fmt(d.districts.length) : '—'}
+                s={loaded ? `${fmt(topDistricts.length ? d.districts.filter((x) => x.shortlistCount > 0).length : 0)} منها عليه عمل` : '—'} />
+          <Tile href="/dashboard/cases" k="واقعة مؤرَّخة"
+                v={loaded ? fmt(d.incidents.length) : '—'}
+                s={loaded ? `${fmt(corroborated)} مؤكَّدة بمصدرين` : '—'}
+                c="var(--lp-signal)" />
         </div>
 
+        {/* ── the three mechanisms: what kind of work each shortlist item is ── */}
         <section className="card2">
           <div className="card2-h">
-            <h2>صحة المسطّحات الخضراء</h2>
-            <Link href="/dashboard/green" className="dt-go">عرض الكل ←</Link>
+            <h2>آليّات تجمّع المياه</h2>
+            <Link href="/dashboard/map" className="dt-go">على الخريطة ←</Link>
           </div>
-          {assessed ? (
-            <div className="card2-b">
-              <div className="hbar">
-                {[
-                  ['healthy', 'سليم', 'var(--lp-signal)'],
-                  ['water_stress', 'إجهاد ريّ', 'var(--sev-1)'],
-                  ['sparse', 'متفرّق', 'var(--sev-1)'],
-                  ['declining', 'متدهور', 'var(--sev-2)'],
-                  ['dead', 'فقد الغطاء', 'var(--sev-3)'],
-                  ['bare', 'أرض غير مزروعة', '#66739a'],
-                  ['not_assessable', 'خارج نطاق التقييم', '#3d4766'],
-                  ['insufficient_data', 'رصد غير كافٍ', 'var(--lp-fg-3)'],
-                ].filter(([k]) => health[k]).map(([k, label, c]) => (
-                  <span key={k} className="hseg" style={{ flex: health[k], background: c }}
-                        title={`${label}: ${health[k]}`} />
+          <div className="card2-b">
+            {shortlistN ? (
+              <>
+                <div className="hbar">
+                  {MECHANISM_ORDER.filter((k) => byMech[k]).map((k) => (
+                    <span key={k} className="hseg"
+                          style={{ flex: byMech[k], background: MECHANISMS[k].color }}
+                          title={`${MECHANISMS[k].ar}: ${byMech[k]}`} />
+                  ))}
+                </div>
+                <div className="mech-legend">
+                  {MECHANISM_ORDER.filter((k) => byMech[k]).map((k) => (
+                    <div key={k} className="mech-item">
+                      <i style={{ background: MECHANISMS[k].color }} />
+                      <div>
+                        <b className="num">{fmt(byMech[k])}</b>
+                        <span>{MECHANISMS[k].ar}</span>
+                        <em>{MECHANISMS[k].actionAr}</em>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="card2-note">
+                  لكل آليّة علاجٌ مختلف وميزانية مختلفة — والخلط بينها يصرف الميزانية
+                  على الحلّ الخطأ. والباقي من الشبكة له رتبة بلا تصنيف: لا تنطبق
+                  عليه أيٌّ من القواعد الثلاث.
+                </p>
+              </>
+            ) : (
+              <p className="card2-note">جارٍ التحميل…</p>
+            )}
+          </div>
+        </section>
+
+        {/* ── where the work is ── */}
+        <section className="card2">
+          <div className="card2-h">
+            <h2>الأحياء الأولى بالفحص</h2>
+            <Link href="/dashboard/districts" className="dt-go">كل الأحياء ←</Link>
+          </div>
+          <div className="card2-b">
+            {topDistricts.length ? (
+              <>
+                {topDistricts.map((x) => (
+                  <Link key={x.id} href={`/dashboard/segments?district=${encodeURIComponent(x.name)}`}
+                        className="dist-row">
+                    <span className="dr-name">{x.name}</span>
+                    <span className="dr-bar">
+                      <i style={{
+                        width: `${(x.shortlistCount / topDistricts[0].shortlistCount) * 100}%`,
+                      }} />
+                    </span>
+                    <b className="num">{fmt(x.shortlistCount)}</b>
+                    {x.incidentCount ? (
+                      <em className="dr-inc num" title="وقائع مؤرَّخة في هذا الحي">
+                        {x.incidentCount} واقعة
+                      </em>
+                    ) : <em className="dr-inc muted">—</em>}
+                  </Link>
                 ))}
-              </div>
-              <p className="card2-note">
-                <span className="num">{fmt(needsAttention)}</span> أصلاً يحتاج تدخّلاً من أصل{' '}
-                <span className="num">{fmt(assessed)}</span> مُقيَّم.
-              </p>
-            </div>
-          ) : (
-            <div className="card2-b">
-              <p className="card2-note">
-                لم يُشغَّل تقييم الصحة بعد. يعتمد على سلسلة NDVI و NDMI الزمنية التي يبنيها
-                <code> backfill-s2</code> ثم <code> build-health</code>. حتى ذلك الحين لا تُعرض
-                أي حالة — وأصل لم يُقيَّم ليس أصلاً سليماً.
-              </p>
-            </div>
-          )}
+                <p className="card2-note">
+                  الترتيب بعدد المقاطع المرشّحة للفحص. عمود الوقائع يبيّن أين يوجد
+                  سجلٌّ مؤرَّخ فعلاً — وغيابه ليس غياب غرق، بل غياب بلاغ.
+                </p>
+              </>
+            ) : (
+              <p className="card2-note">جارٍ التحميل…</p>
+            )}
+          </div>
+        </section>
+
+        {/* ── the dated record ── */}
+        <section className="card2">
+          <div className="card2-h">
+            <h2>آخر الوقائع المؤرَّخة</h2>
+            <Link href="/dashboard/cases" className="dt-go">كل الوقائع ←</Link>
+          </div>
+          <div className="card2-b">
+            {recent.length ? (
+              <>
+                {recent.map((i, n) => (
+                  <div className="kv" key={`${i.date}-${n}`}>
+                    <span>
+                      <b className="num" dir="ltr">{String(i.date).slice(0, 10)}</b>
+                      {' · '}{i.district && i.district !== '—' ? i.district : 'حي غير محدَّد'}
+                    </span>
+                    <b>
+                      {i.place}
+                      {i.corroborated ? <em className="corr"> ✓</em> : null}
+                    </b>
+                  </div>
+                ))}
+                <p className="card2-note">
+                  <span className="num">{fmt(corroborated)}</span> من{' '}
+                  <span className="num">{fmt(d.incidents.length)}</span> واقعة مؤكَّدة
+                  بمصدرين مستقلّين. هذه هي كل الحقيقة الأرضية المتاحة —
+                  والنظام لم يُدرَّب عليها.
+                </p>
+              </>
+            ) : (
+              <p className="card2-note">جارٍ التحميل…</p>
+            )}
+          </div>
         </section>
 
         <p className="dnote">
           دورة إعادة الزيارة <b>أيام</b> والسيل الومضي <b>ساعات</b> — فالقمر ليس نظام إنذار
           لحظي. وظيفته خريطة القابلية والتحقّق بعد الحدث؛ الإنذار اللحظي من تنبّؤ الطقس
-          مضروباً في تلك الخريطة.
+          مضروباً في تلك الخريطة. و{fmt(critical)} مقطعاً في النطاقين الحرج والمرتفع.
         </p>
       </div>
     </main>

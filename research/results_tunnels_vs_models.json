@@ -1,0 +1,90 @@
+{
+ "n_segments": 42,
+ "n_ways": 47,
+ "per_feature_pct": {
+  "slope": 13.2,
+  "twi": 72.0,
+  "sink": 48.5,
+  "hand": 14.4,
+  "logacc": 44.1,
+  "relelev": 34.5,
+  "road_density": 83.9,
+  "major_frac": 86.6,
+  "load_per_road": 29.1
+ },
+ "dem_median": 39.3,
+ "osm_median": 83.9,
+ "hydrology_pct": null,
+ "models": [
+  {
+   "model": "always_negative",
+   "pct": null,
+   "note": "constant output"
+  },
+  {
+   "model": "catboost",
+   "pct": 61.6,
+   "note": null
+  },
+  {
+   "model": "decision_tree",
+   "pct": 51.9,
+   "note": null
+  },
+  {
+   "model": "extra_trees",
+   "pct": 56.2,
+   "note": null
+  },
+  {
+   "model": "hist_gb",
+   "pct": 46.6,
+   "note": null
+  },
+  {
+   "model": "knn",
+   "pct": 42.1,
+   "note": null
+  },
+  {
+   "model": "lightgbm",
+   "pct": 50.2,
+   "note": null
+  },
+  {
+   "model": "logistic_l1",
+   "pct": 79.5,
+   "note": null
+  },
+  {
+   "model": "logistic_l2",
+   "pct": 79.4,
+   "note": null
+  },
+  {
+   "model": "mlp",
+   "pct": 45.1,
+   "note": null
+  },
+  {
+   "model": "naive_bayes",
+   "pct": 50.4,
+   "note": null
+  },
+  {
+   "model": "random_forest",
+   "pct": 53.5,
+   "note": null
+  },
+  {
+   "model": "svm_rbf",
+   "pct": null,
+   "note": "constant output"
+  },
+  {
+   "model": "xgboost",
+   "pct": 42.7,
+   "note": null
+  }
+ ]
+}

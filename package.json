@@ -20,8 +20,9 @@
     "pipeline:units": "npm run pipeline -- build-units",
     "pipeline:weather": "npm run pipeline -- backfill-weather",
     "pipeline:s2": "npm run pipeline -- backfill-s2",
-    "pipeline:export": "npm run pipeline -- export-static",
-    "pipeline:all": "npm run pipeline -- all"
+    "pipeline:export": "npm run pipeline -- export-static && npm run pipeline:labels",
+    "pipeline:all": "npm run pipeline -- all && npm run pipeline:labels",
+    "pipeline:labels": "node scripts/derive-labels.mjs"
   },
   "dependencies": {
     "geotiff": "^3.0.5",

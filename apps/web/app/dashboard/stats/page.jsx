@@ -37,6 +37,12 @@ export default function Stats() {
       .sort((a, b) => (sort === 'name' ? String(a.name).localeCompare(b.name, 'ar') : b[sort] - a[sort]));
   }, [districts, filters.district, sort]);
 
+  const anchor = useMemo(
+    () => (rain?.events ?? []).reduce(
+      (a, e) => (e.peakDate > a ? e.peakDate : a), '')?.slice(0, 10) || null,
+    [rain],
+  );
+
   const events = useMemo(
     () => (rain?.events ?? []).filter((e) => inWindow(e.peakDate, filters)),
     [rain, filters],
@@ -126,6 +132,7 @@ export default function Stats() {
           update={update}
           clear={clear}
           active={active}
+          anchor={anchor}
           extra={(
             <button type="button" className="dl-btn inline" onClick={download}
                     disabled={busy || !rows.length}>

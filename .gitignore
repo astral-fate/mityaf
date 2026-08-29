@@ -64,3 +64,13 @@ key.json
 # multi-city research caches (rebuild with research/build_city.py)
 research/cache/
 research/out/*.csv
+
+# python (research/)
+.venv/
+__pycache__/
+*.pyc
+*.joblib
+research/cache/
+
+# agent/tool scratch state — machine-local, never shared
+.omc/

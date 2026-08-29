@@ -24,8 +24,18 @@ import { kindMeta } from './asset-kind.js';
  * off it yields "Tue Sep 02": no year, unsortable, and silently wrong in every
  * consumer that compares or filters on it. Format explicitly instead.
  *
- * Built from the UTC parts rather than toISOString() so a date that arrives at
- * local midnight cannot roll back a day on a machine west of UTC.
+ * Built from the UTC parts rather than toISOString().
+ *
+ * That guard is only sound for a value that is ALREADY UTC midnight. node-pg
+ * hands back a DATE column as a JS Date at LOCAL midnight, so on this project's
+ * own +03 machine 2026-08-26 arrives as 2026-08-25T21:00:00Z and the UTC parts
+ * read back the 25th — the helper written to stop a date slipping a day was
+ * itself slipping it, on every date the dashboard showed.
+ *
+ * The fix is upstream: DATE columns are cast to ::text in SQL, so what arrives
+ * here is the string '2026-08-26' and no timezone is ever applied. This
+ * function now only normalises the shape, and is correct because its input is
+ * no longer a Date.
  */
 function isoDate(value) {
   if (value === null || value === undefined) return null;
@@ -137,7 +147,8 @@ async function exportGreen() {
 
 async function exportWasteEvents() {
   const { rows } = await query(
-    `SELECT w.*, u.name_ar AS unit_name_ar, u.district_ar
+    `SELECT w.*, w.detected_on::text AS detected_on,
+            u.name_ar AS unit_name_ar, u.district_ar
        FROM waste_events w
        LEFT JOIN units u ON u.unit_id = w.green_unit_id
       ORDER BY w.severity_score DESC NULLS LAST
@@ -152,7 +163,7 @@ async function exportWasteEvents() {
     eventId: r.event_id,
     greenUnitId: r.green_unit_id,
     ringUnitId: r.ring_unit_id,
-    detectedOn: r.detected_on,
+    detectedOn: isoDate(r.detected_on),
     severity: r.severity,
     severityScore: r.severity_score,
     zRing: r.z_ring,
@@ -260,7 +271,7 @@ async function exportDistricts() {
 async function exportGreenHealth() {
   const { rows } = await query(
     `SELECT DISTINCT ON (green_unit_id)
-            green_unit_id, assessed_on, status, ndvi_median, ndvi_max, ndmi_median, ndvi_slope_yr,
+            green_unit_id, assessed_on::text AS assessed_on, status, ndvi_median, ndvi_max, ndmi_median, ndvi_slope_yr,
             ndmi_slope_yr, ndmi_reliable, n_observations, reason_ar,
             actionable, priority, action_ar
        FROM green_health
@@ -305,7 +316,7 @@ async function exportGreenSeries() {
             ST_Y(ST_PointOnSurface(u.geom)) AS lat,
             h.status, h.ndvi_median, h.ndvi_max, h.ndmi_median,
             h.ndvi_slope_yr, h.ndmi_slope_yr, h.ndmi_reliable,
-            h.n_observations, h.reason_ar, h.assessed_on,
+            h.n_observations, h.reason_ar, h.assessed_on::text AS assessed_on,
             h.actionable, h.priority, h.action_ar
        FROM units u
        LEFT JOIN LATERAL (
@@ -316,7 +327,7 @@ async function exportGreenSeries() {
       WHERE u.unit_type = 'green' AND u.active`);
 
   const { rows: obs } = await query(
-    `SELECT o.unit_id, o.obs_date, o.ndvi, o.ndmi, o.ndwi, o.mndwi,
+    `SELECT o.unit_id, o.obs_date::text AS obs_date, o.ndvi, o.ndmi, o.ndwi, o.mndwi,
             o.rain_72h_mm, o.days_since_rain
        FROM observations o
        JOIN units u ON u.unit_id = o.unit_id
@@ -413,13 +424,22 @@ async function exportSocial() {
 
 async function exportRain() {
   const { rows: events } = await query(
-    `SELECT rain_event_id AS "rainEventId", start_date AS "startDate",
-            end_date AS "endDate", peak_date AS "peakDate",
+    `SELECT rain_event_id AS "rainEventId", start_date::text AS "startDate",
+            end_date::text AS "endDate", peak_date::text AS "peakDate",
             total_mm AS "totalMm", max_daily_mm AS "maxDailyMm"
        FROM rain_events ORDER BY peak_date DESC`,
   );
+  // precip_best_mm, not precipitation_sum_mm: the reconciled figure across
+  // Open-Meteo and NASA POWER. Reading the Open-Meteo column alone hid the
+  // 2026-08-26 rainfall that only POWER recorded — and also drops every day
+  // past the archive's 6-day clamp, which is the week anyone actually asks
+  // about. Both raw columns travel too, so the UI can show who saw what.
   const { rows: recent } = await query(
-    `SELECT date, precipitation_sum_mm AS "precipitationSumMm",
+    `SELECT date::text AS date,
+            COALESCE(precip_best_mm, precipitation_sum_mm) AS "precipitationSumMm",
+            precipitation_sum_mm AS "openMeteoMm",
+            power_precip_mm      AS "powerMm",
+            precip_disagree_mm   AS "disagreeMm",
             rain_72h_mm AS "rain72hMm", days_since_rain AS "daysSinceRain"
        FROM weather_daily ORDER BY date DESC LIMIT 120`,
   );
@@ -438,7 +458,7 @@ async function exportMeta() {
     `SELECT (SELECT count(*)::int FROM observations)          AS observations,
             (SELECT count(*)::int FROM waste_events)          AS waste_events,
             (SELECT count(*)::int FROM ponding_observations)  AS ponding,
-            (SELECT max(obs_date) FROM observations)          AS latest_obs`,
+            (SELECT max(obs_date)::text FROM observations)    AS latest_obs`,
   );
   const { rows: km } = await query(
     `SELECT round(sum(length_m)/1000)::int AS km FROM units WHERE unit_type='segment' AND active`,

@@ -73,6 +73,12 @@ export default function Reports() {
       && (cat === 'all' || p.category === cat));
   }, [data, filters, cat]);
 
+  const anchor = useMemo(
+    () => (data?.posts ?? []).reduce(
+      (a, p) => (p.createdAt > a ? p.createdAt : a), '')?.slice(0, 10) || null,
+    [data],
+  );
+
   const alerts = useMemo(() => clusterAlerts(posts), [posts]);
   const tally = useMemo(() => {
     const t = {};
@@ -153,7 +159,8 @@ export default function Reports() {
           </div>
         )}
 
-        <FilterBar filters={filters} update={update} clear={clear} active={active} />
+        <FilterBar filters={filters} update={update} clear={clear} active={active}
+                   anchor={anchor} />
 
         {alerts.length > 0 && (
           <div className="card2">
