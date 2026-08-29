@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { fmt, loadSegments, loadTopSegments } from '@/lib/data';
+import { fmt, loadSegments, loadTopSegments, loadPondingShortlist, loadPondingSegments } from '@/lib/data';
 import { BANDS } from '@/lib/bands';
+import { mechanismOf } from '@/lib/mechanisms';
 
 /**
  * One street segment, with the evidence behind its score.
@@ -31,6 +32,14 @@ const TERRAIN = [
   ['sink', 'عمق المنخفض المغلق', 'م', 'المنخفض المغلق يحتجز الماء ولا يصرّفه'],
   ['slope', 'الانحدار', '٪', 'الانحدار المنخفض يبطّئ التصريف السطحي'],
 ];
+
+const TERRAIN_AR = {
+  sink: 'عمق المنخفض',
+  slope: 'الميل',
+  hand: 'الارتفاع فوق المجرى',
+  twi: 'مؤشّر الرطوبة',
+  logacc: 'التجمّع المائي',
+};
 
 function SegmentMap({ geometry, centroid, color }) {
   const box = useRef(null);
@@ -71,6 +80,7 @@ export default function SegmentDetail() {
   const [feat, setFeat] = useState(null);
   const [detail, setDetail] = useState(null);
   const [state, setState] = useState('loading');
+  const [pondingSeg, setPondingSeg] = useState(null);
 
   useEffect(() => {
     Promise.all([loadSegments(), loadTopSegments()]).then(([segs, top]) => {
@@ -79,6 +89,21 @@ export default function SegmentDetail() {
       setDetail((top?.items ?? []).find((x) => x.segmentUnitId === id) ?? null);
       setState(f ? 'ok' : 'missing');
     });
+  }, [id]);
+
+  // Prefer the 2,617-item shortlist; only pull the 12.9 MB full segment file
+  // when this id did not make the cut.
+  useEffect(() => {
+    let cancelled = false;
+    loadPondingShortlist().then(async (shortlist) => {
+      let found = (shortlist?.items ?? []).find((x) => x.id === id) ?? null;
+      if (!found) {
+        const all = await loadPondingSegments();
+        found = (all?.items ?? []).find((x) => x.id === id) ?? null;
+      }
+      if (!cancelled) setPondingSeg(found);
+    });
+    return () => { cancelled = true; };
   }, [id]);
 
   const drivers = useMemo(() => {
@@ -106,6 +131,8 @@ export default function SegmentDetail() {
   const p = feat.properties;
   const b = BANDS[p.b ?? 'insufficient_data'];
   const maxAbs = Math.max(1e-6, ...drivers.map((d) => Math.abs(d.c)));
+  const seg = pondingSeg;
+  const mech = mechanismOf(seg);
 
   return (
     <main className="pg">
@@ -128,6 +155,55 @@ export default function SegmentDetail() {
       </header>
 
       <div className="pg-body">
+        {seg && (
+          <>
+            {/* Why this segment is flagged. The percentile is the honest framing:
+                "steeper than 80% of Madinah" transfers; "0.8 degrees" does not. */}
+            <section className="panel">
+              <h2>الآلية</h2>
+              <p className="badge" style={{ background: mech.color }}>{mech.ar}</p>
+              <p className="hint">{mech.hint}</p>
+              <p className="action">الإجراء المقترح: {mech.actionAr}</p>
+
+              <h3>الخصائص التضاريسية</h3>
+              {['sink', 'slope', 'hand', 'twi', 'logacc'].map((k) => (
+                <div key={k} className="terrain-row">
+                  <span className="terrain-name">{TERRAIN_AR[k]}</span>
+                  <span className="terrain-value">{fmt(seg.terrain[k], 2)}</span>
+                  <span className="terrain-bar">
+                    <i style={{ width: `${Math.round((seg.pct[k] ?? 0) * 100)}%` }} />
+                  </span>
+                  <span className="terrain-pct">
+                    {Math.round((seg.pct[k] ?? 0) * 100)}٪ من مقاطع المدينة
+                  </span>
+                </div>
+              ))}
+            </section>
+
+            {/* Four methods, shown together because they disagree, and the
+                disagreement is the finding. Two rankings of equal measured skill
+                share only 8-16% of their top 5%. */}
+            <section className="panel">
+              <h2>الترتيب حسب أربع طرق</h2>
+              <table className="ranks">
+                <tbody>
+                  {[['hyd', 'الهيدرولوجيا (المعتمد)'], ['model', 'النموذج المدرَّب'],
+                    ['road', 'كثافة الطرق'], ['consensus', 'الإجماع']].map(([k, ar]) => (
+                    <tr key={k} className={k === 'hyd' ? 'primary' : ''}>
+                      <td>{ar}</td>
+                      <td>{Math.round((seg.ranks[k] ?? 0) * 100)}٪</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="hint">
+                الرقم نسبة مئوية داخل المدينة المنورة، لا احتمال غرق. ولم يُختبر أيّ منها
+                على بيانات من المدينة نفسها.
+              </p>
+            </section>
+          </>
+        )}
+
         <div className="kpi-row">
           {TERRAIN.map(([k, label, unit]) => (
             <div className="kpi" key={k}>
