@@ -1,0 +1,796 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{siunitx}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{caption}
+\usepackage{tikz}
+\usepackage[colorlinks=true,allcolors=blue!55!black]{hyperref}
+
+\sisetup{detect-weight=true,detect-family=true,group-minimum-digits=4}
+\captionsetup{font=small,labelfont=bf}
+\newcommand{\best}[1]{\textbf{#1}}
+\newcommand{\skl}{\ensuremath{S}}
+
+\title{\bfseries What Transfers Across Cities in Street-Flood\\
+Susceptibility? A Four-City Benchmark of Models,\\
+Features, and Presence-Only Corrections}
+
+\author{%
+  Fatimah Emad Eldin\\
+  \small Mityaf --- Barmajan Al Munawwarah 2026\\
+  \small \texttt{Fatimah@trouve.works}
+}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+% ══════════════════════════════════════════════════════════ ABSTRACT
+\begin{abstract}
+\noindent
+A city that floods only rarely has no flood records, and therefore cannot train
+a flood model. The standard remedy is to fit a model where records exist and transfer
+it, but the literature that would justify this is evaluated in a way that cannot
+measure whether transfer works: flood-susceptibility studies overwhelmingly
+report ROC-AUC on artificially balanced samples under random splits, a design
+that yields AUC above $0.90$ almost regardless of method. We benchmark
+\num{14} model families on \num{107152} $\SI{200}{\metre}$ street cells across
+four United States cities --- New York, Chicago, San Francisco and Dallas ---
+carrying \num{131298} geolocated citizen flood complaints, under spatial
+blocking at natural prevalence, with leave-one-city-out as the declared primary
+endpoint. Prevalence spans \num{13}-fold across the four cities
+(\SI{5.4}{\percent} to \SI{69.1}{\percent}), which makes lift incomparable, so we
+report skill, the fraction of attainable headroom captured. Three findings
+follow. First, model choice matters less than the literature's model-comparison
+focus implies: gradient boosting leads, but the best and worst non-trivial
+learners differ by only $0.099$ skill, and the ranking inverts entirely between
+two and four held-out cities --- logistic regression ranks first of \num{14} at
+$n{=}2$ and twelfth at $n{=}4$. Second, terrain is the part that fails to
+transfer. The six DEM-derived hydrological features score \emph{below random}
+across cities ($-0.0039$) while scoring $+0.1032$ within them; converting each to
+a within-city percentile rank recovers them to $+0.0689$ and improves the full
+model by \SI{7.4}{\percent}, exceeding the gain from any model substitution.
+Third, presence-only corrections cannot help a ranked product: we estimate that
+only \numrange{0.49}{0.65} of flood-prone cells are ever reported, but the
+Elkan--Noto correction is a monotonic rescaling and changes our ranking metric by
+exactly zero. We release the benchmark and argue that evaluation design, not
+architecture, is the binding constraint on deploying these models where they are
+most needed.
+\end{abstract}
+
+\noindent\textbf{Keywords:} urban pluvial flooding; flood susceptibility;
+domain transfer; spatial cross-validation; presence-only learning; 311 data
+
+% ══════════════════════════════════════════════════════════ INTRO
+\section{Introduction}
+
+\subsection{Context}
+Al Madinah receives a millimetre or more of rain on roughly \SI{2.3}{\percent} of
+days --- about eight days a year --- and days heavy enough to leave water
+standing on a road, above \SI{5}{\milli\metre}, number two to three. The
+municipality maintains \SI{5280}{\kilo\metre} of street network across
+\num{91} districts and \SI{545}{\kilo\metre\squared}. It has no flood inventory.
+Nobody surveys ponding during a storm, so there is no record of where water
+stood, and each rain event is therefore managed as though it were the first.
+
+That combination --- rare rain, real consequences, no records --- is not
+peculiar to Al Madinah. It describes most arid and semi-arid cities, and it is
+precisely the regime in which a data-driven susceptibility model is most useful
+and least trainable.
+
+\subsection{The problem}
+The obvious response is to fit a model where labels exist and carry it to the
+city that has none. Whether that works is an empirical question, and the
+published literature does not answer it, for two reasons.
+
+First, almost all flood-susceptibility studies evaluate on \emph{artificially
+balanced} samples --- an equal number of flooded and non-flooded points, a ratio
+chosen by the analyst --- under \emph{random} train/test splits. Both choices
+inflate scores: balancing removes the difficulty that class imbalance creates,
+and random splitting in geographic data places test cells adjacent to training
+cells. Reported AUC above $0.90$ is routine and carries little information about
+deployment.
+
+Second, the field almost never tests transfer at all. Spatial blocking within one
+city answers whether a model generalises across neighbourhoods, holding drainage
+design, climate and reporting culture constant --- which are exactly the
+variables that differ in a new city.
+
+\subsection{Contributions}
+\begin{enumerate}\itemsep2pt
+  \item A four-city benchmark of \num{14} model families on \num{107152} cells at
+    natural prevalence under spatial blocking, with leave-one-city-out declared
+    as the primary endpoint before running (\S\ref{sec:results}).
+  \item Evidence that cross-city rankings are unstable at small numbers of held-out
+    groups: the ranking of \num{14} models inverts between $n{=}2$ and $n{=}4$
+    cities, with the model ranked first at $n{=}2$ falling to twelfth
+    (\S\ref{sec:instability}).
+  \item An ablation showing that terrain features, the scientific core of this
+    literature, contribute \emph{negatively} to cross-city transfer while
+    contributing substantially within a city, and that a per-city percentile
+    normalisation recovers them and beats every model substitution
+    (\S\ref{sec:ablation}).
+  \item A quantification of reporting incompleteness (\numrange{0.49}{0.65} of
+    flood-prone cells reported) together with a proof-by-construction that the
+    standard presence-only correction cannot change a ranking metric
+    (\S\ref{sec:pu}).
+  \item A negative result for out-of-distribution distance as a predictor of
+    transfer quality, with the confound identified (\S\ref{sec:ood}).
+\end{enumerate}
+
+\subsection{Structure}
+\S\ref{sec:related} surveys the literature and tiers it by evaluation rigour.
+\S\ref{sec:data} describes the four cities, their label provenance and their
+exploratory statistics. \S\ref{sec:method} states features, models,
+hyperparameters, splits and metrics. \S\ref{sec:results} reports the benchmark
+and the ranking instability; \S\ref{sec:ablation} the feature ablation and the
+normalisation result; \S\ref{sec:pu} the presence-only analysis;
+\S\ref{sec:ood} the out-of-distribution analysis and the error analysis by city.
+\S\ref{sec:discussion} interprets, \S\ref{sec:limits} states limitations, and
+\S\ref{sec:conclusion} concludes.
+
+% ══════════════════════════════════════════════════════════ RELATED
+\section{Background and related work}\label{sec:related}
+
+\subsection{Why cross-study comparison fails}
+Table~\ref{tab:lit} groups prior work by \emph{evaluation rigour} rather than by
+model, because the tier --- not the algorithm --- determines whether two numbers
+are commensurable. Within a tier, scores are roughly comparable; across tiers
+they are not.
+
+\begin{table}[t]
+\centering\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\caption{Prior work grouped by evaluation rigour. \textbf{T1} balanced classes
+with a random split; \textbf{T2} one rigour control (an out-of-area test,
+principled negative sampling, or a presence-only framing); \textbf{T3} natural
+prevalence and/or spatial blocking; \textbf{T3+} adds cross-domain transfer as
+the primary endpoint. Comparing headline scores across tiers is invalid: each
+control removes a source of optimism and lowers the attainable score. Dashes
+mark values the open version of the paper does not state.}
+\label{tab:lit}
+\begin{tabular}{@{}llllll@{}}
+\toprule
+Tier & Study & Area & Pos:Neg & Split & Headline \\
+\midrule
+T1 & Vemula et al.\ 2025 & French Riviera & 1:1 & random & XGB AUC 0.985 \\
+T1 & Zhang \& Guo 2026 & Yancheng & 3/4-quantile & random & XGB AUC 0.938 \\
+T1 & Ajin et al.\ 2025 & Buz\u{a}u & balanced & random & CatBoost AUC 0.972 \\
+T1 & Bersabe \& Jun 2025 & Seoul & balanced & random & RF AUC 0.902 \\
+T1 & Dey et al.\ 2024 & New Orleans & balanced & random & RF AUC 0.85 \\
+T1 & Wang et al.\ 2023 & Dalian & --- & semi-sup. & GAT best of set \\
+\midrule
+T2 & Seleem et al.\ 2022 & Berlin & balanced & random, out-of-area & RF 0.96 / \best{0.80} \\
+T2 & Han et al.\ 2024 & Beijing & --- & --- & RF, SVM overfit \\
+T2 & Zhang et al.\ 2025 & Zijiang & FR $+$ OC-SVM & --- & \best{$+$24\,pp} from sampling \\
+T2 & Li et al.\ 2022 & Guangzhou & PU learning & --- & PU $>$ ANN \\
+T2 & Yuan et al.\ 2023 & Harris Cty & --- & by storm & RF AUC 0.860 \\
+\midrule
+T3 & Agostini et al.\ 2024 & New York & natural & by period & AUC \best{0.642} \\
+T3 & Huang et al.\ 2026 & Houston & regression & leave-location-out & $R^2$ 0.663 \\
+T3 & Agonafir et al.\ 2022 & New York & count & --- & buildings $>$ elevation \\
+\midrule
+\textbf{T3+} & \textbf{This work} & \textbf{4 US cities} & \textbf{natural} &
+  \textbf{spatial $+$ LOCO} & \textbf{skill 0.186} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three published results establish that the tier matters more than the model.
+
+\textbf{Equal AUC, different maps.} \citet{vakhshoori2018} produced
+susceptibility maps scoring \emph{identical} AUC of $0.77$ that disagreed on
+where risk lay; maps from one method differing only in random seed disagreed on
+at least \SI{29}{\percent} of pixels, and no equal-AUC pair reached
+Cohen's $\kappa > 0.61$ against each other. \citet{lobo2008} give the underlying
+reason for presence-only models: AUC depends on the extent from which
+pseudo-absences are drawn and is therefore not comparable across studies.
+
+\textbf{AUC survives where the map does not.} \citet{seleem2022} tested Berlin
+models outside the training area. Their \SI{30}{\metre} ANN retained
+AUC $0.80$ while $\kappa$ fell to $0.02$ --- agreement no better than chance.
+This is the closest published analogue to deploying in an unlabelled city.
+
+\textbf{Sampling dominates architecture.} \citet{zhang2025} changed only how
+non-flood points were selected and moved accuracy by \num{24} percentage points.
+No model substitution anywhere in this literature moves a headline score by more
+than about three.
+
+\subsection{Metric practice}
+The field reports ROC-AUC, accuracy and $\kappa$, almost always on balanced
+samples. Of the studies in Table~\ref{tab:lit} we found exactly one reporting
+average precision and none reporting lift over prevalence, despite
+\citet{saito2015} and \citet{davis2006} establishing that precision--recall is
+the informative curve under imbalance. We adopt PR-based reporting throughout.
+
+\subsection{Presence-only structure}
+A cell without a complaint is unreported, not verified dry. This is
+positive-unlabelled data, and the parallel to species-distribution modelling is
+exact \citep{phillips2009,barbetmassin2012}. \citet{li2022} apply PU learning to
+urban flood susceptibility directly. \citet{agostini2024} model under-reporting
+in the same New York feed we use, finding reporting rates higher in whiter,
+wealthier, owner-occupied tracts, and report AUC $0.642$ --- a value close to
+ours and far below the balanced-sample literature, which we read as
+corroboration that both are measuring the harder, real problem.
+
+% ══════════════════════════════════════════════════════════ DATA
+\section{Data}\label{sec:data}
+
+\subsection{Unit of analysis and label provenance}
+The unit is a $\SI{200}{\metre}\times\SI{200}{\metre}$ cell restricted to cells
+containing more than \SI{50}{\metre} of road. That restriction is
+load-bearing: sampling negatives from arbitrary cells would let a model score
+well by answering ``is there a road here?'' rather than ``does water stand
+here?''
+
+Labels are geolocated citizen complaints from municipal open-data portals,
+selected per city by a descriptor that means water standing on a
+\emph{street}. The mapping is explicit per city rather than pattern-matched,
+because portals do not agree on taxonomy: New York files the phenomenon as
+\emph{Street Flooding (SJ)}; Chicago as \emph{Water On Street Complaint}; San
+Francisco files it under \emph{Sewer Issues} and distinguishes street from
+property only in a secondary field; Dallas splits it across two municipal
+departments. Table~\ref{tab:data} reports the resulting datasets.
+
+\begin{table}[t]
+\centering\small
+\caption{The four labelled cities and the unlabelled target. Prevalence varies
+\num{13}-fold, which is the central methodological fact of this benchmark: it
+makes lift incomparable across cities (\S\ref{sec:metrics}). Al Madinah supplies
+features only and is never trained or tested on.}
+\label{tab:data}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+City & Complaints & Cells & Positive & Prevalence & Blocks \\
+\midrule
+New York       & \num{21287} & \num{25022} & \num{6860}  & \SI{27.4}{\percent} & 56 \\
+Chicago        & \num{80469} & \num{37472} & \num{13404} & \SI{35.8}{\percent} & 79 \\
+San Francisco  & \num{25774} & \num{4042}  & \num{2795}  & \SI{69.1}{\percent} & 16 \\
+Dallas         & \num{3468}  & \num{40616} & \num{2203}  & \SI{5.4}{\percent}  & 90 \\
+\midrule
+Total labelled & \num{130998} & \num{107152} & \num{25262} & \SI{23.6}{\percent} & 241 \\
+\midrule
+Al Madinah     & 0 & \num{8647} & 0 & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Exploratory observations}
+Two features of Table~\ref{tab:data} drive the analysis that follows.
+
+\textbf{Prevalence is not a property of flooding.} San Francisco is compact and
+intensely reported: \num{25774} complaints over \num{4042} road cells, so
+\SI{69.1}{\percent} of cells carry at least one. Dallas is sprawling and sparsely
+reported: \num{40616} cells and \num{3468} complaints. The observed rate
+therefore reflects reporting density and city form at least as much as physical
+susceptibility.
+
+\textbf{Reporting is spatially uneven within cities too.} New York complaints
+skew hard by borough --- Queens \num{8169}, Brooklyn \num{6744}, Staten Island
+\num{3117}, Bronx \num{1757}, Manhattan only \num{1465} --- a pattern the
+literature attributes to combined versus separate sewer design rather than to
+Manhattan being dry. This motivates \S\ref{sec:pu}.
+
+% ══════════════════════════════════════════════════════════ METHOD
+\section{System and experimental design}\label{sec:method}
+
+\subsection{Features}
+Nine numeric features, all computable from global open sources so that every one
+is available for Al Madinah unchanged. Six derive from the Copernicus DEM
+GLO-30 \citep{esa2022copdem}: \texttt{slope}; \texttt{sink}, the depth of a
+closed depression after priority-flood filling \citep{barnes2014};
+\texttt{logacc}, $\log(1+\cdot)$ of D8 flow accumulation
+\citep{ocallaghan1984}; \texttt{twi}, the topographic wetness index
+\citep{beven1979}; \texttt{hand}, height above nearest drainage
+\citep{renno2008,nobre2011}; and \texttt{relelev}, elevation minus a
+$17\times17$ moving mean. Three derive from OpenStreetMap \citep{osm}:
+\texttt{road\_density}; \texttt{major\_frac}, the arterial share of road length;
+and \texttt{load\_per\_road}, the sole engineered feature, flow accumulation
+divided by road length. There are no images and no reflectance bands: every
+feature describes \emph{shape}, which is why the set is computable in a city
+with no flood history.
+
+\subsection{Models}\label{sec:models}
+Fourteen candidates behind one construction interface, so that the evaluation
+code is identical for all. Two things are equalised, because otherwise the
+comparison measures preprocessing rather than models. \emph{Class imbalance}:
+each candidate receives the equivalent of the incumbent's
+\texttt{scale\_pos\_weight} in whatever form its library offers ---
+\texttt{scale\_pos\_weight}, \texttt{class\_weight}, or an explicit
+\texttt{sample\_weight} at fit time. \emph{Feature scaling}: SVM, MLP,
+$k$-NN and logistic regression are wrapped with a standardiser, since
+\texttt{logacc} and \texttt{road\_density} differ by orders of magnitude; trees
+are left unscaled. Boosted models use \num{350} estimators, depth \num{5},
+learning rate $0.06$ and subsample $0.85$. Candidates too costly for
+\num{107152} rows are trained on a stratified subsample, preserving prevalence,
+and the table records that they were.
+
+\subsection{Splits}
+Two protocols. \emph{Within-city}: five-fold \texttt{GroupKFold} where the group
+is a $0.05^\circ$ ($\approx\SI{5.5}{\kilo\metre}$) spatial block, so no test cell
+borders a training cell \citep{roberts2017,ploton2020}. \emph{Leave-one-city-out}
+(LOCO): train on all cities but one, test on the held-out city entire. LOCO is
+the declared primary endpoint. Within-city blocking cannot answer the question
+this paper asks, because it holds drainage design, climate and reporting culture
+constant --- the three things that differ in a new city.
+
+\subsection{Metrics}\label{sec:metrics}
+We report PR-AUC and, as the primary quantity, \emph{skill}:
+\begin{equation}
+  \skl = \frac{\mathrm{PR\text{-}AUC} - \pi}{1 - \pi},
+  \label{eq:skill}
+\end{equation}
+where $\pi$ is prevalence. Skill is $0$ for a random ranker and $1$ for a perfect
+one. It is required here because lift, $\mathrm{PR\text{-}AUC}/\pi$, is bounded
+above by $1/\pi$: at San Francisco's \SI{69.1}{\percent} the ceiling is
+$1.45\times$, at Dallas's \SI{5.4}{\percent} it is $18.4\times$. Averaging lift
+across these cities would rank models by which cities happen to have low
+prevalence. We report lift alongside for continuity with the literature, and
+accuracy only beside its trivial baseline: a classifier predicting ``no flood''
+everywhere achieves \SI{72.6}{\percent} accuracy in New York while finding
+nothing. Every figure is a mean over five random seeds with standard deviation
+reported; deterministic learners are run once and marked.
+
+% ══════════════════════════════════════════════════════════ RESULTS
+\section{Results}\label{sec:results}
+
+\subsection{Model comparison}
+Table~\ref{tab:board} gives the benchmark. Gradient boosting occupies the top
+four places; CatBoost leads at $\skl = 0.1855 \pm 0.0006$ against XGBoost's
+$0.1726$, a \SI{7.5}{\percent} relative gain far outside seed variance.
+
+\begin{table}[t]
+\centering\small
+\caption{Four-city leave-one-city-out benchmark, mean over five seeds
+($\pm$ s.d.; deterministic learners run once). Ranked on skill
+(Eq.~\ref{eq:skill}). Note the accuracy column: the trivial always-negative
+classifier scores \emph{highest} of all. Across the thirteen non-trivial
+learners, accuracy and skill are uncorrelated (Spearman $\rho = +0.047$,
+$p = 0.88$): accuracy carries essentially no information about ranking
+quality here. P@100 is the fraction of the 100 highest-ranked cells that flood.}
+\label{tab:board}
+\begin{tabular}{@{}lS[table-format=1.4]@{\,}l S[table-format=1.3] S[table-format=1.4] S[table-format=1.3] S[table-format=1.3] S[table-format=1.3]@{}}
+\toprule
+Model & \multicolumn{2}{c}{Skill (LOCO)} & {Lift} & {Skill (within)} & {ROC} & {Acc.} & {P@100} \\
+\midrule
+CatBoost            & \best{0.1855} & {\scriptsize$\pm$0.0006} & 1.310 & 0.2326 & 0.649 & 0.585 & \best{0.523} \\
+HistGradientBoosting & 0.1768 & {\scriptsize$\pm$0.0027} & 1.295 & 0.2202 & 0.645 & 0.584 & 0.523 \\
+XGBoost             & 0.1726 & {\scriptsize$\pm$0.0012} & 1.286 & 0.2198 & 0.643 & 0.587 & 0.506 \\
+LightGBM            & 0.1709 & {\scriptsize$\pm$0.0020} & 1.285 & 0.2145 & 0.642 & 0.586 & 0.511 \\
+Extra Trees         & 0.1673 & {\scriptsize$\pm$0.0004} & 1.265 & 0.1972 & 0.639 & 0.601 & 0.470 \\
+MLP                 & 0.1511 & {\scriptsize$\pm$0.0175} & 1.283 & 0.1799 & 0.638 & 0.641 & 0.457 \\
+Random Forest       & 0.1482 & {\scriptsize$\pm$0.0013} & 1.246 & 0.1854 & 0.627 & 0.621 & 0.458 \\
+SVM (RBF)           & 0.1467 & {\scriptsize$\pm$0.0038} & 1.268 & 0.1853 & 0.623 & 0.634 & 0.468 \\
+$k$-NN              & 0.1422 & & 1.238 & 0.1657 & 0.615 & 0.631 & 0.435 \\
+Decision tree       & 0.1406 & & 1.252 & 0.1785 & 0.636 & 0.568 & 0.405 \\
+Logistic (L1)       & 0.1354 & & 1.258 & 0.1794 & 0.621 & 0.561 & 0.480 \\
+Logistic (L2)       & 0.1353 & & 1.258 & 0.1793 & 0.621 & 0.561 & 0.480 \\
+Naive Bayes         & 0.0861 & & 1.176 & 0.1210 & 0.589 & 0.626 & 0.405 \\
+\midrule
+Always negative     & 0.0000 & & 1.000 & 0.0000 & 0.500 & \best{0.656} & 0.020 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two observations temper that headline. The spread between the best and worst
+non-trivial learner is $0.099$ skill, and between the best and the fifth is
+$0.018$ --- a narrow band consistent with the \numrange{0.01}{0.03} AUC
+separations typical of this literature. And the always-negative row scores the
+highest accuracy in the table while attaining P@100 of $0.020$, which is the
+clearest possible demonstration that accuracy cannot be used here.
+
+\subsection{Ranking instability at small \texorpdfstring{$n$}{n}}\label{sec:instability}
+We first ran this benchmark with two cities. Table~\ref{tab:flip} compares the
+rankings. They are not merely noisy; they are close to unrelated.
+
+\begin{table}[t]
+\centering\small
+\caption{Rank of each model on cross-city skill with two held-out cities versus
+four. Computed identically, on the same metric --- the difference is the number
+of cities alone. The model ranked first at $n{=}2$ ranks twelfth at $n{=}4$.}
+\label{tab:flip}
+\begin{tabular}{@{}lcc@{\hskip 2em}lcc@{}}
+\toprule
+Model & $n{=}2$ & $n{=}4$ & Model & $n{=}2$ & $n{=}4$ \\
+\midrule
+CatBoost      & 5  & \best{1} & Random Forest & 13 & 7  \\
+HistGB        & 6  & 2 & SVM (RBF)     & 3  & 8  \\
+XGBoost       & 9  & 3 & $k$-NN        & 12 & 9  \\
+LightGBM      & 10 & 4 & Decision tree & 8  & 10 \\
+Extra Trees   & 11 & 5 & Logistic (L1) & \best{1}  & 11 \\
+MLP           & 4  & 6 & Logistic (L2) & 2  & 12 \\
+              &    &   & Naive Bayes   & 7  & 13 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+We verified that this is not an artefact of changing metric: rankings computed
+under lift and under skill agree closely \emph{within} each city count and
+diverge \emph{across} them. Two held-out cities produce two transfer numbers, and
+their mean is not an estimate of anything stable. We therefore treat any
+cross-domain ranking computed on fewer than roughly five held-out groups as
+provisional, including our own.
+
+% ══════════════════════════════════════════════════════════ ABLATION
+\section{Ablation}\label{sec:ablation}
+
+\subsection{What each feature is worth}
+Table~\ref{tab:abl} removes one feature at a time. Gain importance and ablation
+disagree sharply, which is the expected behaviour of two quantities that answer
+different questions: importance reports what a fitted model \emph{used};
+ablation reports what is \emph{lost} without it.
+
+\begin{table}[t]
+\centering\small
+\caption{Leave-one-feature-out, CatBoost, three seeds, LOCO skill. Baseline
+(all nine) is $0.1858$. Gain importance is shown for contrast: \texttt{sink},
+\texttt{hand} and \texttt{relelev} together account for \SI{31.6}{\percent} of
+gain yet removing any of them \emph{improves} transfer.}
+\label{tab:abl}
+\begin{tabular}{@{}lS[table-format=1.4]S[table-format=+1.4]S[table-format=2.1]@{}}
+\toprule
+Removed & {Skill} & {$\Delta$} & {Gain \%} \\
+\midrule
+\texttt{major\_frac}    & 0.1488 & -0.0370 & 12.9 \\
+\texttt{road\_density}  & 0.1797 & -0.0061 & 26.0 \\
+\texttt{slope}          & 0.1850 & -0.0008 & 6.2 \\
+\texttt{load\_per\_road}& 0.1854 & -0.0004 & 10.2 \\
+\texttt{logacc}         & 0.1855 & -0.0003 & 7.1 \\
+\texttt{twi}            & 0.1856 & -0.0003 & 6.0 \\
+\texttt{sink}           & 0.1862 & +0.0004 & 11.7 \\
+\texttt{hand}           & 0.1882 & +0.0024 & 10.3 \\
+\texttt{relelev}        & 0.1886 & +0.0028 & 9.6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Terrain does not transfer}
+Splitting the features into their two natural blocks makes the pattern
+unambiguous (Table~\ref{tab:block}). The six DEM-derived hydrological features
+--- the scientific core of this literature --- score \emph{below random} across
+cities while scoring $+0.1032$ within them. The three OpenStreetMap features
+retain \SI{98}{\percent} of their within-city skill when transferred.
+
+\begin{table}[t]
+\centering\small
+\caption{Feature blocks, evaluated within-city (spatial blocking) and across
+cities (LOCO), CatBoost. Terrain carries real signal inside a city and
+\emph{negative} signal across cities; urban form transfers almost intact.}
+\label{tab:block}
+\begin{tabular}{@{}lcS[table-format=1.4]S[table-format=+1.4]@{}}
+\toprule
+Feature block & $d$ & {Within-city \skl} & {Cross-city \skl} \\
+\midrule
+All nine                      & 9 & 0.2324 & +0.1858 \\
+DEM (terrain) only            & 6 & 0.1032 & -0.0039 \\
+OSM (urban form) only         & 3 & 0.1821 & +0.1788 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Recovering terrain by per-city normalisation}
+A terrain feature is an absolute measurement whose meaning is local: two degrees
+of slope is flat in San Francisco and steep in Chicago. A decision boundary
+learned in one city is therefore not merely weaker in another, it is misplaced.
+If that is the mechanism, replacing each terrain value by its percentile rank
+\emph{within its own city} should repair it, since ``steeper than
+\SI{80}{\percent} of this city'' carries the same meaning everywhere. Crucially,
+a percentile rank requires no labels and is therefore computable for
+Al Madinah.
+
+\begin{table}[t]
+\centering\small
+\caption{Per-city percentile normalisation, CatBoost, three seeds, LOCO skill.
+Normalising the terrain block converts it from below-random to genuinely
+predictive and improves the full model by \SI{7.4}{\percent} --- a larger gain
+than any model substitution in Table~\ref{tab:board}. Normalising the urban
+features as well \emph{hurts}, consistent with road density in
+\si{\kilo\metre\per\kilo\metre\squared} already meaning the same thing in every
+city.}
+\label{tab:norm}
+\begin{tabular}{@{}lS[table-format=+1.4]@{\,}lS[table-format=+1.3]S[table-format=+1.3]S[table-format=+1.3]S[table-format=+1.3]@{}}
+\toprule
+Configuration & \multicolumn{2}{c}{Skill} & {NYC} & {Chi.} & {SF} & {Dal.} \\
+\midrule
+DEM only, raw               & -0.0039 & {\scriptsize$\pm$0.0003} & +0.004 & +0.027 & -0.058 & +0.010 \\
+DEM only, rank-normalised   & +0.0689 & {\scriptsize$\pm$0.0025} & +0.042 & +0.073 & +0.157 & +0.004 \\
+All nine, raw               & +0.1858 & {\scriptsize$\pm$0.0007} & +0.086 & +0.188 & +0.441 & +0.027 \\
+All nine, DEM normalised    & \best{+0.1995} & {\scriptsize$\pm$0.0013} & +0.115 & +0.178 & +0.483 & +0.022 \\
+All nine, all normalised    & +0.1684 & {\scriptsize$\pm$0.0014} & +0.094 & +0.169 & +0.390 & +0.021 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ══════════════════════════════════════════════════════════ PU
+\section{Presence-only analysis}\label{sec:pu}
+
+Our negatives are unverified. Following \citet{elkan2008} we estimate
+$c = P(\text{reported} \mid \text{flood-prone})$ from held-out positives under
+spatial blocking (Table~\ref{tab:pu}). Roughly half of flood-prone cells are
+never reported, which approximately doubles implied true prevalence.
+
+\begin{table}[t]
+\centering\small
+\caption{Estimated labelling propensity $c$ and implied true prevalence, three
+seeds. San Francisco's implied prevalence exceeds unity, which is impossible and
+therefore diagnostic: the \emph{selected completely at random} assumption behind
+the estimator fails there, consistent with \citet{agostini2024} finding
+reporting rates that depend on tract demographics.}
+\label{tab:pu}
+\begin{tabular}{@{}lS[table-format=1.3]@{\,}lS[table-format=1.3]S[table-format=1.3]@{}}
+\toprule
+City & \multicolumn{2}{c}{$c$} & {Observed $\pi$} & {Implied true $\pi$} \\
+\midrule
+New York       & 0.547 & {\scriptsize$\pm$0.0004} & 0.274 & 0.501 \\
+Chicago        & 0.552 & {\scriptsize$\pm$0.0001} & 0.358 & 0.648 \\
+San Francisco  & 0.649 & {\scriptsize$\pm$0.0010} & 0.691 & \best{1.065} \\
+Dallas         & 0.488 & {\scriptsize$\pm$0.0011} & 0.054 & 0.111 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The correction changes our results by exactly nothing:
+standard $0.185810$, Elkan--Noto $0.185810$, bagging-PU $0.185779$. This is not
+an empirical null but a structural one. Elkan--Noto divides every score by a
+single constant; a strictly monotonic transform cannot alter any ranking, and
+PR-AUC, skill and precision@$K$ are all ranking statistics. \emph{Any}
+presence-only correction of this form is incapable of moving these metrics.
+Its value is diagnostic: it quantifies how much of the phenomenon is invisible,
+and where the estimator itself breaks.
+
+We further tested whether a second, related label --- New York's \num{50821}
+catch-basin and manhole-overflow complaints, denoting drainage \emph{failure}
+rather than terrain ponding --- is separable with these features. It is not. A
+model fitted on ponding scores $0.3187$ on drainage against a same-target
+$0.3242$, retaining \SI{98}{\percent}; \SI{81.5}{\percent} of ponding cells are
+also drainage cells. The two phenomena are indistinguishable to this feature
+set, which is a direct argument that drainage-infrastructure data, absent here,
+is the highest-value missing input.
+
+% ══════════════════════════════════════════════════════════ OOD
+\section{Error analysis and distributional distance}\label{sec:ood}
+
+\subsection{Where the model fails}
+Per-city LOCO skill varies by an order of magnitude: San Francisco $+0.441$,
+Chicago $+0.188$, New York $+0.086$, Dallas $+0.027$. The ordering tracks
+prevalence almost exactly ($r = +0.977$, $p = 0.023$). Dallas --- sprawling,
+sparsely reported, low prevalence --- is both the hardest case and the closest
+structural analogue to Al Madinah, and this is the single most consequential
+number in the paper for the deployment it motivates.
+
+\subsection{A negative result on OOD distance}
+We hypothesised that distributional distance from the training pool would
+predict transfer degradation, and could therefore forecast performance in an
+unlabelled city. It does not. Distance correlates \emph{positively} with skill
+(Mahalanobis $r = +0.881$; PSI $r = +0.993$), meaning the most distant city
+transfers best. The relationship is confounded: prevalence predicts skill at
+$r = +0.977$ and also correlates with PSI at $r = +0.946$, and with four groups
+there are no degrees of freedom to separate them. We report the hypothesis as
+refuted rather than reframing it.
+
+What distance can still state is coverage, which is a claim about extrapolation
+rather than accuracy. Against all four cities, \SI{5.8}{\percent} of Al Madinah's
+\num{8647} cells lie beyond the training 99th percentile of Mahalanobis distance,
+and mean PSI is $0.594$ --- a major shift. Per feature, the shift is
+concentrated exactly where \S\ref{sec:ablation} showed transfer fails:
+\texttt{twi} $1.361$, \texttt{slope} $1.296$, \texttt{road\_density} $0.850$,
+against \texttt{hand} $0.053$ and \texttt{major\_frac} $0.007$, which are stable.
+The features that do not transfer are the features that shift.
+
+% ══════════════════════════════════════════════════════════ DISCUSSION
+\section{Evaluation in the target city}\label{sec:target}
+
+Every result so far is measured on US labels and argued to transfer. This
+section measures in the target city itself. It is the weakest evidence in the
+paper by an order of magnitude, and we report it in full because a transfer
+claim that is never checked against the target is not a claim at all.
+
+\subsection{Assembling ground truth where none is published}
+
+Al~Madinah has no municipal flood register. We built one from resident
+recollection with map pins, posts located on X, and archive reports from Saudi
+newspapers and the state press agency, corroborating every date against two
+independent rainfall reanalyses (ERA5 and NASA~POWER, $\ge 1$\,mm within three
+days). This yields 51 dated reports.
+
+Only a fraction carry usable geometry, and the reason is worth recording
+because it bounds what any such study can do. Seventeen reports name a date and
+nothing more (``the streets of Madinah''); four name only a district. Of the
+thirteen that name a street or landmark, four cannot be located even when
+OpenStreetMap is searched bilingually --- \emph{Sal\=ah ad-D\={\i}n al-Ayy\=ub\={\i}}
+is present only as the Latin string ``Salahedin Al Ayubi Road'', so an
+Arabic-only query returns nothing. The binding constraint is that
+\textbf{791 of 18{,}320 ways (4\%) in our Madinah extract carry any name tag at
+all}.
+
+Eleven distinct locations survive. We stratify them by coordinate provenance,
+which turns out to determine the result:
+\emph{exact} (1, from our own OSM tunnel geometry),
+\emph{precise} (3, a resident placed the pin),
+\emph{geocoded} (4, the centroid of a named road, spanning 4.3--16.6\,km),
+and \emph{approximate} (3, inferred from post text).
+
+\subsection{Protocol}
+
+The eleven segments are positives; the remaining 30{,}326 are presumed
+negatives. Models are the saved fits from Section~\ref{sec:models}, trained on
+130{,}998 US complaints and never exposed to a Saudi label. Madinah features are
+percentile-transformed against the Madinah \emph{grid} distribution rather than
+its road segments, because the models learned percentiles within a gridded city;
+scoring segments against segments changes the reference population and cost
+$0.02$ AUC in our tests.
+
+Prevalence is $0.036\%$, which disqualifies three familiar metrics. Predicting
+``no flood'' everywhere scores $99.96\%$ accuracy. With eleven positives,
+precision@100 cannot exceed $0.11$ for any ranker, and $F_1$ inherits that
+ceiling. We therefore lead with AUC, which is invariant to the label count, and
+with two statistics that are robust to a model's overall calibration: the
+\emph{lift} of the mean predicted probability on the eleven over the model's own
+city-wide median, and a sign test on how many of the eleven exceed that median.
+
+\subsection{Results}
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lrrrcr}
+\toprule
+Ranker & AUC & AP & Lift & Above median & Trustworthy \\
+\midrule
+Hydrology (untrained) & \textbf{0.685} & 0.0032 & \textbf{1.37} & 8/11 & \textbf{4/4} \\
+LightGBM              & 0.644 & 0.0007 & 1.06 & 7/11 & 2/4 \\
+CatBoost              & 0.642 & 0.0006 & 1.04 & 8/11 & 3/4 \\
+HistGradientBoosting  & 0.640 & 0.0010 & 1.04 & 8/11 & 3/4 \\
+XGBoost               & 0.635 & 0.0007 & 1.07 & 7/11 & 3/4 \\
+Extremely Rand.\ Trees& 0.573 & 0.0009 & 1.06 & 7/11 & 3/4 \\
+Random Forest         & 0.537 & 0.0005 & 1.02 & 6/11 & 1/4 \\
+Decision tree         & 0.515 & 0.0004 & 0.99 & 1/11 & 0/4 \\
+Always-negative       & 0.500 & 0.0004 & --- & 0/11 & 0/4 \\
+Logistic (L1/L2)      & 0.478 & 0.0014 & 0.96 & 5/11 & 3/4 \\
+\bottomrule
+\end{tabular}
+\caption{Inference on eleven confirmed flood locations in Al~Madinah. Lift is
+the mean predicted probability on the eleven divided by the model's own
+city-wide median. ``Above median'' counts how many of the eleven exceed that
+median (chance is 5.5/11); ``Trustworthy'' is the same restricted to the four
+\emph{exact} and \emph{precise} coordinates. Random AUC is $0.500$ and random AP
+is $0.00036$.}
+\label{tab:target}
+\end{table}
+
+Three findings, in decreasing order of confidence.
+
+\paragraph{The untrained hydrological composite wins.} A fixed formula over
+four terrain indices --- $\mathrm{pct}(\mathrm{TWI}) + \mathrm{pct}(\mathrm{sink})
+- \mathrm{pct}(\mathrm{HAND}) - \mathrm{pct}(\mathrm{slope})$, equal weights,
+nothing fitted --- reaches AUC $0.685$ and places all four trustworthy
+coordinates above its median, against $0.644$ for the best trained model. This
+is consistent with Sections~\ref{sec:ablation} and~\ref{sec:ood}: the learned
+models lean on road density, which is a proxy for \emph{reporting} in complaint
+data, and Madinah's ground truth was not assembled from complaints.
+
+\paragraph{Raw hit counts are misleading at this calibration.} Ten of eleven
+segments receive $p \ge 0.5$ from CatBoost, which sounds decisive until one
+observes that CatBoost assigns the \emph{median} Madinah street $0.734$. The
+decision tree makes the point sharply: it returns $p \ge 0.5$ for 11/11 while
+having lift $0.99$ and one of eleven above its own median. Any evaluation on a
+handful of positives should report lift or a within-model sign test rather than
+a threshold count.
+
+\paragraph{Nothing here is significant.} Eight of eleven above median is a
+one-sided binomial $p = 0.113$; the best permutation $p$ across all rankers is
+$0.016$ and survives no correction for the ten comparisons made. Restricting to
+the four trustworthy coordinates raises hydrology's AUC to $0.874$ ($p=0.003$)
+but at $n=4$ that is an observation, not a result.
+
+\subsection{What eleven points can and cannot support}
+
+They can reject: a ranker scoring at or below chance on these locations is not
+usable in Al~Madinah, which excludes logistic regression, the decision tree and
+random forest. They cannot select: the spread among the four boosting variants
+($0.635$--$0.644$) is far narrower than what best-of-ten selection produces under
+a null at this sample size. And they cannot estimate precision at all, because
+an unreported street is not a dry street --- the same presence-only structure
+analysed in Section~\ref{sec:pu}, now with three orders of magnitude less data.
+
+The honest summary is that the transfer is encouraging and unvalidated. The
+measurement that would settle it is a single rain event observed jointly with
+the municipality, which converts eleven retrospective points into a labelled
+sample of the size this evaluation actually requires.
+
+\section{Discussion}\label{sec:discussion}
+
+\textbf{The field optimises the wrong axis.} Our results reproduce, under a
+harder protocol, what \citet{zhang2025} found for sampling: the spread across
+\num{14} model families is $0.099$ skill, while a single feature-representation
+change worth $0.0137$ exceeds the gap between the best and third-best model, and
+per-city normalisation of terrain is worth more than replacing the learner
+entirely. A literature that compares architectures on balanced samples is
+measuring the axis with the least available variance.
+
+\textbf{Absolute terrain features are the wrong representation for transfer.}
+That terrain scores below random across cities while working within them is, to
+our knowledge, unreported, and it has a clean mechanistic explanation and a
+cheap fix. It also reframes \citet{agonafir2022ml}, who found building factors
+outweighing elevation in New York: we find the same ordering, and show it
+strengthens rather than weakens when the evaluation is made harder.
+
+\textbf{Our scores are not comparable to the literature's, and that is the
+point.} Table~\ref{tab:lit} reports AUC up to $0.985$; we report ROC-AUC
+$0.649$. \citet{agostini2024}, modelling the same New York feed at natural
+prevalence with explicit under-reporting, report $0.642$. Two independent
+analyses of the real problem agree; the balanced-sample results are measuring
+something else.
+
+\textbf{Implication for Al Madinah.} The honest transfer expectation is not the
+mean across cities but the value for the city that most resembles the target.
+Dallas gives $\skl = +0.027$. A deployment claim should be stated at that level,
+with per-segment coverage flags, and as a \emph{rank} rather than a probability
+--- a model transferred across domains is not calibrated, and an unlabelled city
+offers nothing to calibrate against.
+
+% ══════════════════════════════════════════════════════════ LIMITS
+\section{Limitations}\label{sec:limits}
+
+\begin{enumerate}\itemsep2pt
+  \item \textbf{Four cities is still small.} Our own Table~\ref{tab:flip} shows
+    rankings inverting between $n{=}2$ and $n{=}4$; we cannot exclude further
+    change at $n{=}6$. The top four models sit within $0.018$ of each other.
+  \item \textbf{All four cities are in the United States.} Transfer to a Saudi
+    city crosses climate, drainage standard and reporting culture simultaneously,
+    and no held-out city in this benchmark tests that.
+  \item \textbf{Labels are complaints, not observations.} \S\ref{sec:pu}
+    quantifies the resulting incompleteness but cannot remove it, and the
+    San Francisco estimate shows the correction's own assumption failing.
+  \item \textbf{No drainage-infrastructure layer.} \S\ref{sec:pu} shows that
+    terrain ponding and drainage failure are inseparable with these features.
+  \item \textbf{$\SI{30}{\metre}$ elevation inside a dense city} resolves
+    catchment topography, not kerb-level camber; the DEM is a surface model
+    including buildings.
+  \item \textbf{Al Madinah is never validated.} Every number about it in
+    \S\ref{sec:ood} is a statement about feature distributions, not accuracy.
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════ CONCLUSION
+\section{Conclusion}\label{sec:conclusion}
+
+We benchmarked \num{14} model families for street-flood susceptibility across
+four cities at natural prevalence under spatial blocking, with cross-city
+transfer as the declared endpoint. Gradient boosting leads, but the margin is
+small, the ranking is unstable at the numbers of held-out cities this field can
+realistically assemble, and the largest single improvement we found came from
+changing how terrain features are represented rather than which model consumes
+them. Absolute terrain descriptors do not transfer between cities and can be
+repaired by per-city percentile normalisation, which needs no labels and is
+therefore available in exactly the unlabelled setting that motivates transfer.
+Presence-only corrections quantify a real and substantial reporting gap but
+cannot, by construction, improve a ranking. And distributional distance did not
+predict transfer quality in our hands.
+
+For a city with no flood records, the defensible protocol is: never train on it;
+report leave-one-city-out rather than within-city cross-validation; quote the
+held-out city that most resembles the target rather than the mean; normalise
+terrain within the target city; publish a coverage flag alongside every score;
+and output a rank, not a probability.
+
+\paragraph{Reproducibility.} Feature construction, the model registry, all
+evaluation protocols and every results file are released with the manuscript.
+Library versions are pinned: an XGBoost minor-version change alone moved PR-AUC
+from $0.340$ to $0.342$ in our own pipeline, which is small but larger than
+several of the model gaps in Table~\ref{tab:board}.
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\end{document}

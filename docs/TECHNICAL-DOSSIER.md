@@ -84,7 +84,7 @@ This gap is officially acknowledged. The Ministry's innovation platform carries 
 Specific, verified facts that shape the design:
 
 - **Operational scale.** During a rain event the municipality mobilises **over 5,500 staff and 1,000 vehicles** across more than **900 km²**. Where they stage matters enormously, and today it is decided by judgement.
-- **Rain is rare and concentrated.** From our own ingested archive (Open-Meteo, 4,250 days, 2015–2026): only **2.3% of days** have measurable rain, and there have been just **30 rain events of 5 mm or more in eleven years**. The largest was 65.6 mm in January 2023.
+- **Rain is rare and concentrated.** From our own ingested archive (Open-Meteo, 4,250 days, 2015–2026): only **2.3% of days** receive 1 mm or more — the WMO rain-day threshold — and there have been just **30 rain events of 5 mm or more in eleven years**. Counting *any* measurable trace at 0.1 mm the figure is 5.8%; the 1 mm figure was verified against ERA5, ERA5-seamless, NASA POWER, a Meteostat gauge and published normals, which agree on 6.9–8.2 days a year. The largest was 65.6 mm in January 2023.
 - **Existing smart-city investment.** Madinah ranks **74th globally and 7th in the Arab world** on the IMD Smart City Index (2024). It runs an IoT sensor programme across a 15-million-tree planting initiative, autonomous drones for detecting visual deterioration, and air-quality sensors.
 - **A specific, citable project.** The "horizontal drilling" (الثقب الأفقي) scheme connecting the Al-Mudhaynab culvert to the Al-Mahzour district: **1,700 linear metres, pipe diameters up to 3,000 mm** — laid without open-cutting the road.
 
@@ -352,7 +352,7 @@ else                           -> "rainless"     -> Module A territory
 
 The middle state matters. For a few days after rain, wet pavement is genuinely ambiguous, so the system **declines to judge**. Refusing to answer is a feature.
 
-Because only 2.3% of days in Madinah are wet, the rainless gate is open almost always — Module A can run on nearly every satellite pass.
+Because rain of 1 mm or more falls on only 2.3% of days in Madinah, the rainless gate is open almost always — Module A can run on nearly every satellite pass.
 
 ### 7.2 Units of analysis
 

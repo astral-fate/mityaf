@@ -1,0 +1,41 @@
+{
+ "name": "knn",
+ "seed": 42,
+ "fit_seconds": 0.2,
+ "feature_order": [
+  "hand",
+  "load_per_road",
+  "logacc",
+  "major_frac",
+  "relelev",
+  "road_density",
+  "sink",
+  "slope",
+  "twi"
+ ],
+ "rank_normalised": [
+  "hand",
+  "logacc",
+  "relelev",
+  "sink",
+  "slope",
+  "twi"
+ ],
+ "train_cities": [
+  "nyc",
+  "chicago",
+  "sf",
+  "dallas"
+ ],
+ "n_rows": 107152,
+ "n_positive": 25262,
+ "prevalence": 0.23575854860385248,
+ "versions": {
+  "python": "3.14.4",
+  "sklearn": "1.9.0",
+  "numpy": "2.5.2",
+  "xgboost": "3.4.1",
+  "lightgbm": "4.7.0",
+  "catboost": "1.2.10"
+ }
+}

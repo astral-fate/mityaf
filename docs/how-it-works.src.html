@@ -1,0 +1,715 @@
+<title>From Satellite to Street</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Karla:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  :root{
+    --bg:#FBFAF8; --panel:#FFFFFF; --sunk:#F3F0EA;
+    --ink:#1A1815; --ink2:#5C564C; --ink3:#8A8378;
+    --rule:#E5E0D8; --rule2:#CFC8BC;
+    --flow:#1B5E8C; --flow-bg:#E6EFF5;
+    --dep:#2E7DA8; --conv:#C77A2B; --tun:#A63D3D;
+    --warn-bg:#FBF1E4;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#14130F; --panel:#1C1A16; --sunk:#232019;
+    --ink:#F0EBE2; --ink2:#B4ADA0; --ink3:#87806F;
+    --rule:#2E2A22; --rule2:#413B31;
+    --flow:#6FB3DD; --flow-bg:#13252F;
+    --dep:#6FB3DD; --conv:#E0A45E; --tun:#DE8383;
+    --warn-bg:#2A2114;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#14130F; --panel:#1C1A16; --sunk:#232019;
+    --ink:#F0EBE2; --ink2:#B4ADA0; --ink3:#87806F;
+    --rule:#2E2A22; --rule2:#413B31;
+    --flow:#6FB3DD; --flow-bg:#13252F;
+    --dep:#6FB3DD; --conv:#E0A45E; --tun:#DE8383;
+    --warn-bg:#2A2114;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:Karla,system-ui,sans-serif; margin:0;
+    padding:clamp(1.4rem,4vw,3.5rem) clamp(1rem,4vw,2rem) 5rem;
+    line-height:1.68; -webkit-font-smoothing:antialiased;
+    font-variant-numeric:tabular-nums;
+  }
+  .wrap{max-width:54rem;margin:0 auto}
+  h1{
+    font-family:Fraunces,Georgia,serif; font-weight:600;
+    font-size:clamp(2.1rem,6vw,3.4rem); line-height:1.05;
+    letter-spacing:-.02em; margin:0 0 .5rem; text-wrap:balance;
+  }
+  .standfirst{font-size:1.12rem;color:var(--ink2);margin:0 0 .5rem}
+  .meta{margin-top:1.4rem;padding-top:1rem;border-top:1px solid var(--rule);
+        font-family:"JetBrains Mono",monospace;font-size:.78rem;color:var(--ink3)}
+
+  h2{font-family:Fraunces,Georgia,serif;font-weight:600;
+     font-size:clamp(1.4rem,3.4vw,2rem);letter-spacing:-.015em;
+     margin:3.6rem 0 .5rem;text-wrap:balance;line-height:1.15}
+  h2 .stage{display:block;font-family:"JetBrains Mono",monospace;
+            font-size:.72rem;letter-spacing:.16em;color:var(--flow);
+            font-weight:600;margin-bottom:.4rem}
+  h3{font-size:1.06rem;font-weight:700;margin:2.1rem 0 .3rem}
+  h3 .ab{font-family:"JetBrains Mono",monospace;color:var(--flow);
+         font-size:.95em;margin-inline-end:.35rem}
+  p{margin:0 0 1rem}
+  .lead{font-size:1.06rem;color:var(--ink2)}
+  code{font-family:"JetBrains Mono",monospace;font-size:.85em;
+       background:var(--sunk);padding:.1rem .34rem;border-radius:.28rem}
+
+  .box{border:1px solid var(--rule);border-radius:.7rem;padding:1.15rem 1.3rem;
+       margin:1.7rem 0;background:var(--panel)}
+  .box.key{background:var(--flow-bg);border-color:var(--flow)}
+  .box.warn{background:var(--warn-bg);border-color:var(--conv)}
+  /* Direct child only: an inline <b> that happens to open a paragraph is not
+     the callout's heading, and turning it into a block splits the sentence. */
+  .box > b:first-child{display:block;margin-bottom:.4rem}
+  .box p:last-child{margin-bottom:0}
+
+  .scroll{overflow-x:auto;margin:1.3rem 0;border:1px solid var(--rule);
+          border-radius:.6rem;background:var(--panel)}
+  table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:33rem}
+  th,td{padding:.62rem .85rem;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+  th{background:var(--sunk);font-size:.74rem;letter-spacing:.05em;
+     text-transform:uppercase;color:var(--ink2);font-weight:700;white-space:nowrap}
+  tbody tr:last-child td{border-bottom:none}
+  td.n,td.ab{font-family:"JetBrains Mono",monospace;white-space:nowrap}
+  td.ab{font-weight:600;color:var(--flow)}
+  caption{caption-side:bottom;text-align:left;padding:.65rem .85rem;
+          font-size:.8rem;color:var(--ink3);border-top:1px solid var(--rule)}
+
+  /* Plates carry a baked light ground from matplotlib, so they stay on paper
+     in both themes -- an atlas convention rather than a theme bug. */
+  figure{margin:1.9rem 0}
+  figure.plate{background:#FBFAF8;border:1px solid var(--rule2);
+               border-radius:.7rem;padding:.5rem .5rem .1rem;overflow:hidden}
+  figure.plate img{display:block;width:100%;height:auto;border-radius:.4rem}
+  figure.plate figcaption{color:#5C564C;padding:.3rem .55rem .75rem}
+  figure.plate figcaption b{color:#1A1815}
+  figure svg{display:block;width:100%;height:auto;border:1px solid var(--rule);
+             border-radius:.7rem;background:var(--panel)}
+  figcaption{font-size:.85rem;color:var(--ink3);margin-top:.55rem;line-height:1.55}
+  figcaption b{color:var(--ink2)}
+
+  .mech{display:grid;grid-template-columns:1fr;gap:.8rem;margin:1.4rem 0}
+  .mcard{border:1px solid var(--rule);border-left:5px solid;border-radius:.6rem;
+         padding:.9rem 1.1rem;background:var(--panel)}
+  .mcard h4{margin:0 0 .25rem;font-size:1rem}
+  .mcard p{margin:0;font-size:.9rem;color:var(--ink2)}
+  .mcard .rule{font-family:"JetBrains Mono",monospace;font-size:.78rem;
+               color:var(--ink3);margin-top:.4rem;display:block}
+
+  ul{padding-inline-start:1.15rem}
+  li{margin-bottom:.5rem}
+  .foot{margin-top:3.5rem;padding-top:1.2rem;border-top:1px solid var(--rule);
+        font-size:.82rem;color:var(--ink3)}
+</style>
+
+<div class="wrap">
+
+<header>
+  <h1>From Satellite to Street</h1>
+  <p class="standfirst">
+    Exactly what مِطياف does, end to end — every abbreviation spelled out, every
+    stage shown in a picture drawn from the real data, and an honest account of
+    where machine learning does and does not sit.
+  </p>
+  <div class="meta">30,337 streets · 2 data sources · 9 numbers each · 0 Madinah labels</div>
+</header>
+
+<div class="box key">
+  <b>The one-paragraph answer</b>
+  <p>
+    We cut Madinah's road network into <b>30,337 pieces</b>. For each piece we
+    compute <b>nine numbers</b> from two free sources: a satellite elevation
+    model and the public world map. Those nine numbers put every street in
+    order, from most to least likely to hold standing water. Then a set of
+    <b>rules</b> — not a learned model — labels 2,617 of them with <i>why</i>:
+    a hollow, a runoff path, or an underpass. Machine learning was used to
+    <i>prove the nine numbers carry signal</i>, not to produce the ranking that
+    ships.
+  </p>
+</div>
+
+<!-- ═══════════════════════════ glossary ═══════════════════════════ -->
+<h2><span class="stage">READ THIS FIRST</span>Every abbreviation, spelled out</h2>
+
+<p class="lead">
+  Nothing below is jargon you need to accept on faith. Each one is a plain idea
+  with a short name. Come back to this table whenever a letter-soup appears.
+</p>
+
+<h3>The two data sources</h3>
+<div class="scroll">
+<table>
+  <thead><tr><th>Short</th><th>Stands for</th><th>What it actually is</th></tr></thead>
+  <tbody>
+    <tr><td class="ab">DEM</td><td><b>D</b>igital <b>E</b>levation <b>M</b>odel</td>
+        <td>A grid of ground heights. Not a photo — a table of numbers, one height per 30 m square, covering the world. Ours is free from the European Space Agency.</td></tr>
+    <tr><td class="ab">OSM</td><td><b>O</b>pen<b>S</b>treet<b>M</b>ap</td>
+        <td>A free world map made by volunteers, like Wikipedia for geography. Gives us road lines, road types and tunnel tags. Contains nothing about flooding.</td></tr>
+    <tr><td class="ab">ESA</td><td><b>E</b>uropean <b>S</b>pace <b>A</b>gency</td>
+        <td>Publishes the DEM we use, free of charge.</td></tr>
+    <tr><td class="ab">GLO-30</td><td><b>Glo</b>bal, <b>30</b> metres</td>
+        <td>The exact Copernicus DEM product name. "30" is the cell size.</td></tr>
+    <tr><td class="ab">311</td><td>the US non-emergency city number</td>
+        <td>Americans dial 311 to report a pothole or a flooded street. Those calls become free public datasets — that is where our training labels come from.</td></tr>
+    <tr><td class="ab">SPA / واس</td><td><b>S</b>audi <b>P</b>ress <b>A</b>gency</td>
+        <td>State news agency. Source of the 2015 report on water trapped inside نفق الملك عبدالله.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>The nine numbers</h3>
+<div class="scroll">
+<table>
+  <thead><tr><th>Short</th><th>Stands for</th><th>In plain words</th></tr></thead>
+  <tbody>
+    <tr><td class="ab">sink</td><td>sink depth</td>
+        <td>How deep the hollow is, if this spot sits in one. The literal puddle depth the land would hold.</td></tr>
+    <tr><td class="ab">HAND</td><td><b>H</b>eight <b>A</b>bove <b>N</b>earest <b>D</b>rainage</td>
+        <td>How far above the nearest natural drainage channel this spot sits. Negative means it is <i>below</i> the channel — water has nowhere to go.</td></tr>
+    <tr><td class="ab">slope</td><td>slope</td>
+        <td>Steepness in degrees. Flat ground sheds water slowly.</td></tr>
+    <tr><td class="ab">TWI</td><td><b>T</b>opographic <b>W</b>etness <b>I</b>ndex</td>
+        <td>A standard hydrology score combining "how much water arrives" with "how flat it is". High = tends to stay wet.</td></tr>
+    <tr><td class="ab">logacc</td><td><b>log</b>arithm of flow <b>acc</b>umulation</td>
+        <td>How much upstream land drains through this point. Logarithm because raw values span millions — the log squashes them into a usable range.</td></tr>
+    <tr><td class="ab">relelev</td><td><b>rel</b>ative <b>elev</b>ation</td>
+        <td>Whether this spot is lower or higher than its immediate neighbours.</td></tr>
+    <tr><td class="ab">road_density</td><td>—</td>
+        <td>Metres of road per square kilometre. A proxy for hard surface that water cannot soak into.</td></tr>
+    <tr><td class="ab">major_frac</td><td>major road <b>frac</b>tion</td>
+        <td>What share of the roads here are big arterials rather than side streets.</td></tr>
+    <tr><td class="ab">load_per_road</td><td>—</td>
+        <td>Water arriving ÷ road length. The only one of the nine we invented ourselves.</td></tr>
+  </tbody>
+  <caption>Six come from the DEM (shape of the land). Three come from OSM (shape of the city).</caption>
+</table>
+</div>
+
+<h3>Rainfall records</h3>
+<div class="scroll">
+<table>
+  <thead><tr><th>Short</th><th>Stands for</th><th>What it actually is</th></tr></thead>
+  <tbody>
+    <tr><td class="ab">ERA5</td><td><b>E</b>CMWF <b>R</b>e<b>A</b>nalysis, generation <b>5</b></td>
+        <td>Europe's weather model re-run backwards over history to estimate past rainfall anywhere on Earth. ECMWF = European Centre for Medium-Range Weather Forecasts.</td></tr>
+    <tr><td class="ab">NASA&nbsp;POWER</td><td><b>P</b>rediction <b>O</b>f <b>W</b>orldwide <b>E</b>nergy <b>R</b>esources</td>
+        <td>NASA's equivalent, built on a different model (MERRA-2). We check both because they disagree.</td></tr>
+    <tr><td class="ab">MERRA-2</td><td><b>M</b>odern-<b>E</b>ra <b>R</b>etrospective analysis for <b>R</b>esearch and <b>A</b>pplications, v2</td>
+        <td>The NASA model underneath POWER.</td></tr>
+    <tr><td class="ab">WMO</td><td><b>W</b>orld <b>M</b>eteorological <b>O</b>rganization</td>
+        <td>Sets the standard we use for what counts as a "rain day": at least 1 mm.</td></tr>
+  </tbody>
+  <caption>Why two: ERA5 records 0.00 days above 5 mm in August across 11.7 years — yet 30 August 2024 shows 27.5 mm in NASA POWER and street flooding on video. Judging summer reports by ERA5 alone rejects real events.</caption>
+</table>
+</div>
+
+<h3>Machine learning</h3>
+<div class="scroll">
+<table>
+  <thead><tr><th>Short</th><th>Stands for</th><th>What it actually is</th></tr></thead>
+  <tbody>
+    <tr><td class="ab">ML</td><td><b>M</b>achine <b>L</b>earning</td>
+        <td>Showing a program many examples of "this flooded / this didn't" and letting it work out the pattern, rather than writing the rule yourself.</td></tr>
+    <tr><td class="ab">XGBoost</td><td>e<b>X</b>treme <b>G</b>radient <b>Boost</b>ing</td>
+        <td>The model we started with. Builds hundreds of small decision trees, each correcting the last one's mistakes.</td></tr>
+    <tr><td class="ab">CatBoost</td><td><b>Cat</b>egorical <b>Boost</b>ing</td>
+        <td>A rival of the same family. Won our bake-off — narrowly.</td></tr>
+    <tr><td class="ab">PR-AUC</td><td><b>P</b>recision–<b>R</b>ecall <b>A</b>rea <b>U</b>nder <b>C</b>urve</td>
+        <td>A score from 0 to 1 for ranking quality when the thing you're looking for is rare. Plain accuracy is useless here: always saying "no flood" scores 72.6%.</td></tr>
+    <tr><td class="ab">ROC-AUC</td><td><b>R</b>eceiver <b>O</b>perating <b>C</b>haracteristic AUC</td>
+        <td>An older, more forgiving version of the same idea. Reported for comparability, not relied on.</td></tr>
+    <tr><td class="ab">F1</td><td>the <b>F</b>-score, version <b>1</b></td>
+        <td>One number balancing "of the streets we flagged, how many really flood" against "of the streets that flood, how many did we flag".</td></tr>
+    <tr><td class="ab">LOCO</td><td><b>L</b>eave <b>O</b>ne <b>C</b>ity <b>O</b>ut</td>
+        <td>Our honesty test: train on three cities, test on a fourth it has never seen. That is what pointing it at Madinah really looks like.</td></tr>
+    <tr><td class="ab">SHAP</td><td><b>SH</b>apley <b>A</b>dditive ex<b>P</b>lanations</td>
+        <td>A method for asking a model "which of the nine numbers drove <i>this particular</i> street's score?". It produces our Arabic per-segment explanations.</td></tr>
+    <tr><td class="ab">PU learning</td><td><b>P</b>ositive–<b>U</b>nlabelled learning</td>
+        <td>The correct framing when your "negatives" are unverified. A street with no complaint is <i>unreported</i>, not proven dry.</td></tr>
+    <tr><td class="ab">OOD</td><td><b>O</b>ut <b>O</b>f <b>D</b>istribution</td>
+        <td>Detecting that Madinah looks unlike anything the model was trained on, so the page can say so instead of quietly extrapolating.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>File formats and the rest</h3>
+<div class="scroll">
+<table>
+  <thead><tr><th>Short</th><th>Stands for</th><th>What it actually is</th></tr></thead>
+  <tbody>
+    <tr><td class="ab">API</td><td><b>A</b>pplication <b>P</b>rogramming <b>I</b>nterface</td>
+        <td>A web address a program can ask for data instead of a human clicking. How we pull rainfall history.</td></tr>
+    <tr><td class="ab">JSON</td><td><b>J</b>ava<b>S</b>cript <b>O</b>bject <b>N</b>otation</td>
+        <td>A plain-text format for structured data. Our website reads pre-computed JSON files — it calculates nothing itself.</td></tr>
+    <tr><td class="ab">GeoJSON</td><td><b>Geo</b>graphic JSON</td>
+        <td>The same, with coordinates attached, so a map can draw it.</td></tr>
+    <tr><td class="ab">CSV</td><td><b>C</b>omma-<b>S</b>eparated <b>V</b>alues</td>
+        <td>A spreadsheet as plain text. All our research tables are CSV.</td></tr>
+    <tr><td class="ab">CRS</td><td><b>C</b>oordinate <b>R</b>eference <b>S</b>ystem</td>
+        <td>Which definition of "latitude and longitude" a file uses. Mismatched systems put streets in the wrong country.</td></tr>
+    <tr><td class="ab">AOI</td><td><b>A</b>rea <b>O</b>f <b>I</b>nterest</td>
+        <td>The rectangle we work inside: 39.50–39.72 °E, 24.36–24.58 °N.</td></tr>
+    <tr><td class="ab">bbox</td><td><b>b</b>ounding <b>box</b></td>
+        <td>That rectangle, written as four numbers.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ═══════════════════════════ pipeline ═══════════════════════════ -->
+<h2><span class="stage">THE SHAPE OF IT</span>The whole system on one page</h2>
+
+<figure>
+  <svg viewBox="0 0 820 300" role="img" aria-label="Pipeline: OpenStreetMap and the Copernicus elevation model feed nine numbers per street segment; those produce a ranking of all 30,337 streets, a rule-based classification of 2,617 into three mechanisms, and a separate list of 47 tunnels taken directly from map tags.">
+    <defs>
+      <marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+        <polygon points="0 0, 8 3.2, 0 6.4" fill="currentColor"/>
+      </marker>
+    </defs>
+    <g font-family="JetBrains Mono, monospace" font-size="11.5" fill="currentColor">
+      <rect x="14" y="30" width="168" height="62" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <text x="28" y="52" font-weight="600">OpenStreetMap</text>
+      <text x="28" y="70" font-size="10" opacity=".7">roads, types, tunnel tags</text>
+      <text x="28" y="84" font-size="10" opacity=".7">free, community-made</text>
+
+      <rect x="14" y="112" width="168" height="62" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <text x="28" y="134" font-weight="600">Copernicus DEM</text>
+      <text x="28" y="152" font-size="10" opacity=".7">30 m satellite elevation</text>
+      <text x="28" y="166" font-size="10" opacity=".7">free, ESA</text>
+
+      <line x1="182" y1="61" x2="238" y2="95" stroke="currentColor" stroke-width="1.4" marker-end="url(#a)" opacity=".55"/>
+      <line x1="182" y1="143" x2="238" y2="112" stroke="currentColor" stroke-width="1.4" marker-end="url(#a)" opacity=".55"/>
+
+      <rect x="244" y="72" width="150" height="64" rx="7" fill="none" stroke="#1B5E8C" stroke-width="2"/>
+      <text x="258" y="94" font-weight="600" fill="#1B5E8C">9 numbers</text>
+      <text x="258" y="112" font-size="10" opacity=".75">6 terrain + 3 road</text>
+      <text x="258" y="126" font-size="10" opacity=".75">per street segment</text>
+
+      <line x1="394" y1="90" x2="452" y2="52" stroke="currentColor" stroke-width="1.4" marker-end="url(#a)" opacity=".55"/>
+      <line x1="394" y1="104" x2="452" y2="140" stroke="currentColor" stroke-width="1.4" marker-end="url(#a)" opacity=".55"/>
+
+      <rect x="458" y="20" width="200" height="62" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <text x="472" y="42" font-weight="600">RANKING</text>
+      <text x="472" y="60" font-size="10" opacity=".75">all 30,337, ordered</text>
+      <text x="472" y="74" font-size="10" opacity=".75">a percentile each</text>
+
+      <rect x="458" y="110" width="200" height="76" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <text x="472" y="132" font-weight="600">CLASSIFICATION</text>
+      <text x="472" y="150" font-size="10" opacity=".75">2,617 labelled by rules</text>
+      <text x="472" y="164" font-size="10" opacity=".75">27,720 left unlabelled</text>
+      <text x="472" y="178" font-size="10" opacity=".75">no learning involved</text>
+
+      <path d="M98 30 L98 232 L452 232" fill="none" stroke="#A63D3D" stroke-width="1.6"
+            stroke-dasharray="5 4" marker-end="url(#a)"/>
+      <rect x="458" y="208" width="200" height="48" rx="7" fill="none" stroke="#A63D3D" stroke-width="2"/>
+      <text x="472" y="230" font-weight="600" fill="#A63D3D">47 TUNNELS</text>
+      <text x="472" y="246" font-size="10" opacity=".75">read straight from a map tag</text>
+      <text x="112" y="248" font-size="10" fill="#A63D3D">bypasses the elevation model entirely</text>
+    </g>
+  </svg>
+  <figcaption>
+    <b>Two free sources in, three things out.</b> Note the dashed red path:
+    tunnels skip the elevation model completely, because a satellite measures
+    the ground <i>above</i> an underpass, not the road inside it.
+  </figcaption>
+</figure>
+
+<!-- ═══════════════════════════ stage 1 ═══════════════════════════ -->
+<h2><span class="stage">STAGE 1</span>What a "street segment" is</h2>
+
+<p class="lead">
+  A road is not one thing. طريق الملك عبدالله runs for kilometres, and it does
+  not flood uniformly along its length.
+</p>
+<p>
+  So we cut the network into pieces. Each piece is roughly <b>174 metres</b> of
+  road, and we call it a <b>segment</b>. Madinah's 5,280 km network becomes
+  <b>30,337 segments</b>. Every segment gets its own row, its own nine numbers,
+  and its own score.
+</p>
+<p>
+  That is the unit of everything downstream. When the site says "2,617 streets
+  need inspection", it means 2,617 of these pieces — not 2,617 named roads.
+</p>
+
+<!-- ═══════════════════════════ stage 2 ═══════════════════════════ -->
+<h2><span class="stage">STAGE 2</span>The two sources — see them for yourself</h2>
+
+<h3><span class="ab">DEM</span>Digital Elevation Model</h3>
+<p>
+  A free dataset from the European Space Agency giving the <b>height of the
+  ground</b> across the whole world, on a grid of <b>30-metre squares</b>. It is
+  not a photograph. It is a table of numbers — one height per square.
+</p>
+<p>
+  Water runs downhill and pools in low spots, so height is the physical basis for
+  everything. Six of our nine numbers are computed from it. Here is Madinah's,
+  lit from the north-west so the landforms read:
+</p>
+
+<figure class="plate">
+  <!--FIG:01-dem.png|Al Madinah's Copernicus DEM, shaded relief, with the King Fahd basin marked-->
+  <figcaption>
+    <b>Plate 1 — the DEM.</b> The dark ridges are the harrat, Madinah's volcanic
+    lava fields. The pale channel running north through the middle is Wadi
+    al-Aqiq. The city sits in the low ground between them, and حي الملك فهد
+    (marked) sits on the eastern flank at about 637 m. Every one of the 792×792
+    cells holds a single number.
+  </figcaption>
+</figure>
+
+<p>
+  Zoom into one 450-metre window around the resident's pin and the "grid of
+  numbers" claim becomes literal — this is the raw data, printed:
+</p>
+
+<figure class="plate">
+  <!--FIG:02-dem-grid.png|The same DEM zoomed to a 15 by 15 cell window with each cell's height printed in it-->
+  <figcaption>
+    <b>Plate 2 — what the DEM actually contains.</b> Fifteen cells across, each
+    30 m. Across the entire window the ground falls just <b>6 metres</b>, from
+    640 down to 634. That is the whole signal. A hollow this shallow is
+    invisible standing in the street — which is exactly why it has to be found
+    by arithmetic rather than by looking.
+  </figcaption>
+</figure>
+
+<h3><span class="ab">OSM</span>OpenStreetMap</h3>
+<p>
+  A free map of the world, made by volunteers — like Wikipedia, but for
+  geography. Anyone can add a road, name it, or tag it. We use it for four
+  things:
+</p>
+<ul>
+  <li><b>The road lines themselves</b> — this is what we cut into 30,337 segments</li>
+  <li><b>Road type</b> — motorway, primary, residential. Gives <code>major_frac</code></li>
+  <li><b>How much road is packed into an area</b> — gives <code>road_density</code></li>
+  <li><b>Tunnel tags</b> — <code>tunnel=yes</code>, which produced the 47</li>
+</ul>
+
+<figure class="plate">
+  <!--FIG:03-osm.png|Madinah's OpenStreetMap road network, 18,320 ways coloured by road class, with the 47 tunnel-tagged ways ringed-->
+  <figcaption>
+    <b>Plate 3 — OpenStreetMap.</b> All 18,320 ways in our extract: 508 motorway
+    and primary in blue, 1,833 secondary in dark grey, 15,979 residential and
+    smaller in pale grey. The red rings are the 47 ways carrying a tunnel tag.
+    Look closely at the western third — the street grid is noticeably sparser
+    there than the city really is. That is community mapping coverage, not
+    empty desert, and it is a real limit on us.
+  </figcaption>
+</figure>
+
+<div class="box warn">
+  <b>OSM is not ground truth for flooding</b>
+  <p>
+    This is the confusion worth clearing up. OSM tells us <b>where roads are and
+    what kind they are</b>. It contains no information whatsoever about whether
+    a street floods. It is an <i>input</i>, never a label and never an answer.
+  </p>
+  <p>
+    We are also not "under-using" it — we use everything in it that bears on
+    this problem. Its limits are real though: it does not contain Madinah's
+    storm-drain network, and it is missing several informal district names
+    (حي الغربية, الجبور, المعيقلة, مخطط باقدو), which is why those districts
+    cannot be checked at all.
+  </p>
+</div>
+
+<!-- ═══════════════════════════ stage 3 ═══════════════════════════ -->
+<h2><span class="stage">STAGE 3</span>The nine numbers</h2>
+
+<p class="lead">
+  Each segment gets these, and nothing else. No images, no weather, no sensors.
+  Every one is defined in the glossary above.
+</p>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>Number</th><th>From</th><th>What it means in plain words</th></tr></thead>
+  <tbody>
+    <tr><td class="n">sink</td><td>DEM</td><td>How deep the hollow is, if this spot sits in one. The literal puddle.</td></tr>
+    <tr><td class="n">hand</td><td>DEM</td><td>How high above the nearest natural drainage line. Negative means below it.</td></tr>
+    <tr><td class="n">slope</td><td>DEM</td><td>How steep. Flat ground sheds water slowly.</td></tr>
+    <tr><td class="n">twi</td><td>DEM</td><td>Wetness index — how strongly this spot tends to collect water.</td></tr>
+    <tr><td class="n">logacc</td><td>DEM</td><td>How much upstream land drains through this point.</td></tr>
+    <tr><td class="n">relelev</td><td>DEM</td><td>Whether it is lower or higher than its immediate neighbours.</td></tr>
+    <tr><td class="n">road_density</td><td>OSM</td><td>Metres of road per km². Proxy for surface water cannot soak into.</td></tr>
+    <tr><td class="n">major_frac</td><td>OSM</td><td>What share of the roads here are big arterials.</td></tr>
+    <tr><td class="n">load_per_road</td><td>both</td><td>Water arriving ÷ road length. The only number we invented.</td></tr>
+  </tbody>
+  <caption>Six describe the shape of the land. Three describe the shape of the city.</caption>
+</table>
+</div>
+
+<!-- ═══════════════════════════ stage 4 ═══════════════════════════ -->
+<h2><span class="stage">STAGE 4</span>Ranking — and yes, all 30,337</h2>
+
+<p class="lead">
+  <b>Every single segment gets a score.</b> None are skipped.
+</p>
+<p>
+  The score is a <b>percentile</b>: 0.99 means "more prone to holding water than
+  99% of Madinah's streets". It is <b>not</b> a probability — it does not mean a
+  99% chance of flooding. It is a position in a queue, not a forecast.
+</p>
+<p>
+  We produce four such rankings from the same nine numbers, and they disagree
+  with each other. The one that ships is the <b>hydrology ranking</b>, built
+  purely from the physics — because it is the one that found the basin the
+  resident's three coordinates landed in.
+</p>
+
+<figure class="plate">
+  <!--FIG:04-segments-ranked.png|All 30,337 Madinah street segments coloured by hydrology rank, with the top one percent ringed-->
+  <figcaption>
+    <b>Plate 4 — the output.</b> Every segment, coloured by its rank: pale sand
+    is low, blue is middling, red is the top of the queue. The 304 ringed points
+    are the top 1%. Notice they are not scattered randomly — they cluster, which
+    is what you would expect if terrain were driving the score rather than
+    noise. The cluster on the eastern edge is حي الملك فهد.
+  </figcaption>
+</figure>
+
+<!-- ═══════════════════════════ stage 5 ═══════════════════════════ -->
+<h2><span class="stage">STAGE 5</span>Classification — a different job, done by rules</h2>
+
+<p class="lead">
+  Ranking says <i>how bad</i>. Classification says <i>why</i> — and therefore
+  what to do about it. These are separate outputs covering different numbers of
+  streets.
+</p>
+
+<figure>
+  <svg viewBox="0 0 820 250" role="img" aria-label="Three cross-sections: a closed depression where water pools and stays; a slope where water converges and sheets through; and an underpass below ground level that the satellite cannot see.">
+    <defs>
+      <marker id="b" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+        <polygon points="0 0, 8 3.2, 0 6.4" fill="#C77A2B"/>
+      </marker>
+    </defs>
+    <g font-family="JetBrains Mono, monospace" font-size="11" fill="currentColor">
+      <text x="20" y="24" font-weight="600" fill="#2E7DA8">1 · DEPRESSION — water arrives and cannot leave</text>
+      <path d="M20 76 L90 76 Q140 76 165 96 Q190 112 230 112 Q270 112 295 96 Q320 76 370 76 L440 76"
+            fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M150 100 Q230 118 310 100 L310 112 Q230 126 150 112 Z" fill="#2E7DA8" opacity=".55"/>
+      <text x="196" y="140" font-size="10" fill="#2E7DA8">stays for days</text>
+      <line x1="20" y1="60" x2="440" y2="60" stroke="currentColor" stroke-dasharray="4 4" opacity=".4"/>
+      <text x="446" y="63" font-size="9.5" opacity=".6">drainage line</text>
+
+      <text x="20" y="172" font-weight="600" fill="#C77A2B">2 · CONVERGENCE — water passes through fast</text>
+      <path d="M20 232 L120 210 L240 206 L360 206 L440 206" fill="none" stroke="currentColor" stroke-width="2"/>
+      <g stroke="#C77A2B" stroke-width="1.8" fill="none">
+        <path d="M60 186 L96 202" marker-end="url(#b)"/>
+        <path d="M110 182 L140 200" marker-end="url(#b)"/>
+        <path d="M170 180 L196 198" marker-end="url(#b)"/>
+      </g>
+      <text x="252" y="196" font-size="10" fill="#C77A2B">sheets across during the storm</text>
+
+      <text x="520" y="24" font-weight="600" fill="#A63D3D">3 · TUNNEL — below grade by construction</text>
+      <path d="M520 76 L620 76 L620 128 L720 128 L720 76 L800 76"
+            fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M624 120 L716 120 L716 128 L624 128 Z" fill="#A63D3D" opacity=".55"/>
+      <line x1="520" y1="76" x2="800" y2="76" stroke="#A63D3D" stroke-dasharray="5 4" opacity=".8"/>
+      <text x="536" y="66" font-size="10" fill="#A63D3D">what the satellite measures</text>
+      <text x="600" y="152" font-size="10" fill="#A63D3D">what actually floods</text>
+      <text x="520" y="190" font-size="10" opacity=".7">The DEM reads the ground ABOVE the tunnel,</text>
+      <text x="520" y="206" font-size="10" opacity=".7">so sink and hand describe the wrong surface.</text>
+      <text x="520" y="222" font-size="10" opacity=".7">Rules 1 and 2 can never find one.</text>
+    </g>
+  </svg>
+  <figcaption>
+    <b>Three mechanisms, three different remedies.</b> A hollow needs drainage
+    built into it or it gets pumped forever. A convergence point needs the
+    runoff intercepted uphill. An underpass needs a pump, because no gravity
+    outlet exists.
+  </figcaption>
+</figure>
+
+<div class="mech">
+  <div class="mcard" style="border-left-color:var(--dep)">
+    <h4>Depression — 533 segments</h4>
+    <p>A closed hollow below the local drainage line. Water arrives and has no way out. This is the King Fahd basin.</p>
+    <span class="rule">rule: sink &gt; 0.05 m AND hand &lt; 0</span>
+  </div>
+  <div class="mcard" style="border-left-color:var(--conv)">
+    <h4>Convergence — 2,084 segments</h4>
+    <p>Lots of water arriving onto ground too flat to shed it, but above the drainage line. Floods during the storm, drains after. This is شارع البخاري.</p>
+    <span class="rule">rule: logacc ≥ 90th percentile AND slope &lt; 1°</span>
+  </div>
+  <div class="mcard" style="border-left-color:var(--tun)">
+    <h4>Tunnel — 47 ways</h4>
+    <p>The lowest point on its road by construction, not by terrain. Read from a map tag, because the satellite cannot see it.</p>
+    <span class="rule">rule: OSM tunnel=yes OR layer &lt; 0</span>
+  </div>
+</div>
+
+<figure class="plate">
+  <!--FIG:05-mechanisms.png|The three mechanisms mapped across Madinah, showing how few segments carry a label-->
+  <figcaption>
+    <b>Plate 5 — classification is sparse on purpose.</b> Grey is the majority:
+    27,720 segments that match no rule. They still carry a rank; they simply are
+    not in a hollow, on a runoff path, or under a bridge. The blue depressions
+    cluster tightly (the terrain decides where hollows can exist), while the
+    orange convergence points spread along the whole drainage network.
+  </figcaption>
+</figure>
+
+<div class="box key">
+  <b>Ranking and classification are not the same count</b>
+  <p>
+    <b>30,337</b> segments are ranked. Only <b>2,617</b> are classified — the
+    other <b>27,720</b> match none of the three rules.
+  </p>
+  <p>
+    And none of this is machine learning. All three rules are simple
+    if-this-then-that tests on the nine numbers, written by hand from physics.
+    You can check any of them by eye.
+  </p>
+</div>
+
+<!-- ═══════════════════════════ stage 6 ═══════════════════════════ -->
+<h2><span class="stage">STAGE 6</span>What the 47 tunnels are for</h2>
+
+<p class="lead">
+  They are <b>not</b> training data, <b>not</b> labels, and <b>not</b> among the
+  30,337 segments. They are a third list of at-risk places, found a different way.
+</p>
+<p>
+  We only looked because a Saudi government source made us. In May 2015 the
+  Saudi Press Agency reported an engineering project at <b>نفق الملك عبدالله</b>
+  to drain <i>«تجمع مائي حاد داخل النفق»</i> — severe water accumulation inside
+  the tunnel — specifically so vehicles would stop being submerged. The
+  <code>tunnel=yes</code> tag had been sitting in OSM the whole time and our
+  pipeline was ignoring it.
+</p>
+<p>
+  When we added the rule, that same tunnel came out <b>2nd of 47</b>. The method
+  independently ranked near the top the one underpass a government source had
+  already flagged as dangerous.
+</p>
+<p>
+  It matters because this is the mechanism with the worst consequences. Standing
+  water in a residential street costs cars and time; a flooded motorway
+  underpass drowns people.
+</p>
+
+<!-- ═══════════════════════════ stage 7 ═══════════════════════════ -->
+<h2><span class="stage">STAGE 7</span>Where machine learning actually sits</h2>
+
+<p class="lead">
+  This is the part that changed during the work, and the honest answer is not
+  the one we started with.
+</p>
+<p>
+  Madinah has <b>zero</b> recorded flood incidents. Nothing to train on. So we
+  trained on four American cities that <i>do</i> keep records — New York,
+  Chicago, San Francisco, Dallas — <b>130,998</b> citizen flood complaints
+  between them, using the identical nine numbers.
+</p>
+<p>
+  Then we tested it the only honest way: <b>LOCO</b> — train on three cities,
+  test on the fourth it has never seen. That simulates pointing it at Madinah.
+</p>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>What we asked</th><th>What we found</th></tr></thead>
+  <tbody>
+    <tr><td>Do the nine numbers carry real signal?</td><td><b>Yes</b> — and this is what licenses using them on a city with no records</td></tr>
+    <tr><td>Which of 14 models is best?</td><td>CatBoost, but the whole spread is small and the ranking is unstable</td></tr>
+    <tr><td>Does the trained model beat plain physics in Madinah?</td><td><b>No.</b> At the verified basin: hydrology <b>0.99</b>, trained model <b>0.63</b></td></tr>
+    <tr><td>Is the American pipeline worth its complexity?</td><td>It buys roughly <b>5%</b> over sorting by road density alone</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  So the machine learning got <b>demoted, deliberately</b>. It stays for two
+  real jobs: it proved the feature set transfers between cities, and it produces
+  the per-segment explanations behind the Arabic <code>rationale_ar</code>. The
+  ranking that ships is physics.
+</p>
+
+<div class="box warn">
+  <b>Why the model loses in Madinah</b>
+  <p>
+    We never trained on "where water stands". We trained on <b>where people
+    complained</b>. In dense American cities those correlate well enough to
+    score. But complaints follow people, traffic and reporting habits — which is
+    why <code>road_density</code> dominates the model, and why it under-ranks a
+    quiet residential hollow that floods for three days.
+  </p>
+</div>
+
+<!-- ═══════════════════════════ the check ═══════════════════════════ -->
+<h2><span class="stage">THE ONE CHECK WE HAVE</span>حي الملك فهد</h2>
+
+<p class="lead">
+  The pipeline computed this basin from the DEM <i>before</i> the resident's
+  coordinates arrived. That ordering is the whole reason it counts as evidence
+  rather than as fitting.
+</p>
+
+<figure class="plate">
+  <!--FIG:06-basin.png|The King Fahd basin: sink depth from the DEM, the depression segments, and the three resident pins-->
+  <figcaption>
+    <b>Plate 6 — the basin, and the pins inside it.</b> Blue is sink depth from
+    the DEM alone — no observation went into drawing it. Grey lines are the OSM
+    streets. Blue dots are the 61 segments the depression rule flagged here. The
+    three red stars are the coordinates the resident gave, months later. They
+    rank <b>0.990</b>, <b>0.987</b> and <b>0.994</b> on the hydrology ranking —
+    all inside the top 1% of the city — and all three classify as
+    <i>depression</i>.
+  </figcaption>
+</figure>
+
+<!-- ═══════════════════════════ stage 8 ═══════════════════════════ -->
+<h2><span class="stage">STAGE 8</span>What the system does not know</h2>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+  <tbody>
+    <tr><td>Will this street flood on Tuesday?</td><td>No. There is no forecast, and no link to a specific storm.</td></tr>
+    <tr><td>How deep will the water be?</td><td>No. Depth is never predicted.</td></tr>
+    <tr><td>What is the probability of flooding?</td><td>No. Every number is a rank, not a probability.</td></tr>
+    <tr><td>Has it been tested in Madinah?</td><td><b>No.</b> Zero labels exist there. Every ranking is a prediction.</td></tr>
+    <tr><td>Where is the storm-drain network?</td><td>Unknown. Not in OSM. This is the highest-value missing input.</td></tr>
+    <tr><td>Does it cover حي الغربية?</td><td>No — that district is missing from OSM, and it holds the only documented five-day flood.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>What we do have from Madinah</h3>
+<p>
+  <b>45 dated flood reports</b>, of which <b>19</b> are independently
+  corroborated against two rainfall records, and <b>3 precise coordinates</b>
+  from a resident. Those are not training data — they are <b>checks</b>,
+  gathered afterwards to test whether the ranking points at places that really
+  flood.
+</p>
+
+<div class="box key">
+  <b>The sentence that survives cross-examination</b>
+  <p>
+    <i>"We rank Madinah's 30,337 street segments by physical susceptibility to
+    standing water, classify 2,617 of them by mechanism so the remedy is clear,
+    and flag 47 underpasses the elevation model cannot see. Machine learning is
+    how we proved the method transfers between cities — the ranking that ships
+    is hydrology. Nothing has been validated in Madinah, because Madinah has no
+    flood records; the 19 corroborated reports we gathered are the first."</i>
+  </p>
+</div>
+
+<div class="foot">
+  Every plate on this page is rendered directly from the project's own data by
+  <code>research/render_explainer_figs.py</code> — the Copernicus DEM tile, the
+  OSM way dump, and the scored segment tables. Nothing is an illustration of the
+  data; each one <i>is</i> the data. Sources: Copernicus DEM GLO-30 (ESA),
+  OpenStreetMap contributors, NYC / Chicago / San Francisco / Dallas open 311
+  datasets, ERA5 and NASA POWER rainfall archives, Saudi Press Agency.
+</div>
+
+</div>

@@ -1,0 +1,475 @@
+<title>قاموس خصائص مِطياف</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root {
+    --forest:   #1B4D33;
+    --forest-2: #2A6B47;
+    --mint:     #EDF4EE;
+    --mint-2:   #DCEADF;
+    --ground:   #F6F9F5;
+    --panel:    #FFFFFF;
+    --ink:      #13201A;
+    --ink-2:    #4A5C51;
+    --ink-3:    #74857B;
+    --gold:     #A8823F;
+    --rule:     #C9DACE;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --forest:   #7FCB9C;
+      --forest-2: #5FB483;
+      --mint:     #16241C;
+      --mint-2:   #1D2F24;
+      --ground:   #0B1310;
+      --panel:    #101A15;
+      --ink:      #E6F0E9;
+      --ink-2:    #A9BCB0;
+      --ink-3:    #7C8F84;
+      --gold:     #D6B173;
+      --rule:     #24382C;
+    }
+  }
+  :root[data-theme="dark"] {
+    --forest:   #7FCB9C;
+    --forest-2: #5FB483;
+    --mint:     #16241C;
+    --mint-2:   #1D2F24;
+    --ground:   #0B1310;
+    --panel:    #101A15;
+    --ink:      #E6F0E9;
+    --ink-2:    #A9BCB0;
+    --ink-3:    #7C8F84;
+    --gold:     #D6B173;
+    --rule:     #24382C;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans Arabic", system-ui, sans-serif;
+    direction: rtl;
+    margin: 0;
+    padding: clamp(1rem, 3vw, 2.75rem) clamp(0.9rem, 3vw, 2rem) 3.5rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 62rem; margin: 0 auto; }
+
+  /* ── header ─────────────────────────────────────────────── */
+  .header {
+    background: var(--forest);
+    border-radius: 999px;
+    padding: 1.05rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .7rem;
+    text-align: center;
+  }
+  :root:not([data-theme="light"]) .header { background: var(--mint-2); }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .header { background: var(--forest); }
+  }
+  :root[data-theme="light"] .header { background: var(--forest); }
+
+  .header h1 {
+    margin: 0;
+    font-size: clamp(1.02rem, 2.5vw, 1.42rem);
+    font-weight: 700;
+    color: #FFFFFF;
+    text-wrap: balance;
+    letter-spacing: -.01em;
+  }
+  :root:not([data-theme="light"]) .header h1 { color: var(--ink); }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .header h1 { color: #FFFFFF; }
+  }
+  :root[data-theme="light"] .header h1 { color: #FFFFFF; }
+
+  .header .sat { flex: none; color: currentColor; }
+  .header .sat svg { display: block; }
+
+  .lede {
+    max-width: 40rem;
+    margin: 1.5rem auto 0;
+    text-align: center;
+    color: var(--ink-2);
+    font-size: .96rem;
+  }
+  .lede b { color: var(--ink); font-weight: 600; }
+
+  /* ── group headings ─────────────────────────────────────── */
+  .group { margin-top: 2.6rem; }
+  .ghead {
+    display: flex;
+    align-items: baseline;
+    gap: .75rem;
+    padding-bottom: .6rem;
+    border-bottom: 2px solid var(--forest);
+    margin-bottom: 1.15rem;
+    flex-wrap: wrap;
+  }
+  .ghead h2 {
+    margin: 0;
+    font-size: 1.06rem;
+    font-weight: 700;
+    color: var(--forest);
+  }
+  .ghead .sub { font-size: .85rem; color: var(--ink-3); }
+  .ghead .cnt {
+    margin-inline-start: auto;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .78rem;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  /* ── feature pills ──────────────────────────────────────── */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: .85rem; }
+  @media (max-width: 46rem) { .grid { grid-template-columns: 1fr; } }
+
+  .feat {
+    background: var(--mint);
+    border: 1.5px solid var(--rule);
+    border-radius: 1.6rem;
+    padding: .95rem 1.15rem .95rem 1.15rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: .95rem;
+    align-items: start;
+  }
+
+  .glyph {
+    flex: none;
+    width: 52px; height: 52px;
+    border-radius: .85rem;
+    background: var(--panel);
+    border: 1.5px solid var(--rule);
+    color: var(--forest);
+    display: grid;
+    place-items: center;
+  }
+  .glyph svg { display: block; }
+
+  .fname {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 1.06rem;
+    font-weight: 600;
+    color: var(--ink);
+    direction: ltr;
+    unicode-bidi: isolate;
+    display: inline-block;
+    letter-spacing: -.02em;
+  }
+  .frow {
+    display: flex;
+    align-items: baseline;
+    gap: .6rem;
+    flex-wrap: wrap;
+  }
+  .pct {
+    margin-inline-start: auto;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--gold);
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+  .fdef {
+    margin: .3rem 0 .55rem;
+    font-size: .88rem;
+    color: var(--ink-2);
+    line-height: 1.62;
+  }
+  .bar {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--mint-2);
+    overflow: hidden;
+  }
+  .bar i { display: block; height: 100%; background: var(--gold); border-radius: 2px; }
+
+  /* ── footer finding ─────────────────────────────────────── */
+  .finding {
+    margin-top: 2.6rem;
+    background: var(--forest);
+    border-radius: 1.4rem;
+    padding: 1.5rem 1.7rem;
+    color: #FFFFFF;
+  }
+  :root:not([data-theme="light"]) .finding { background: var(--mint-2); color: var(--ink); }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .finding { background: var(--forest); color: #FFFFFF; }
+  }
+  :root[data-theme="light"] .finding { background: var(--forest); color: #FFFFFF; }
+
+  .finding .big { font-size: 1.16rem; font-weight: 700; margin: 0 0 .45rem; text-wrap: balance; }
+  .finding .why { margin: 0; font-size: .92rem; opacity: .88; }
+
+  /* ── the NDVI clarification ─────────────────────────────── */
+  .versus { margin-top: 2.6rem; }
+  .versus h2 {
+    font-size: 1.02rem; font-weight: 700; color: var(--forest);
+    margin: 0 0 .3rem;
+  }
+  .versus > p { margin: 0 0 1.15rem; font-size: .92rem; color: var(--ink-2); }
+  .cmp { display: grid; grid-template-columns: 1fr 1fr; gap: .85rem; }
+  @media (max-width: 46rem) { .cmp { grid-template-columns: 1fr; } }
+  .col {
+    border: 1.5px solid var(--rule);
+    border-radius: 1.1rem;
+    padding: 1.1rem 1.2rem;
+    background: var(--panel);
+  }
+  .col.ours { background: var(--mint); border-color: var(--forest); }
+  .col h3 { margin: 0 0 .5rem; font-size: .94rem; font-weight: 700; color: var(--ink); }
+  .col .kind {
+    font-size: .74rem; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--ink-3); font-weight: 600; margin-bottom: .35rem;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    direction: ltr; unicode-bidi: isolate;
+  }
+  .col p { margin: 0 0 .55rem; font-size: .87rem; color: var(--ink-2); line-height: 1.6; }
+  .col p:last-child { margin-bottom: 0; }
+  .col code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .82rem; color: var(--ink);
+    background: var(--mint-2); padding: .1rem .35rem; border-radius: .3rem;
+    direction: ltr; unicode-bidi: isolate; display: inline-block;
+  }
+
+  .foot {
+    margin-top: 2.4rem; padding-top: 1.1rem;
+    border-top: 1px solid var(--rule);
+    font-size: .8rem; color: var(--ink-3);
+    display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .foot code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    direction: ltr; unicode-bidi: isolate;
+  }
+</style>
+
+<div class="wrap">
+
+  <div class="header">
+    <span class="sat" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6.5 6.5 3 10l4 4 3.5-3.5z"/><path d="M13.5 13.5 10 17l4 4 3.5-3.5z"/>
+        <path d="m10.5 10.5 3 3"/><path d="M15 9a3 3 0 0 0-3-3"/><path d="M18 9a6 6 0 0 0-6-6"/>
+      </svg>
+    </span>
+    <h1>قاموس خصائص مِطياف.. دليلك السريع لقراءة نموذج غرق الشوارع</h1>
+  </div>
+
+  <p class="lede">
+    تسع خصائص فقط يقرأها النموذج لكل خليّة من <b>٢٠٠ × ٢٠٠ متر</b>. ستٌّ منها
+    تصف <b>شكل الأرض</b>، وثلاثٌ تصف <b>شكل المدينة</b>. ولا واحدة منها صورة.
+  </p>
+
+  <!-- ── group 1 ─────────────────────────────────────────── -->
+  <section class="group">
+    <div class="ghead">
+      <h2>من نموذج الارتفاع الرقمي — التضاريس</h2>
+      <span class="sub">ستّ خصائص تُحسب من شبكة ارتفاعات الأرض</span>
+      <span class="cnt">DEM · 50.9%</span>
+    </div>
+
+    <div class="grid">
+
+      <article class="feat">
+        <div class="glyph" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 11 L15 30 Q22 37 29 30 L39 11"/>
+            <path d="M11 25 H33" stroke-dasharray="3 3"/>
+          </svg>
+        </div>
+        <div>
+          <div class="frow"><span class="fname">sink</span><span class="pct">11.7%</span></div>
+          <p class="fdef">عمق الحفرة المغلقة التي لا مخرج لها. أقرب تمثيل رياضي لكلمة «بِركة».</p>
+          <div class="bar"><i style="width:45%"></i></div>
+        </div>
+      </article>
+
+      <article class="feat">
+        <div class="glyph" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="15" cy="12" r="3"/>
+            <path d="M15 16 V30"/><path d="M12 27 l3 3 3-3"/>
+            <path d="M4 34 q6-4 11 0 t11 0 t8-2"/>
+          </svg>
+        </div>
+        <div>
+          <div class="frow"><span class="fname">hand</span><span class="pct">10.3%</span></div>
+          <p class="fdef">كم يرتفع الموقع فوق أقرب خطّ تصريف طبيعي. الاسم اختصار لـ Height Above Nearest Drainage.</p>
+          <div class="bar"><i style="width:40%"></i></div>
+        </div>
+      </article>
+
+      <article class="feat">
+        <div class="glyph" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 26 q8-14 18-2 t18-6"/>
+            <path d="M4 33 H40" stroke-dasharray="4 4"/>
+            <path d="M22 24 V33"/>
+          </svg>
+        </div>
+        <div>
+          <div class="frow"><span class="fname">relelev</span><span class="pct">9.6%</span></div>
+          <p class="fdef">هل الموقع منخفضٌ عن جيرانه أم مرتفعٌ عنهم؟ يُقاس مقابل متوسّط منزلق ١٧×١٧ خليّة.</p>
+          <div class="bar"><i style="width:37%"></i></div>
+        </div>
+      </article>
+
+      <article class="feat">
+        <div class="glyph" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 6 q6 10 11 12"/><path d="M20 6 q0 8 -2 12"/><path d="M33 6 q-6 10 -11 12"/>
+            <path d="M18 18 q4 8 4 20"/>
+          </svg>
+        </div>
+        <div>
+          <div class="frow"><span class="fname">logacc</span><span class="pct">7.1%</span></div>
+          <p class="fdef">كم من المساحة العُليا يصرّف ماؤها مارّاً عبر هذه النقطة بالذات.</p>
+          <div class="bar"><i style="width:27%"></i></div>
+        </div>
+      </article>
+
+      <article class="feat">
+        <div class="glyph" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 34 H38"/><path d="M6 34 L30 12"/>
+            <path d="M6 34 a12 12 0 0 1 4-9" stroke-dasharray="3 3"/>
+          </svg>
+        </div>
+        <div>
+          <div class="frow"><span class="fname">slope</span><span class="pct">6.2%</span></div>
+          <p class="fdef">انحدار السطح بالدرجات. والأرض المستوية تصرّف ببطء.</p>
+          <div class="bar"><i style="width:24%"></i></div>
+        </div>
+      </article>
+
+      <article class="feat">
+        <div class="glyph" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="22" cy="27" rx="16" ry="7"/>
+            <ellipse cx="22" cy="27" rx="9" ry="4"/>
+            <path d="M22 6 V14"/><path d="M19 11 l3 3 3-3"/>
+          </svg>
+        </div>
+        <div>
+          <div class="frow"><span class="fname">twi</span><span class="pct">6.0%</span></div>
+          <p class="fdef">ميل الموقع لتجميع الماء، ويُحسب من المساحة المصرِّفة مقسومةً على الميل.</p>
+          <div class="bar"><i style="width:23%"></i></div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ── group 2 ─────────────────────────────────────────── -->
+  <section class="group">
+    <div class="ghead">
+      <h2>من خريطة الشوارع المفتوحة — الشكل الحضري</h2>
+      <span class="sub">ثلاث خصائص تُحسب من هندسة الطرق</span>
+      <span class="cnt">OSM · 49.1%</span>
+    </div>
+
+    <div class="grid">
+
+      <article class="feat">
+        <div class="glyph" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <path d="M6 6 V38"/><path d="M16 6 V38"/><path d="M26 6 V38"/><path d="M36 6 V38"/>
+            <path d="M6 13 H38"/><path d="M6 22 H38"/><path d="M6 31 H38"/>
+          </svg>
+        </div>
+        <div>
+          <div class="frow"><span class="fname">road_density</span><span class="pct">26.0%</span></div>
+          <p class="fdef">كم متراً من الطريق في كل كيلومتر مربّع. أعلى خاصية وزناً في النموذج كلّه.</p>
+          <div class="bar"><i style="width:100%"></i></div>
+        </div>
+      </article>
+
+      <article class="feat">
+        <div class="glyph" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-linecap="round">
+            <path d="M4 22 H40" stroke-width="6"/>
+            <path d="M12 6 V38" stroke-width="1.8"/>
+            <path d="M24 6 V38" stroke-width="1.8"/>
+            <path d="M34 6 V38" stroke-width="1.8"/>
+          </svg>
+        </div>
+        <div>
+          <div class="frow"><span class="fname">major_frac</span><span class="pct">12.9%</span></div>
+          <p class="fdef">حصّة الطرق الشريانية من إجمالي طول الطرق داخل الخليّة.</p>
+          <div class="bar"><i style="width:50%"></i></div>
+        </div>
+      </article>
+
+      <article class="feat">
+        <div class="glyph" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 6 V17"/><path d="M8 14 l3 3 3-3"/>
+            <path d="M22 6 V17"/><path d="M19 14 l3 3 3-3"/>
+            <path d="M33 6 V17"/><path d="M30 14 l3 3 3-3"/>
+            <path d="M5 24 H39" stroke-width="5"/>
+            <path d="M5 34 H39" stroke-dasharray="4 4" stroke-width="1.8"/>
+          </svg>
+        </div>
+        <div>
+          <div class="frow"><span class="fname">load_per_road</span><span class="pct">10.2%</span></div>
+          <p class="fdef">الماء الوارد مقسوماً على طول الطريق. الخاصية <b>المُهندَسة</b> الوحيدة في النموذج.</p>
+          <div class="bar"><i style="width:39%"></i></div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ── the finding ─────────────────────────────────────── -->
+  <div class="finding">
+    <p class="big">كثافة الطرق ونسبة الشرايين معاً تحملان ٣٨٫٨٪ من وزن النموذج — أعلى من أي متغيّر تضاريسي منفرد.</p>
+    <p class="why">
+      وهذه النتيجة خالفت توقّع الفريق. والآليّة هي النفاذية: الشبكة الكثيفة تغرق
+      نحو ثلاثة أضعاف المتفرّقة — من ١٣٫٧٪ إلى ٤٠٫٢٪ عبر أخماس كثافة الطرق.
+    </p>
+  </div>
+
+  <!-- ── what these are NOT ──────────────────────────────── -->
+  <section class="versus">
+    <h2>وما الفرق بينها وبين مؤشّرات مثل NDVI؟</h2>
+    <p>سؤال يُطرح كثيراً، والجواب أنّهما عائلتان مختلفتان تماماً.</p>
+    <div class="cmp">
+      <div class="col">
+        <div class="kind">spectral indices</div>
+        <h3>المؤشّرات الطيفية — NDVI · NDWI · SAVI</h3>
+        <p>تُحسب من <b>حزم الانعكاس</b> في صورة متعدّدة الأطياف. مثال:
+          <code>NDVI = (NIR − Red) ÷ (NIR + Red)</code></p>
+        <p>تقيس كيف <b>يعكس السطح الضوء</b> — فتخبرك عن صحّة النبات أو رطوبته.
+          وتحتاج صورة صافية في كل مرور.</p>
+      </div>
+      <div class="col ours">
+        <div class="kind">shape features</div>
+        <h3>خصائص مِطياف التسع</h3>
+        <p>تُحسب من <b>هندسة الارتفاع</b> و<b>هندسة الطرق</b>. ولا تلمس أيّ حزمة
+          انعكاس، والنموذج لا يستهلك صوراً إطلاقاً.</p>
+        <p>تقيس <b>شكل المكان</b> — ولهذا يعمل النموذج في مدينة لا سجلّ غرق فيها:
+          فالشكل مرصود في كل مكان، والغرق ليس كذلك.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span>مِطياف · برمجان المنوّرة ٢٠٢٦</span>
+    <span>المصدر: <code>MODEL-CARD.md</code> §٥٫٣ — مجموع الأوزان ١٠٠٫٠٪</span>
+  </div>
+
+</div>

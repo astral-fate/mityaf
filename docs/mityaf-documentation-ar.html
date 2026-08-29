@@ -1,0 +1,1345 @@
+<title>مِطياف — التوثيق الشامل</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root {
+    --paper:     #F6F8FA;
+    --surface:   #FFFFFF;
+    --surface-2: #EDF1F5;
+    --ink:       #0F131A;
+    --ink-2:     #515967;
+    --ink-3:     #838B99;
+    --rule:      #E0E5EB;
+    --rule-firm: #C4CBD4;
+    --accent:    #1B5E8C;
+    --accent-bg: #E3EDF5;
+    --ok:        #1E6B41;
+    --ok-bg:     #E4EFE8;
+    --warn:      #8A5A12;
+    --warn-bg:   #F4ECDC;
+    --danger:    #9E3327;
+    --danger-bg: #F6E7E4;
+
+    --display: "Readex Pro", "IBM Plex Sans Arabic", system-ui, sans-serif;
+    --body: "IBM Plex Sans Arabic", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0D1015; --surface: #151A21; --surface-2: #1D242D;
+      --ink: #E7ECF2; --ink-2: #9CA5B3; --ink-3: #6F7784;
+      --rule: #242B35; --rule-firm: #353E4A;
+      --accent: #74B8E6; --accent-bg: #132430;
+      --ok: #63D98E; --ok-bg: #14291D;
+      --warn: #DCAF63; --warn-bg: #2A2214;
+      --danger: #E88C7E; --danger-bg: #2E1917;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0D1015; --surface: #151A21; --surface-2: #1D242D;
+    --ink: #E7ECF2; --ink-2: #9CA5B3; --ink-3: #6F7784;
+    --rule: #242B35; --rule-firm: #353E4A;
+    --accent: #74B8E6; --accent-bg: #132430;
+    --ok: #63D98E; --ok-bg: #14291D;
+    --warn: #DCAF63; --warn-bg: #2A2214;
+    --danger: #E88C7E; --danger-bg: #2E1917;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    direction: rtl; background: var(--paper); color: var(--ink);
+    font-family: var(--body); font-size: 16px; line-height: 1.75;
+    margin: 0; padding: 0 1.25rem 6rem; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 78rem; margin: 0 auto; }
+
+  /* ── masthead ── */
+  .masthead { padding: 4rem 0 2rem; border-bottom: 2px solid var(--ink); }
+  .eyebrow {
+    font-family: var(--mono); font-size: .75rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 1rem;
+  }
+  h1 {
+    font-family: var(--display); font-weight: 600;
+    font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.2;
+    margin: 0 0 .75rem; text-wrap: balance;
+  }
+  .standfirst { font-size: 1.15rem; color: var(--ink-2); max-width: 52ch; margin: 0 0 2rem; }
+  .facts { display: flex; flex-wrap: wrap; gap: 0 2.5rem; }
+  .fact { padding-bottom: 1rem; }
+  .fact dt {
+    font-family: var(--mono); font-size: .7rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-3); margin-bottom: .15rem;
+  }
+  .fact dd { margin: 0; font-weight: 600; font-size: 1.02rem; font-variant-numeric: tabular-nums; }
+
+  /* ── layout ── */
+  .grid { display: grid; grid-template-columns: 17rem 1fr; gap: 3rem; margin-top: 2.5rem; }
+  @media (max-width: 62rem) { .grid { grid-template-columns: 1fr; gap: 1.5rem; } }
+
+  nav.toc { position: sticky; top: 1.5rem; align-self: start; max-height: calc(100vh - 3rem); overflow-y: auto; }
+  @media (max-width: 62rem) { nav.toc { position: static; max-height: none; } }
+  nav.toc h2 {
+    font-family: var(--mono); font-size: .7rem; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0 0 .75rem; font-weight: 500;
+  }
+  nav.toc ol { list-style: none; margin: 0 0 1.4rem; padding: 0; }
+  nav.toc li { margin-bottom: .1rem; }
+  nav.toc a {
+    display: block; color: var(--ink-2); text-decoration: none;
+    font-size: .88rem; padding: .22rem .5rem .22rem 0;
+    border-inline-start: 2px solid transparent; line-height: 1.45;
+  }
+  nav.toc a:hover { color: var(--accent); border-inline-start-color: var(--accent); }
+  nav.toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  nav.toc .part {
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .1em;
+    color: var(--accent); text-transform: uppercase; margin: 1.1rem 0 .4rem; font-weight: 500;
+  }
+
+  /* ── sections ── */
+  section { scroll-margin-top: 1.5rem; }
+  h2.sec {
+    font-family: var(--display); font-weight: 600; font-size: 1.75rem;
+    margin: 3.5rem 0 .3rem; padding-top: 1.5rem; border-top: 2px solid var(--ink);
+    text-wrap: balance;
+  }
+  h2.sec:first-of-type { margin-top: 0; }
+  h2.sec .n { font-family: var(--mono); font-size: 1rem; color: var(--accent); margin-inline-end: .6rem; font-weight: 500; }
+  .lede { font-size: 1.05rem; color: var(--ink-2); margin: 0 0 1.5rem; max-width: 66ch; }
+  h3 { font-family: var(--display); font-weight: 500; font-size: 1.22rem; margin: 2.2rem 0 .6rem; }
+  h4 { font-size: 1.02rem; font-weight: 600; margin: 1.5rem 0 .4rem; }
+  p { margin: 0 0 1rem; max-width: 68ch; }
+  ul, ol.body { max-width: 68ch; padding-inline-start: 1.3rem; }
+  li { margin-bottom: .4rem; }
+  strong { font-weight: 600; }
+  code {
+    font-family: var(--mono); font-size: .88em; background: var(--surface-2);
+    padding: .1em .35em; border-radius: 3px; direction: ltr; display: inline-block;
+  }
+
+  /* ── tables ── */
+  .scroll { overflow-x: auto; margin: 1.2rem 0 1.6rem; }
+  table { width: 100%; min-width: 34rem; border-collapse: collapse; font-size: .92rem; }
+  th {
+    text-align: right; font-family: var(--mono); font-size: .68rem;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3);
+    font-weight: 500; padding: 0 .9rem .6rem 0; border-bottom: 1px solid var(--rule-firm);
+    white-space: nowrap;
+  }
+  td { padding: .7rem .9rem .7rem 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: .88rem; white-space: nowrap; }
+  .hi { background: var(--accent-bg); }
+
+  /* ── callouts ── */
+  .box { border-radius: 6px; padding: 1.15rem 1.35rem; margin: 1.5rem 0; max-width: 68ch; border-inline-start: 3px solid; }
+  .box p:last-child { margin-bottom: 0; }
+  .box .lead { display: block; font-family: var(--display); font-weight: 500; margin-bottom: .35rem; }
+  .box.note { background: var(--accent-bg); border-color: var(--accent); }
+  .box.note .lead { color: var(--accent); }
+  .box.limit { background: var(--warn-bg); border-color: var(--warn); }
+  .box.limit .lead { color: var(--warn); }
+  .box.hard { background: var(--danger-bg); border-color: var(--danger); }
+  .box.hard .lead { color: var(--danger); }
+  .box.ok { background: var(--ok-bg); border-color: var(--ok); }
+  .box.ok .lead { color: var(--ok); }
+
+  .src { font-size: .82rem; color: var(--ink-3); margin-top: .4rem; }
+  .pending { color: var(--warn); font-weight: 600; }
+
+  /* ── stat strip ── */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .8rem; margin: 1.4rem 0 1.8rem; }
+  .stat { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 1rem 1.1rem; }
+  .stat b { display: block; font-family: var(--display); font-size: 1.7rem; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1.15; }
+  .stat span { display: block; font-size: .85rem; color: var(--ink-2); margin-top: .25rem; }
+
+  /* ── boundary two-column ── */
+  .bound { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.4rem 0; }
+  @media (max-width: 48rem) { .bound { grid-template-columns: 1fr; } }
+  .bound > div { border-radius: 6px; padding: 1.15rem 1.3rem; }
+  .bound .no { background: var(--danger-bg); border: 1px solid var(--danger); }
+  .bound .yes { background: var(--ok-bg); border: 1px solid var(--ok); }
+  .bound h4 { margin-top: 0; }
+  .bound .no h4 { color: var(--danger); }
+  .bound .yes h4 { color: var(--ok); }
+  .bound ul { margin: 0; padding-inline-start: 1.1rem; }
+  .bound li { font-size: .93rem; }
+
+  footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--rule); font-size: .85rem; color: var(--ink-3); }
+  a { color: var(--accent); }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+
+  /* ── print / PDF ──────────────────────────────────────────
+     The screen layout is a sticky two-column grid with horizontally
+     scrolling tables; neither paginates. Print gets a single column,
+     the ToC as its own page, and a page break before every section. */
+  @media print {
+    @page { size: A4; margin: 17mm 15mm 18mm; }
+
+    :root {
+      /* Readex Pro is a variable font, and Chromium's PDF backend cannot embed
+         a variable instance: headings came out as Type3 glyph outlines rather
+         than real embedded text. Shaping was fine either way, but Type3 costs
+         ~200 KB and degrades in some readers. IBM Plex Sans Arabic is static
+         and embeds as Type0/Identity-H, so print uses it for display too.
+         Screen keeps the Readex/Plex pairing. */
+      --display: "IBM Plex Sans Arabic", system-ui, sans-serif;
+      --paper: #FFFFFF; --surface: #FFFFFF; --surface-2: #F1F4F7;
+      --ink: #0F131A; --ink-2: #454D5A; --ink-3: #6E7684;
+      --rule: #D8DEE5; --rule-firm: #B4BCC6;
+      --accent: #17516F; --accent-bg: #EAF2F8;
+      --ok: #1A5C38; --ok-bg: #EAF3EC;
+      --warn: #7A4F10; --warn-bg: #F7F0E2;
+      --danger: #8C2C22; --danger-bg: #FAEBE8;
+    }
+
+    body { background: #fff; font-size: 10.4pt; line-height: 1.62; padding: 0; }
+    .shell { max-width: none; }
+    .grid { display: block; margin-top: 0; }
+
+    /* cover, then contents, each on its own page */
+    .masthead { padding: 0 0 1.5rem; break-after: page; }
+    h1 { font-size: 30pt; }
+    .standfirst { font-size: 12pt; }
+
+    nav.toc { position: static; max-height: none; break-after: page; }
+    nav.toc a { color: var(--ink-2); }
+
+    h2.sec { break-before: page; break-after: avoid; font-size: 17pt; padding-top: 0; }
+    h3, h4 { break-after: avoid; }
+    .lede { break-after: avoid; }
+    p, li { orphans: 3; widows: 3; }
+
+    /* tables scroll on screen; on paper they must simply fit */
+    .scroll { overflow: visible; margin: .8rem 0 1.1rem; }
+    table { min-width: 0; font-size: 9pt; }
+    th, td { padding-inline-end: .55rem; }
+    thead { display: table-header-group; }
+    tr, .box, .stat, .bound > div { break-inside: avoid; }
+
+    .stats { grid-template-columns: repeat(3, 1fr); }
+    .bound { grid-template-columns: 1fr 1fr; }
+    a { color: var(--ink); text-decoration: none; }
+    footer { break-before: page; }
+  }
+</style>
+
+<div class="shell">
+
+<header class="masthead">
+  <p class="eyebrow">مِطياف · Mityaf — برمجان المنورة 2026</p>
+  <h1>التوثيق الشامل</h1>
+  <p class="standfirst">
+    كل ما في المنظومة في مستند واحد: المشكلة كما هي في الواقع، والحوادث الموثّقة،
+    وكل ميزة في المنصّة، ومعمارية النموذج وبياناته ومقاييس تقييمه — وحدوده.
+  </p>
+  <dl class="facts">
+    <div class="fact"><dt>النطاق</dt><dd>غرق الشوارع — لا غير</dd></div>
+    <div class="fact"><dt>المدينة</dt><dd>المدينة المنورة · 545 كم²</dd></div>
+    <div class="fact"><dt>وحدة القياس</dt><dd>30,337 مقطع شارع</dd></div>
+    <div class="fact"><dt>الجمهور</dt><dd>الفريق — مرجع داخلي</dd></div>
+  </dl>
+</header>
+
+<div class="grid">
+
+<nav class="toc">
+  <h2>المحتويات</h2>
+  <div class="part">الجزء ١ — المشكلة</div>
+  <ol>
+    <li><a href="#s1">الخلاصة في صفحة</a></li>
+    <li><a href="#s2">المشكلة بلغة بسيطة</a></li>
+    <li><a href="#s3">ما حدث فعلاً</a></li>
+    <li><a href="#s4">أين يقف مِطياف وأين لا يقف</a></li>
+    <li><a href="#s5">لماذا المدينة المنورة</a></li>
+    <li><a href="#s6">لماذا الآن</a></li>
+    <li><a href="#s7">كيف تُدار المشكلة اليوم</a></li>
+  </ol>
+  <div class="part">الجزء ٢ — ما نبنيه</div>
+  <ol start="8">
+    <li><a href="#s8">تعريف المنتج</a></li>
+    <li><a href="#s9">المستخدمون وقراراتهم</a></li>
+    <li><a href="#s10">كل ميزة صفحةً بصفحة</a></li>
+  </ol>
+  <div class="part">الجزء ٣ — البيانات</div>
+  <ol start="11">
+    <li><a href="#s11">المصادر</a></li>
+    <li><a href="#s12">الوحدات</a></li>
+  </ol>
+  <div class="part">الجزء ٤ — النموذج</div>
+  <ol start="13">
+    <li><a href="#s13">السؤال العلمي</a></li>
+    <li><a href="#s14">الحقيقة الأرضية</a></li>
+    <li><a href="#s15">الخصائص التسع</a></li>
+    <li><a href="#s16">المنهجية</a></li>
+    <li><a href="#s17">لماذا PR-AUC لا الدقّة</a></li>
+    <li><a href="#s18">النتائج</a></li>
+    <li><a href="#s19">حدود النموذج</a></li>
+  </ol>
+  <div class="part">الجزء ٥ — النظام</div>
+  <ol start="20">
+    <li><a href="#s20">المعمارية</a></li>
+    <li><a href="#s21">خطّ المعالجة</a></li>
+  </ol>
+  <div class="part">الجزء ٦ — التحقّق</div>
+  <ol start="22">
+    <li><a href="#s22">ما تحقّقنا منه</a></li>
+    <li><a href="#s23">خارطة الطريق</a></li>
+  </ol>
+  <div class="part">ملحق</div>
+  <ol start="24">
+    <li><a href="#s24">معجم المصطلحات</a></li>
+    <li><a href="#s25">جدول الأرقام</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ══════════ 1 ══════════ -->
+<section id="s1">
+<h2 class="sec"><span class="n">٠١</span>الخلاصة في صفحة</h2>
+<p class="lede">إن قرأتِ قسماً واحداً فليكن هذا.</p>
+
+<p>
+  يهطل على المدينة المنورة ملّيمتر مطر أو أكثر في <strong>٢٫٣٪</strong> من أيامها
+  — نحو ثمانية أيام في السنة. وهذه الأيام الثمانية وحدها هي التي تُغلق الشوارع. والمفارقة أنّ
+  <strong>الندرة نفسها هي المشكلة</strong>: لأنّ المطر نادر، لا تبني المدينة
+  ذاكرة تشغيلية عن أين يقف الماء، فتُدار كل حالة مطرية كأنها الأولى.
+</p>
+<p>
+  والمعالجة اليوم <strong>ردّة فعل</strong>: يغرق الشارع، فيُبلَّغ عنه، فيصل
+  الصهريج ليشفط الماء. والمقطع نفسه يغرق في الحالة المطرية التالية. والحيّ الذي
+  لا يشتكي لا يظهر في أي خريطة — لا لأنه سليم، بل لأنه صامت.
+</p>
+<p>
+  <strong>مِطياف</strong> يقيّم <strong>٣٠٬٣٣٧ مقطع شارع</strong> في المدينة من
+  نموذج الارتفاع وخرائط الشوارع، ويعطي كل مقطع درجة خطر وسبباً مكتوباً وإجراءً
+  مقترحاً — قبل الموسم، لا بعد الغرق.
+</p>
+
+<div class="stats">
+  <div class="stat"><b>30,337</b><span>مقطع شارع مُقيَّم</span></div>
+  <div class="stat"><b>6,068</b><span>مقطعاً مرتفع أو حرج</span></div>
+  <div class="stat"><b>1,517</b><span>مقطعاً حرجاً</span></div>
+  <div class="stat"><b>483</b><span>يكفيها تنظيف مصارف</span></div>
+  <div class="stat"><b>327 كم</b><span>طول أعلى 2,000 مقطع</span></div>
+  <div class="stat"><b>101,756</b><span>بلاغاً دُرِّب عليه النموذج</span></div>
+</div>
+
+<div class="box ok">
+  <span class="lead">الجملة التي تختصر كل شيء</span>
+  <p>اليوم يعرف الشارع أنه غرق حين يصل الصهريج. ومع مِطياف، يُعرف قبل أن تنزل القطرة الأولى.</p>
+</div>
+</section>
+
+<!-- ══════════ 2 ══════════ -->
+<section id="s2">
+<h2 class="sec"><span class="n">٠٢</span>المشكلة بلغة بسيطة</h2>
+<p class="lede">ماء يقف على شارع، ولا أحد يعرف أين سيقف قبل أن يقف.</p>
+
+<p>
+  حين تمطر، لا يذهب كل الماء إلى المصارف. جزء منه يقف. ويقف في أماكن بعينها
+  تتكرّر كل موسم: منخفض في الأرض لا مخرج له، أو شارع أوطأ من محيطه، أو نقطة
+  تتجمّع عندها مياه شوارع كثيرة فوقها.
+</p>
+<p>
+  المشكلة ليست أنّ الماء يقف. المشكلة أنّ <strong>أحداً لا يعرف أين سيقف قبل أن
+  يقف</strong>. ولذلك تبدأ المعرفة دائماً من الضرر: يغرق الشارع، فيتضرّر أحد،
+  فيُبلِّغ، فتتحرّك الأمانة.
+</p>
+
+<h3>ثلاث كلمات تتكرّر في هذا المستند</h3>
+<div class="scroll"><table>
+  <thead><tr><th>المصطلح</th><th>المقصود به هنا</th></tr></thead>
+  <tbody>
+    <tr><td><strong>وقوف الماء</strong> (ponding)</td><td>ماء يبقى على سطح شارع بعد المطر. هذه مشكلتنا.</td></tr>
+    <tr><td><strong>سيل الوادي</strong> (flash flood)</td><td>موجة ماء تندفع في مجرى وادٍ. <strong>ليست</strong> مشكلتنا — انظري القسم ٤.</td></tr>
+    <tr><td><strong>القابلية</strong> (susceptibility)</td><td>ميل مقطع الشارع لأن يقف عليه الماء، بحكم شكله وتضاريسه. ليست تنبّؤاً بحدث بعينه.</td></tr>
+  </tbody>
+</table></div>
+
+<div class="box note">
+  <span class="lead">فرق جوهري: قابلية لا تنبّؤ</span>
+  <p>
+    مِطياف لا يقول «سيغرق هذا الشارع يوم الثلاثاء». يقول «هذا الشارع، بحكم أنه
+    في منخفض عمقه مترين وتحيط به شبكة طرق كثيفة، <strong>أكثر عرضة</strong> لوقوف
+    الماء من ذاك». الفرق بين القابلية والتنبّؤ هو الفرق بين خطة موسم وبين نشرة جوية.
+  </p>
+</div>
+</section>
+
+<!-- ══════════ 3 ══════════ -->
+<section id="s3">
+<h2 class="sec"><span class="n">٠٣</span>ما حدث فعلاً</h2>
+<p class="lede">حوادث موثّقة من مصادر منشورة. تُذكر لأنها تشرح لماذا يهتمّ أحد بهذا الموضوع أصلاً — لا لأنّ مِطياف كان سيمنعها.</p>
+
+<h3>جازان — ٤ أغسطس ٢٠٢٤</h3>
+<p>
+  حالة مطرية لم تشهدها المنطقة منذ خمس سنوات. انهار جزء من الجسر الرابط بين
+  محافظتَي <strong>صبيا وأبو عريش</strong> فوق وادي جازان، فسقطت مركبتان —
+  <strong>وفاة و٥ إصابات</strong>. وفي الحادثة نفسها جرفت سيول <strong>وادي
+  الخمس</strong> رجلاً وزوجته؛ توفيت الزوجة، ثم لحق بها الزوج بعد يومين في
+  العناية الفائقة. <strong>إجمالي ٣ وفيات</strong>.
+</p>
+<p>
+  ورافق ذلك انقطاع كهرباء لساعات عن قرى وأحياء، وانهيار طريق عند المدخل الغربي
+  لأبو عريش، ودخول المياه للأدوار الأرضية بمستشفى الملك فهد المركزي. وأعلن
+  <strong>المركز الوطني لسلامة النقل</strong> بدء التحقيق.
+</p>
+<p class="src">المصدر: صحيفة عكاظ · العربية · المركز الوطني لسلامة النقل</p>
+
+<h3>جدة — نوفمبر ٢٠٠٩ ويناير ٢٠١١</h3>
+<p>
+  أسوأ فيضان منذ ٢٧ عاماً بوصف الدفاع المدني. <strong>١٢٢ وفاة</strong> وأكثر من
+  <strong>٣٥٠ مفقوداً</strong>. سقط أكثر من <strong>٧٠ ملم في أربع ساعات</strong>،
+  وغرقت طرق تحت متر من الماء، وجُرفت أو تضرّرت <strong>٣٬٠٠٠+ مركبة</strong>.
+</p>
+<p>
+  وتكرّر الأمر في يناير ٢٠١١: <strong>١١١ ملم في ثلاث ساعات</strong> →
+  <strong>١٠ وفيات</strong>. أنقذت الفرق الأرضية ١٬٤٥١ شخصاً والمروحيات ٤٩٨.
+  وتُقدَّر أضرار الحدثين مجتمعين بنحو <strong>٣ مليارات دولار</strong>.
+</p>
+<p class="src">المصدر: CNN · دراسات محكّمة منشورة عن فيضانات جدة ٢٠٠٩ و٢٠١١</p>
+
+<h3>المدينة المنورة — أغسطس ٢٠٢٤</h3>
+<p>
+  سيول وُصفت بـ«غير المسبوقة» غمرت شوارع وأحياء في المدينة، وسُجّلت أمطار غزيرة
+  عند المسجد النبوي. وثّق مقطع مصوّر إنقاذ طفل احتُجز وسط سيل جارٍ. وباشر الدفاع
+  المدني حادثة انجراف مركبة في <strong>وادي العوينة</strong> — أُنقذ شخص
+  وانتُشل آخر متوفّى.
+</p>
+<p class="src">المصدر: مونت كارلو الدولية · العربية · صحيفة صراحة</p>
+
+<div class="box hard">
+  <span class="lead">قبل أن تُقرأ هذه الحوادث خطأً</span>
+  <p>
+    حادثتا جازان وجدة <strong>سيول أودية</strong>: موجة ماء تندفع في مجرى وتجرف
+    ما أمامها. وليستا «وقوف ماء على شارع سكني». القسم التالي يفصل الأمرين، ويقول
+    بالضبط ما لا يفعله مِطياف — قبل أن يُسأل عنه.
+  </p>
+</div>
+</section>
+
+<!-- ══════════ 4 ══════════ -->
+<section id="s4">
+<h2 class="sec"><span class="n">٠٤</span>أين يقف مِطياف — وأين لا يقف</h2>
+<p class="lede">أهم قسم في المستند. ادّعاء واحد زائد يُسقط أحد عشر ادّعاءً صحيحاً معه.</p>
+
+<div class="bound">
+  <div class="no">
+    <h4>✘ ما لا يفعله مِطياف</h4>
+    <ul>
+      <li>لا يتنبّأ بموجة سيل في وادٍ، ولا بزمن وصولها ولا بسرعتها</li>
+      <li>لا يقيّم سلامة جسر ولا نحر أساساته</li>
+      <li>لا يقيس <strong>عمق</strong> الماء — لا يعرف إن كان ٥ سم أم نصف متر</li>
+      <li>لا يقول «سيغرق هذا الشارع غداً» — لا يتنبّأ بحدث بتاريخه</li>
+      <li>لا يحلّ محلّ دراسة هيدروليكية للشبكة</li>
+      <li>لا يرصد الغرق لحظة وقوعه — دورة القمر خمسة أيام</li>
+    </ul>
+  </div>
+  <div class="yes">
+    <h4>✓ ما يفعله مِطياف</h4>
+    <ul>
+      <li>يرتّب <strong>٣٠٬٣٣٧ مقطع شارع</strong> بقابليتها لوقوف الماء</li>
+      <li>يعطي كل مقطع <strong>سبباً مكتوباً</strong> قابلاً للمراجعة</li>
+      <li>يقترح إجراءً: تنظيف مصارف، أو فحص هندسي</li>
+      <li>يغطّي المدينة كاملة، بما فيها الأحياء التي لم يشتكِ منها أحد</li>
+      <li>يعمل <strong>قبل الموسم</strong> فيدخل خطة التصريف</li>
+      <li>بلا جهاز واحد يُركَّب في الأرض</li>
+    </ul>
+  </div>
+</div>
+
+<div class="box limit">
+  <span class="lead">الجملة التي تُقال في العرض إن سُئلتِ</span>
+  <p>
+    «مِطياف لا يمنع سيل وادٍ ولا ينقذ جسراً. مِطياف يجيب على سؤال أضيق بكثير
+    وأكثر قابلية للتنفيذ: <strong>أيّ ٣٢٧ كيلومتراً من شوارع المدينة تستحقّ
+    النظر قبل الموسم؟</strong>»
+  </p>
+</div>
+
+<p>
+  والرابط بين الأمرين حقيقي وإن اختلف النطاق: نفس خصائص التضاريس التي نحسبها —
+  الارتفاع فوق أقرب مجرى، وعمق المنخفض المغلق، وتراكم الجريان — هي التي تحدّد
+  أيّ الشوارع تقع في مسار ما يفيض من وادٍ أو في منخفض يتغذّى منه. فالأداة ذات
+  صلة بالعائلة نفسها من المخاطر، لكن بنطاق مختلف وادّعاء مختلف.
+</p>
+</section>
+
+<!-- ══════════ 5 ══════════ -->
+<section id="s5">
+<h2 class="sec"><span class="n">٠٥</span>لماذا المدينة المنورة تحديداً</h2>
+<p class="lede">مدينة بُنيت بين سبعة أودية، وشبكة صُمّمت لمدينة أصغر.</p>
+
+<p>
+  تخترق المدينةَ المنورة <strong>سبعة أودية</strong>. أشهرها <strong>وادي
+  العقيق</strong>، ويسمّى الوادي المبارك. و<strong>وادي بطحان</strong> يخترقها من
+  وسطها نحو الشمال الغربي، ويتكوّن من أربعة وديان صغيرة. و<strong>وادي
+  مذينب</strong> شعبة من بطحان ومصدرهما واحد من منطقة ذي الجدر.
+  و<strong>وادي قناة</strong> أكبرها، وأصله من وادي وج بالطائف. وتلتقي الثلاثة —
+  العقيق وقناة وبطحان — عند منطقة <strong>الزغابة</strong> شمال غرب المدينة
+  مكوّنةً <strong>وادي الحمض</strong>.
+</p>
+<p class="src">المصدر: وكالة الأنباء السعودية · الموسوعات الجغرافية</p>
+
+<div class="box note">
+  <span class="lead">تفصيلة تظهر في بياناتنا نفسها</span>
+  <p>
+    «<strong>وادي مذينب</strong>» ليس اسم وادٍ فقط — هو اسم <strong>حيّ</strong>
+    في المدينة، ويقع ضمن أكثر عشرة أحياء تعرّضاً في مخرجات المنصّة بـ<strong>١٢٨
+    مقطعاً</strong> مرتفع الخطورة أو حرجاً. حيٌّ سُمّي على وادٍ، ويظهر في قائمة
+    المخاطر المحسوبة من التضاريس وحدها.
+  </p>
+</div>
+
+<h3>الأحياء الأكثر تعرّضاً — من بيانات المنصّة</h3>
+<div class="scroll"><table>
+  <thead><tr><th>الحيّ</th><th>مقاطع مرتفعة أو حرجة</th></tr></thead>
+  <tbody>
+    <tr class="hi"><td>الدفاع</td><td class="num">345</td></tr>
+    <tr><td>الملك فهد</td><td class="num">230</td></tr>
+    <tr><td>الرانوناء</td><td class="num">187</td></tr>
+    <tr><td>الخالدية</td><td class="num">173</td></tr>
+    <tr><td>المغيسلة</td><td class="num">158</td></tr>
+    <tr><td>نبلاء</td><td class="num">153</td></tr>
+    <tr><td>بني حارثة</td><td class="num">144</td></tr>
+    <tr><td>شظاة</td><td class="num">139</td></tr>
+    <tr><td>الجامعة</td><td class="num">135</td></tr>
+    <tr><td>وادي مذينب</td><td class="num">128</td></tr>
+  </tbody>
+</table></div>
+
+<p>
+  و<strong>٧٣٪</strong> من المقاطع في أعلى ألفَي مقطع خطورة هي
+  <strong>شوارع سكنية</strong>، لا طرق سريعة. المشكلة داخل الأحياء التي لا يمرّ
+  بها إلا أهلها — وهذا سبب إضافي لقلّة البلاغات عنها.
+</p>
+</section>
+
+<!-- ══════════ 6 ══════════ -->
+<section id="s6">
+<h2 class="sec"><span class="n">٠٦</span>لماذا الآن</h2>
+<p class="lede">أمطار تشتدّ، وإنفاق ضخم بلا أداة مستقلّة تقيس أثره.</p>
+
+<h3>الأمطار المتطرّفة تتكثّف</h3>
+<p>
+  تشير دراسات المناخ للمملكة إلى نمط واضح: <strong>شدّة الحدث المطري الأقصى
+  ترتفع بينما المعدّل السنوي ينخفض</strong> — أي أحداث أعنف وأندر. وهذا بالضبط
+  النمط الذي تعيشه المدينة: ٢٫٣٪ من الأيام يهطل فيها ملّيمتر فأكثر، وأشدّ يوم في أرشيفنا
+  <strong>٦٥٫٦ ملم</strong>. والشبكة تُختبر في اليوم الأشدّ لا في المتوسّط.
+</p>
+<p class="src">المصدر: دراسات محكّمة ومنشورات UNESCWA والبنك الدولي عن مناخ المملكة</p>
+
+<div class="box note">
+  <b>كم يوماً ممطراً بالضبط؟</b>
+  <p>
+    «اليوم الممطر» ليس كمّيةً تُعرِّف نفسها — بل يتبع العتبة التي تَعُدّ عندها.
+    والمنظمة العالمية للأرصاد الجوية تَعُدّ اليوم ممطراً إذا هطل فيه
+    <strong>ملّيمتر واحد فأكثر</strong>، وهذه هي العتبة المعتمدة في هذا المستند.
+    ولأنّ الفارق يضاعف الرقم المُعلن ثلاث مرّات تقريباً، تحقّقنا منه عبر خمسة
+    مصادر مستقلّة عند مركز المدينة (٢٤٫٤٧° شمالاً، ٣٩٫٦١° شرقاً):
+  </p>
+  <div class="scroll">
+  <table>
+    <thead>
+      <tr><th>المصدر</th><th>النوع</th><th>‏≥ 0.1 ملم</th><th>‏≥ 1 ملم</th>
+          <th>‏≥ 5 ملم</th><th>المجموع السنوي</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Open-Meteo ERA5 · ‏2015–2026</td><td>إعادة تحليل</td>
+          <td class="num">21.3</td><td class="num"><strong>8.2</strong></td>
+          <td class="num">2.7</td><td class="num">53.8 ملم</td></tr>
+      <tr><td>Open-Meteo ERA5-seamless · ‏2015–2025</td><td>إعادة تحليل</td>
+          <td class="num">24.7</td><td class="num"><strong>7.9</strong></td>
+          <td class="num">1.6</td><td class="num">39.3 ملم</td></tr>
+      <tr><td>NASA POWER ‏(MERRA-2) · ‏2015–2025</td><td>إعادة تحليل</td>
+          <td class="num">13.5</td><td class="num"><strong>6.9</strong></td>
+          <td class="num">2.5</td><td class="num">50.7 ملم</td></tr>
+      <tr><td>محطة ‏OEMA · ‏Meteostat</td><td>مقياس مطر — مكتمل ‏33٪ فقط</td>
+          <td class="num">21.9</td><td class="num">12.1</td>
+          <td class="num">5.1</td><td class="num">96.8 ملم</td></tr>
+      <tr><td>المعدّلات المناخية المنشورة</td><td>تجميع</td>
+          <td class="num">11.7–24.6</td><td>—</td><td>—</td>
+          <td class="num">44–60 ملم</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="src">عدد الأيام في السنة عند مركز المدينة، بحسب عتبة الهطول.</p>
+  <p>
+    تتّفق عمليات إعادة التحليل الثلاث اتّفاقاً وثيقاً عند عتبة المنظمة العالمية
+    للأرصاد — بين <strong>٦٫٩ و٨٫٢ يوماً</strong> — ومن هذا الاتّفاق جاء تعبير
+    «نحو ثمانية أيام». أمّا مقياس المطر في مطار الأمير محمد بن عبدالعزيز فيعطي
+    عدداً أعلى، غير أنّ ثلث أيامه فقط منذ ٢٠١٥ تحمل قيمة هطول أصلاً، ومجموعه
+    السنوي نحو ضِعف ما تعطيه عمليات إعادة التحليل — أي أنّ أيامه الممطرة
+    مُمثَّلة تمثيلاً زائداً على الأرجح. نُورده للاكتمال ولا نبني عليه.
+  </p>
+  <p>
+    والعتبة أهمّ من اختيار المصدر: فعَدُّ <em>أي</em> أثر مطري مقيس يضاعف العدد
+    نحو ثلاث مرّات، إلى ما بين ثلاثة عشر وخمسة وعشرين يوماً — لكنّ أعشار
+    الملّيمتر لا تقف في شارع. أمّا الأيام التي تتجاوز <strong>٥ ملّيمترات</strong>،
+    وهي التي يقف فيها الماء فعلاً، فعددها <strong>يومان إلى ثلاثة في السنة</strong>.
+    وبهذه القراءة تصير حجّة الندرة أمضى لا أضعف.
+  </p>
+</div>
+
+
+<h3>الإنفاق قائم — والقياس غائب</h3>
+<p>
+  نفّذت وزارة البلديات والإسكان <strong>٤٥٤ ألف متر طولي</strong> من شبكات تصريف
+  مياه الأمطار في ٢٠٢٤ وحدها، مقابل ٢٩١ ألفاً في ٢٠٢٣، ليبلغ الإجمالي منذ إطلاق
+  البرنامج أكثر من <strong>٨ ملايين متر طولي</strong>.
+</p>
+<p>
+  ومع ذلك، لا توجد أداة مستقلّة تقول بعد سنة من التشغيل: هل نجح هذا المشروع
+  بعينه؟ يُقاس النجاح من تقرير المنفّذ نفسه.
+</p>
+<p class="src">المصدر: وزارة البلديات والإسكان — مبادرة تصريف مياه الأمطار ودرء أخطار السيول</p>
+</section>
+
+<!-- ══════════ 7 ══════════ -->
+<section id="s7">
+<h2 class="sec"><span class="n">٠٧</span>كيف تُدار المشكلة اليوم</h2>
+<p class="lede">ثلاث حلقات تجعل المعالجة ردّة فعل مهما بلغت كفاءتها.</p>
+
+<h3>١ — البلاغ يبدأ بعد الضرر</h3>
+<p>
+  «بلدي بلس» و«٩٤٠» قناتان ممتازتان، لكنّهما لا تعملان إلا بعد أن يقف الماء
+  ويصيب أحداً. والأخطر أنّهما تصنعان <strong>صورة مقلوبة</strong>: الحيّ النشط في
+  التبليغ يبدو الأسوأ حالاً، والحيّ الصامت يبدو سليماً وهو ليس كذلك.
+</p>
+
+<h3>٢ — الصهريج علاج لا حلّ</h3>
+<p>
+  شفط الماء يعالج اليوم لا الموسم. المقطع نفسه يغرق في الحالة المطرية التالية
+  ويُشفط مرة أخرى — معالجة تتكرّر كل موسم على المقاطع نفسها، بلا سجلّ يقول: هذا
+  المكان تكرّر.
+</p>
+
+<h3>٣ — لا خريطة قبل الموسم</h3>
+<p>
+  قبل الحالة المطرية لا توجد قائمة بالمقاطع الأعلى خطراً، فتُوزَّع الفرق بالخبرة
+  والاجتهاد. والاستعداد يعتمد على من يتذكّر أين غرق العام الماضي.
+</p>
+
+<div class="box limit">
+  <span class="lead">أرقام كلفة الساكن — بانتظار الاستبيان</span>
+  <p>
+    ثلاثة أرقام نحتاجها ولا نملكها بعد: <span class="pending">مدّة بقاء الماء</span>،
+    و<span class="pending">زمن الالتفاف إلى طريق آخر</span>،
+    و<span class="pending">نسبة من تضرّرت مركبته</span>. يقيسها استبيان السكّان
+    الجاري (الأسئلة س١٫٤ و س١٫٦). <strong>لا تُذكر هذه الأرقام في أي عرض أو مستند
+    قبل وصول الردود</strong> — الرقم بلا مصدر أسوأ من غيابه.
+  </p>
+</div>
+</section>
+
+<!-- ══════════ 8 ══════════ -->
+<section id="s8">
+<h2 class="sec"><span class="n">٠٨</span>تعريف المنتج</h2>
+<p class="lede">ثلاث جمل تكفي.</p>
+
+<p>
+  <strong>مِطياف منصّة ويب</strong> تقرأ شبكة شوارع المدينة المنورة من نموذج
+  ارتفاع رقمي وخرائط مفتوحة، وتحسب لكل مقطع شارع <strong>درجة قابلية لوقوف
+  الماء</strong> مع سبب مكتوب وإجراء مقترح.
+</p>
+<p>
+  المخرج ليس خريطة ملوّنة — المخرج <strong>قائمة مرتّبة قابلة للتصدير إلى
+  Excel</strong>، تدخل خطة التصريف قبل الموسم المطري.
+</p>
+<p>
+  ولا يُركَّب في الأرض جهاز واحد: كل البيانات مجانية ومفتوحة، والتكلفة الحدّية
+  للمقطع التالي — وللمدينة التالية — تقارب الصفر.
+</p>
+
+<div class="box note">
+  <span class="lead">لماذا batch لا live</span>
+  <p>
+    القابلية تُحسب من التضاريس والشكل الحضري، وهما لا يتغيّران بين ليلة وضحاها.
+    فالحساب <strong>دفعة واحدة</strong> ثم يُخدَم الناتج جاهزاً من الحافة. هذا
+    أسرع من واجهة حيّة، وأصدق مع طبيعة المشكلة. الطبقة الوحيدة التي تتحرّك يومياً
+    هي المطر، وتُسحب من Open-Meteo.
+  </p>
+</div>
+</section>
+
+<!-- ══════════ 9 ══════════ -->
+<section id="s9">
+<h2 class="sec"><span class="n">٠٩</span>المستخدمون وقراراتهم</h2>
+<p class="lede">لكل مستخدم قرار بعينه؛ والمنصّة تُقاس بقدرتها على إسناد ذلك القرار.</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>الجهة</th><th>ما تحتاجه</th><th>القرار الذي تتخذه</th></tr></thead>
+  <tbody>
+    <tr class="hi">
+      <td><strong>إدارة الطرق والتصريف</strong><br><span class="src">مهندس تصريف</span></td>
+      <td>معرفة أي مقطع يحتاج تدخّلاً ولماذا</td>
+      <td>ترتيب أولويات المشاريع السنوية</td>
+    </tr>
+    <tr>
+      <td><strong>مركز الطوارئ والأزمات</strong></td>
+      <td>أين تُوزَّع الفرق قبل المطر</td>
+      <td>التمركز المسبق للفرق والصهاريج</td>
+    </tr>
+    <tr>
+      <td><strong>إدارة المشاريع</strong></td>
+      <td>هل نجح المشروع المنفَّذ</td>
+      <td>تكرار نمط التدخّل أو مراجعته</td>
+    </tr>
+    <tr>
+      <td><strong>وزارة البلديات والإسكان</strong></td>
+      <td>أداة استهداف ومقارنة بين الأمانات</td>
+      <td>سياسات الاستثمار البلدي</td>
+    </tr>
+    <tr>
+      <td><strong>المواطن والزائر</strong></td>
+      <td>شوارع أقلّ غرقاً واستجابة أسرع</td>
+      <td>— (مستفيد لا مقرِّر)</td>
+    </tr>
+  </tbody>
+</table></div>
+<p class="src">المصدر: جدول أصحاب المصلحة في <code>brd/BRD-Masareb-v1.0.md</code> §٦، مُقتصَراً على ما يخصّ التصريف</p>
+
+<h3>الرحلة الكاملة — مهندس التصريف قبل الموسم</h3>
+<ol class="body">
+  <li><strong>يفتح لوحة التحكّم</strong> — حالة الشبكة كلها في مؤشّر واحد.</li>
+  <li><strong>يقرأ الخريطة</strong> — ٣٠٬٣٣٧ مقطعاً ملوّنة بالمخاطر، الأحمر أولاً.</li>
+  <li><strong>يفتح المقاطع الحرجة</strong> — ١٬٥١٧ مقطعاً بأسمائها وأحيائها وسبب الخطر.</li>
+  <li><strong>يفتح مقطعاً بعينه</strong> — يقرأ الأرقام التي بُني عليها الحكم.</li>
+  <li><strong>يصدّر خطة الموسم</strong> — ملف واحد يدخل خطة التصريف.</li>
+</ol>
+</section>
+
+<!-- ══════════ 10 ══════════ -->
+<section id="s10">
+<h2 class="sec"><span class="n">١٠</span>كل ميزة صفحةً بصفحة</h2>
+<p class="lede">ما تراه المنصّة فعلاً — الملفات في <code>apps/web/app</code>.</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>الصفحة</th><th>المسار</th><th>ما تعرضه</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>الواجهة</strong></td><td><code>/</code></td>
+      <td>صورة قمر صناعي للمدينة المنورة، والجملة الافتتاحية، وشريط المؤشّرات الأساسية، ومدخل إلى لوحة الرصد.</td>
+    </tr>
+    <tr class="hi">
+      <td><strong>لوحة التحكّم</strong></td><td><code>/dashboard</code></td>
+      <td>نظرة عامة: عدد الأحياء، ومقاطع الشوارع، والمساحة المغطّاة، وآخر حدث مطري، وشريط صحّة الشبكة، وزمن آخر تحديث.</td>
+    </tr>
+    <tr class="hi">
+      <td><strong>الخريطة</strong></td><td><code>/dashboard/map</code></td>
+      <td>خريطة MapLibre تفاعلية فوق صورة قمرية. طبقات قابلة للإطفاء، و<strong>«شرط المطر»</strong> لعرض الحالة حسب المطر خلال ٧٢ ساعة، وتكبير إلى الطبقة، ولوحة جانبية بتفاصيل ما يُنقر عليه.</td>
+    </tr>
+    <tr class="hi">
+      <td><strong>المقاطع</strong></td><td><code>/dashboard/segments</code></td>
+      <td>«قابلية الشوارع لاحتجاز الماء». جدول المقاطع مرتّباً: اسم الشارع، والحيّ، وتصنيف الطريق، والطول، ودرجة الخطر ونطاقه، ومحرّكات الخطر، والإجراء المقترح. مرشّح «حرج ومرتفع»، وبحث «ابحث باسم الشارع أو الحي…»، وتصدير. وتحمل الصفحة تنبيهين صريحين: <strong>«الرقم ترتيب مئوي، لا احتمال غرق»</strong>، و<strong>«ما لا يعرفه النموذج: لا يعرف أين نُفِّذت شبكات التصريف فعلاً»</strong>.</td>
+    </tr>
+    <tr class="hi">
+      <td><strong>صفحة مقطع</strong></td><td><code>/dashboard/segments/[id]</code></td>
+      <td>كل الأرقام التي بُني عليها الحكم لمقطع واحد: TWI، والارتفاع فوق أقرب مجرى، وعمق المنخفض، والميل، والمحرّكات بنِسَبها، والسبب المكتوب بالعربية، والإجراء، وهل يحتاج مهندساً هيدروليكياً.</td>
+    </tr>
+    <tr>
+      <td><strong>الأحياء</strong></td><td><code>/dashboard/districts</code></td>
+      <td>الأحياء الـ٩١ مجمّعةً بالخطورة، مع بحث «ابحث باسم الحي…». تصلح لبناء خطة على مستوى الحيّ.</td>
+    </tr>
+    <tr>
+      <td><strong>الأمطار</strong></td><td><code>/dashboard/rain</code></td>
+      <td>الأحداث المطرية المسجّلة: تاريخ البداية والذروة والنهاية، وإجمالي الملّيمترات، وأقصى يوم. بحث بالتاريخ ومدى زمني.</td>
+    </tr>
+    <tr>
+      <td><strong>الإحصاءات</strong></td><td><code>/dashboard/stats</code></td>
+      <td>مجاميع المدينة: الأحياء، والمقاطع، والمساحة، وملّيمترات المطر في المدى المحدَّد، ورسوم بيانية للتوزيع.</td>
+    </tr>
+    <tr>
+      <td><strong>بلاغات المجتمع</strong></td><td><code>/dashboard/reports</code></td>
+      <td>البلاغات مصنّفة عربياً بسبع فئات، مع درجة الإلحاح والحيّ والمفردات المطابِقة. بحث في نصوص البلاغات.</td>
+    </tr>
+    <tr>
+      <td><strong>المنهجية</strong></td><td><code>/method</code></td>
+      <td>«كيف نصل إلى الحكم — وأين نتوقّف»: مصادر البيانات، والمؤشّرات، وحدود الحكم. صفحة الشفافية.</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<div class="box limit">
+  <span class="lead">ملاحظة أمانة عن الكود</span>
+  <p>
+    يحتفظ المستودع بصفحات <code>/dashboard/green</code> من نطاق أسبق كان يشمل
+    الغطاء النباتي. هذه الصفحات <strong>خارج تعريف المنتج الحالي</strong> ولا
+    تُعرض ولا تُذكر في أي عرض. تُركت في الكود لأن حذفها لا يخدم شيئاً الآن، لكن
+    لا يُبنى عليها ادّعاء.
+  </p>
+</div>
+
+<div class="box hard">
+  <span class="lead">بلاغات المجتمع — دقّة واجبة</span>
+  <p>
+    المحوّل الحيّ لمنصّة X <strong>مبنيّ ويعمل</strong> عند توفّر
+    <code>X_BEARER_TOKEN</code>، والتصنيف العربي قائم بسبع فئات مع حفظ المفردات
+    المطابِقة للمراجعة. لكنّ العرض الحالي يعمل على <strong>مجموعة تجريبية من
+    ثلاثين منشوراً مُصطنعاً</strong>، موسومة <code>synthetic: true</code> في كل
+    سجلّ وفي الواجهة. <strong>لا يُقال إنّ التغذية حيّة.</strong>
+  </p>
+</div>
+</section>
+
+<!-- ══════════ 11 ══════════ -->
+<section id="s11">
+<h2 class="sec"><span class="n">١١</span>مصادر البيانات</h2>
+<p class="lede">كلها مجانية ومفتوحة. هذا قيد تصميمي مقصود، لا مصادفة.</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>المصدر</th><th>الدقة</th><th>التكرار</th><th>الترخيص</th><th>الاستخدام</th><th>البديل عند التعطّل</th></tr></thead>
+  <tbody>
+    <tr class="hi"><td><strong>Copernicus DEM GLO-30</strong></td><td>30 م</td><td>ثابت</td><td>مجاني</td><td>كل الطبقة الهيدرولوجية: الميل، المنخفضات، التراكم، TWI، HAND</td><td>SRTM 30 م</td></tr>
+    <tr class="hi"><td><strong>OpenStreetMap</strong></td><td>متجهات</td><td>مستمر</td><td>ODbL — يتطلب الإسناد</td><td>الشوارع وتصنيفها، وحدود الأحياء</td><td>نسخة مخزّنة محلياً</td></tr>
+    <tr><td><strong>Open-Meteo</strong></td><td>نقطي</td><td>ساعي + تنبّؤ</td><td>مجاني بلا مفتاح</td><td>بوابة المطر خلال ٧٢ ساعة، والإنذار المسبق</td><td>GPM IMERG</td></tr>
+    <tr><td><strong>Sentinel-2 L2A</strong></td><td>10 م</td><td>كل 5 أيام</td><td>مجاني — Copernicus</td><td>رصد المياه السطحية بالمؤشّرات البصرية</td><td>Landsat 8/9</td></tr>
+    <tr><td><strong>Sentinel-1 GRD</strong></td><td>~10 م</td><td>6–12 يوماً</td><td>مجاني — Copernicus</td><td>كشف المياه عبر السحب وليلاً (رادار)</td><td>Copernicus Data Space</td></tr>
+    <tr><td><strong>بلاغات NYC 311</strong></td><td>نقطي</td><td>مستمر</td><td>مفتوح بلا مفتاح</td><td>تسميات التدريب فقط</td><td>—</td></tr>
+    <tr><td><strong>بلاغات Chicago 311</strong></td><td>نقطي</td><td>مستمر</td><td>مفتوح بلا مفتاح</td><td>تسميات التدريب فقط</td><td>—</td></tr>
+  </tbody>
+</table></div>
+
+<div class="box limit">
+  <span class="lead">قيد معلن على نموذج الارتفاع</span>
+  <p>
+    <code>Copernicus DEM GLO-30</code> هو <strong>نموذج سطح لا نموذج أرض</strong>:
+    يرى أسطح المباني والأشجار، لا منسوب الشارع تحتها. ودقّته ٣٠ متراً داخل نسيج
+    حضري كثيف. هذا قيد حقيقي مُسجَّل في بطاقة النموذج، ومعالجته تحتاج LiDAR —
+    وهو ما تملكه نيويورك بدقّة قدم واحدة ولا نملكه للمدينة.
+  </p>
+</div>
+</section>
+
+<!-- ══════════ 12 ══════════ -->
+<section id="s12">
+<h2 class="sec"><span class="n">١٢</span>الوحدات — ما الذي نقيسه بالضبط</h2>
+<p class="lede">لا يمكن ترتيب شيء قبل تعريفه.</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>الوحدة</th><th>العدد</th><th>كيف عُرّفت</th></tr></thead>
+  <tbody>
+    <tr class="hi"><td><strong>مقطع شارع</strong></td><td class="num">30,337</td><td>جزء من شارع بين تقاطعين، من OSM، يحمل اسماً وتصنيفاً وطولاً وحيّاً. وهو وحدة القرار: التوصية تُسنَد إليه.</td></tr>
+    <tr><td><strong>حيّ</strong></td><td class="num">91</td><td>حدود إدارية من OSM، تُجمَّع عليها إحصاءات المقاطع.</td></tr>
+    <tr><td><strong>خلية شبكية</strong></td><td class="num">8,647</td><td>وحدة الحساب الداخلية للنموذج على المدينة المنورة — تُشتقّ منها الخصائص ثم تُسنَد إلى المقاطع.</td></tr>
+    <tr><td><strong>حدث مطري</strong></td><td class="num">30</td><td>فترة متصلة من الهطول في أرشيف Open-Meteo منذ 2015، بتاريخ بداية وذروة ونهاية وإجمالي ملّيمترات.</td></tr>
+  </tbody>
+</table></div>
+<p>
+  وشبكة الشوارع الكاملة داخل النطاق تبلغ <strong>٥٬٢٨٠ كم</strong> على مساحة
+  <strong>٥٤٥ كم²</strong>.
+</p>
+</section>
+
+<!-- ══════════ 13 ══════════ -->
+<section id="s13">
+<h2 class="sec"><span class="n">١٣</span>السؤال العلمي الذي طُرح</h2>
+<p class="lede">المدينة المنورة لا تملك سجلاً مصنّفاً لحوادث غرق الشوارع. هذه ليست عقبة تُخفى، بل هي التي شكّلت التجربة كلها.</p>
+
+<p>
+  لا أحد يمسح المدينة أثناء العاصفة ويسجّل أين وقف الماء. وبلا تسميات لا يوجد ما
+  يُدرَّب عليه ولا ما يُختبر عليه — وأي نموذج يُبنى ويُقال عنه إنه «دقيق» في هذه
+  الحالة يكون قد قيس على لا شيء.
+</p>
+<p>فالسؤال المطروح لم يكن «كيف نبني نموذجاً للمدينة المنورة؟» بل:</p>
+
+<div class="box note">
+  <p>
+    هل مجموعة الخصائص التي نستطيع حسابها للمدينة المنورة — من التضاريس والشكل
+    الحضري وحدهما، بلا أي بيانات ميدانية — <strong>تتنبّأ فعلاً بغرق الشوارع في
+    مدينة تملك بيانات ميدانية؟</strong>
+  </p>
+</div>
+
+<p>
+  إن كان الجواب لا، فالمنتج مبني على رمل. وإن كان نعم، فما ينتقل هو <strong>شكل
+  النموذج</strong> لا أوزانه.
+</p>
+<p class="src">النصّ مقتبس من <code>docs/MODEL-CARD.md</code> §١</p>
+</section>
+
+<!-- ══════════ 14 ══════════ -->
+<section id="s14">
+<h2 class="sec"><span class="n">١٤</span>الحقيقة الأرضية</h2>
+<p class="lede">١٠١٬٧٥٦ بلاغاً حقيقياً، وواصفها حرفياً «ماء واقف على سطح شارع».</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>المدينة</th><th>المصدر</th><th>الواصف</th><th>البلاغات الموقّعة جغرافياً</th></tr></thead>
+  <tbody>
+    <tr><td><strong>نيويورك</strong></td><td><code>data.cityofnewyork.us</code> · <code>erm2-nwe9</code></td><td><code>Street Flooding (SJ)</code></td><td class="num">21,287</td></tr>
+    <tr><td><strong>شيكاغو</strong></td><td><code>data.cityofchicago.org</code> · <code>v6vf-nfxy</code></td><td><code>Water On Street Complaint</code></td><td class="num">80,469</td></tr>
+    <tr class="hi"><td colspan="3"><strong>المجموع</strong></td><td class="num"><strong>101,756</strong></td></tr>
+  </tbody>
+</table></div>
+
+<p>
+  الواصفان يعنيان حرفياً <strong>ماء واقف على سطح شارع</strong> — لا فيضاناً
+  نهرياً ولا غمر مبانٍ. وهذا ما يجعل التسميات مطابقة لمشكلتنا لا مجرّد قريبة
+  منها. وكلا المصدرين مفتوح بلا مفتاح، ومستمرّ إلى اليوم، ويُسحب عبر واجهة
+  Socrata نفسها.
+</p>
+
+<h4>لماذا مدينتان لا واحدة؟</h4>
+<p>
+  لأن التجزئة المكانية داخل مدينة واحدة تجيب على «هل يعمّم النموذج بين
+  الأحياء؟» ولا تستطيع الإجابة على «هل يعمّم بين المدن؟». فداخل المدينة الواحدة
+  يثبت تصميم شبكة التصريف والمناخ وثقافة الإبلاغ — وهي <strong>بالضبط ما يختلف في
+  المدينة المنورة</strong>. المدينة الثانية تجعل اختبار الانتقال ممكناً.
+</p>
+
+<h4>مدن فُحصت ورُفضت</h4>
+<p>سان فرانسيسكو: لا فئة لغرق الشوارع. بالتيمور: مورد Socrata لم يستجب. تُسجَّل حتى لا يعيد أحد فحصها.</p>
+</section>
+
+<!-- ══════════ 15 ══════════ -->
+<section id="s15">
+<h2 class="sec"><span class="n">١٥</span>الخصائص التسع</h2>
+<p class="lede">ستّ من نموذج الارتفاع، وثلاث من خرائط الشوارع. لا شيء غيرها.</p>
+
+<h3>الطبقة الهيدرولوجية — من نموذج الارتفاع</h3>
+<div class="scroll"><table>
+  <thead><tr><th>الخاصية</th><th>كيف تُحسب</th><th>لماذا تهمّ</th></tr></thead>
+  <tbody>
+    <tr><td><code>slope</code><br><span class="src">الميل</span></td><td>ميل السطح بالدرجات من تدرّج نموذج الارتفاع</td><td>الأرض المستوية تصرّف ببطء</td></tr>
+    <tr class="hi"><td><code>sink</code><br><span class="src">عمق المنخفض المغلق</span></td><td>تعبئة المنخفضات بخوارزمية <strong>priority-flood</strong>: كومة صغرى من الحدود ثم رفع كل جار غير مزار إلى مستوى المخرج</td><td>أقرب تمثيل رياضي لـ«البركة»</td></tr>
+    <tr><td><code>logacc</code><br><span class="src">تراكم الجريان</span></td><td>تراكم D8 بمسح تنازلي حسب الارتفاع ثم <code>log1p</code></td><td>المساحة العليا التي تصرّف عبر هذه النقطة</td></tr>
+    <tr><td><code>twi</code><br><span class="src">مؤشّر الرطوبة الطبوغرافي</span></td><td><code>ln(SCA / tan(slope))</code></td><td>ميل الموقع لتجميع الماء</td></tr>
+    <tr class="hi"><td><code>hand</code><br><span class="src">الارتفاع فوق أقرب مجرى</span></td><td>ارتفاع النقطة فوق أقرب خط تصريف، بتقريب أعلى ٠٫٥٪ تراكماً</td><td>القرب من مستوى الماء المحلي</td></tr>
+    <tr><td><code>relelev</code><br><span class="src">الارتفاع النسبي</span></td><td><code>DEM − متوسط منزلق 17×17</code></td><td>هل الموقع منخفض محلياً أم مرتفع</td></tr>
+  </tbody>
+</table></div>
+
+<div class="box hard">
+  <span class="lead">خطأ حقيقي وقع، ويُسجَّل هنا</span>
+  <p>
+    النسخة الأولى من تعبئة المنخفضات كانت تكرارية ساذجة، ورفعت الخلايا بمقدار
+    <strong>٦ سم فقط</strong> عبر ٦٠ مسحاً — أي أنّ <code>sink</code>، وهو أقرب
+    منبئ مباشر بالتجمّع، كان <strong>خاصية ميتة</strong>. استُبدل بخوارزمية
+    priority-flood الصحيحة فأصبح أقصى عمق <strong>٤٣٫٩٢ م</strong>. يُذكر لأن
+    ورقة تخفي أخطاءها لا تُصدَّق في نجاحاتها.
+  </p>
+</div>
+
+<h3>طبقة الشكل الحضري — من OpenStreetMap</h3>
+<div class="scroll"><table>
+  <thead><tr><th>الخاصية</th><th>كيف تُحسب</th></tr></thead>
+  <tbody>
+    <tr class="hi"><td><code>road_density</code><br><span class="src">كثافة الطرق</span></td><td>كم من الطريق لكل كم²، بعد تكثيف كل مسار حتى تقع مساهمته في كل خلية يعبرها</td></tr>
+    <tr><td><code>major_frac</code><br><span class="src">نسبة الطرق الشريانية</span></td><td>نسبة طول الطرق الشريانية (motorway/trunk/primary/secondary) من إجمالي الطول</td></tr>
+    <tr><td><code>load_per_road</code><br><span class="src">الحمل لكل متر طريق</span></td><td><code>log1p( تراكم الجريان ÷ max(طول الطريق, 25) )</code></td></tr>
+  </tbody>
+</table></div>
+
+<p>
+  <code>load_per_road</code> هي <strong>الخاصية المُهندَسة الوحيدة</strong>،
+  وجاءت جواباً لسؤال طُرح صراحةً: «هل قلّة كثافة الطرق تعني تجمّع ماء أكثر؟».
+  الجواب المباشر لا — لكن السؤال كان يشير إلى كمّية حقيقية: <strong>الحمل لكل
+  وحدة تصريف</strong>. طول الطريق هو بديلنا الوحيد عن سعة التصريف (المصائد تقع
+  على امتداد الشوارع)، وتراكم الجريان هو الحمل. ونسبتهما هي الكمية ذات المعنى
+  الفيزيائي، لا الكثافة وحدها.
+</p>
+</section>
+
+<!-- ══════════ 16 ══════════ -->
+<section id="s16">
+<h2 class="sec"><span class="n">١٦</span>المنهجية</h2>
+<p class="lede">قراران يفصلان بين نتيجة صادقة ونتيجة جميلة بلا معنى.</p>
+
+<h3>١ — اختيار العيّنات السالبة</h3>
+<p>
+  البلاغات <strong>بيانات وجود فقط</strong> (presence-only): لا يوجد سجل يقول
+  «هذا الشارع لم يغرق». ولو سُحبت السوالب من أي مكان، لتعلّم المصنّف أن يجيب على
+  سؤال آخر تماماً: <strong>«هل هنا طريق؟»</strong> — لأن الحدائق والمسطحات
+  المائية وساحات السكك لا تحمل طرقاً ولا بلاغات، فتنفصل انفصالاً تافهاً وتُنتج
+  درجة عالية بلا معنى.
+</p>
+<div class="box ok">
+  <span class="lead">القاعدة المطبَّقة</span>
+  <p>
+    تُسحب السوالب <strong>فقط</strong> من خلايا تحمل أكثر من <strong>٥٠ م</strong>
+    من الطريق. بذلك يُجبَر النموذج على تفسير لماذا يغرق <strong>شارع</strong> ولا
+    يغرق <strong>شارع آخر</strong>.
+  </p>
+</div>
+
+<h3>٢ — التجزئة المكانية</h3>
+<p>
+  متغيّرات التضاريس مترابطة مكانياً ترابطاً شديداً: الخلايا المتجاورة تتشارك
+  الانحدار والمستجمع ونسبة النفاذية. والتجزئة العشوائية <code>k-fold</code> تضع
+  الجيران في التدريب والاختبار معاً فتُنتج درجة جميلة بلا معنى — وهذا
+  <strong>أشهر خطأ منهجي في أدبيات قابلية الغرق</strong>.
+</p>
+<p>
+  المطبَّق هنا: <code>GroupKFold</code> بخمس طيّات، والمجموعة <strong>كتلة مكانية
+  كاملة</strong> بطول ٠٫٠٥° ≈ ٥٫٥ كم.
+</p>
+
+<h3>٣ — الخوارزمية والمعاملات</h3>
+<div class="scroll"><table>
+  <thead><tr><th>المعامل</th><th>القيمة</th></tr></thead>
+  <tbody>
+    <tr><td><code>XGBClassifier</code></td><td>تعزيز متدرّج على أشجار</td></tr>
+    <tr><td><code>n_estimators</code></td><td class="num">350 (تحقّق) / 400 (نهائي)</td></tr>
+    <tr><td><code>max_depth</code></td><td class="num">5</td></tr>
+    <tr><td><code>learning_rate</code></td><td class="num">0.06</td></tr>
+    <tr><td><code>subsample</code></td><td class="num">0.85</td></tr>
+    <tr><td><code>colsample_bytree</code></td><td class="num">0.85</td></tr>
+    <tr><td><code>scale_pos_weight</code></td><td><code>n_neg / n_pos</code> — يُحسب داخل كل طيّة</td></tr>
+    <tr><td><code>eval_metric</code></td><td><code>aucpr</code></td></tr>
+    <tr><td><code>tree_method</code></td><td><code>hist</code></td></tr>
+    <tr><td><code>random_state</code></td><td class="num">42</td></tr>
+  </tbody>
+</table></div>
+<p>
+  اختير التعزيز المتدرّج <strong>لا الانحدار اللوجستي</strong> لأن العلاقات غير
+  خطية (عمق المنخفض يهمّ كثيراً عند القيم الصغيرة ثم يتشبّع)،
+  <strong>ولا الشبكات العصبية</strong> لأن ٦٢ ألف صفّ وتسع خصائص لا تبرّرها،
+  ولأن <code>gain</code> يعطي تفسيراً <strong>قابلاً للمراجعة أمام مهندس
+  بلدية</strong>.
+</p>
+</section>
+
+<!-- ══════════ 17 ══════════ -->
+<section id="s17">
+<h2 class="sec"><span class="n">١٧</span>لماذا PR-AUC لا الدقّة</h2>
+<p class="lede">أهم فقرة تقنية في المستند، وأسهلها شرحاً.</p>
+
+<p>
+  نسبة الحدوث في بيانات نيويورك <strong>٢٧٫٤٪</strong>. أي أنّ مصنّفاً كسولاً
+  يقول «لا غرق» في كل مرة، بلا أن ينظر إلى شيء، يحقّق <strong>٧٢٫٦٪
+  دقّة</strong> — ويكون عديم الفائدة تماماً.
+</p>
+<p>
+  ولذلك المقياس الأساسي هو <strong>PR-AUC</strong> (المساحة تحت منحنى الدقّة
+  والاستدعاء)، وخط أساسه هو <strong>نسبة الحدوث نفسها</strong>. فحين نقول
+  «١٫٤٤×» فنحن نقول: النموذج يتفوّق على التخمين المرجّح بمقدار ١٫٤٤ ضعف. أمّا
+  ROC-AUC فمعروض للمقارنة مع الأدبيات فقط.
+</p>
+
+<div class="box note">
+  <span class="lead">كيف تُقال في العرض</span>
+  <p>
+    ابدئي بالرقم لا بالنفي: «النموذج يتفوّق على خط الأساس ١٫٤٤ ضعفاً، مقيساً
+    بـPR-AUC — وهو المقياس المناسب حين تكون الأحداث نادرة ومتفرّقة».
+  </p>
+</div>
+</section>
+
+<!-- ══════════ 18 ══════════ -->
+<section id="s18">
+<h2 class="sec"><span class="n">١٨</span>النتائج</h2>
+<p class="lede">أربعة أرقام، لا اثنان. والانتقال يثبت في الاتجاهين.</p>
+
+<h3>داخل كل مدينة — تجزئة مكانية</h3>
+<div class="scroll"><table>
+  <thead><tr><th>المدينة</th><th>PR-AUC</th><th>خط الأساس</th><th>التحسّن</th><th>الخلايا</th></tr></thead>
+  <tbody>
+    <tr class="hi"><td>نيويورك</td><td class="num">0.396</td><td class="num">0.274</td><td class="num"><strong>1.44×</strong></td><td class="num">25,022</td></tr>
+    <tr class="hi"><td>شيكاغو</td><td class="num">0.520</td><td class="num">0.358</td><td class="num"><strong>1.45×</strong></td><td class="num">37,472</td></tr>
+  </tbody>
+</table></div>
+
+<h3>الاختبار الحاسم — الانتقال إلى مدينة لم يرَها النموذج</h3>
+<div class="scroll"><table>
+  <thead><tr><th>التدريب</th><th>الاختبار</th><th>PR-AUC</th><th>خط الأساس</th><th>التحسّن</th><th>ROC-AUC</th></tr></thead>
+  <tbody>
+    <tr class="hi"><td>شيكاغو</td><td><strong>نيويورك</strong></td><td class="num">0.340</td><td class="num">0.274</td><td class="num"><strong>1.24×</strong></td><td class="num">0.609</td></tr>
+    <tr class="hi"><td>نيويورك</td><td><strong>شيكاغو</strong></td><td class="num">0.465</td><td class="num">0.358</td><td class="num"><strong>1.30×</strong></td><td class="num">0.652</td></tr>
+  </tbody>
+</table></div>
+
+<p>
+  <strong>القراءة:</strong> الانتقال يكلّف نحو <strong>٠٫١٥×</strong> من التحسّن
+  مقارنةً بالبقاء داخل المدينة. وهذا تدهور حقيقي ومتوقَّع — تصميم الشبكة والمناخ
+  وثقافة الإبلاغ كلها تتغيّر — <strong>لكنه يبقى فوق خط الأساس في
+  الاتجاهين</strong>.
+</p>
+
+<div class="box ok">
+  <span class="lead">لماذا هذا هو الرقم الذي يقرّر المشروع</span>
+  <p>
+    قبل هذا الاختبار كانت جملة «ما ينتقل إلى المدينة المنورة هو شكل النموذج»
+    <strong>ادّعاءً</strong>. وبعده صارت <strong>قياساً</strong> على ١٠١٬٧٥٦
+    بلاغاً ميدانياً في مدينتين، في الاتجاهين.
+  </p>
+</div>
+
+<h3>أهمية الخصائص — النموذج المجمَّع على 62,494 خلية</h3>
+<div class="scroll"><table>
+  <thead><tr><th>الخاصية</th><th>الوزن (gain)</th><th>الطبقة</th></tr></thead>
+  <tbody>
+    <tr class="hi"><td><code>road_density</code></td><td class="num">26.0٪</td><td>حضرية</td></tr>
+    <tr class="hi"><td><code>major_frac</code></td><td class="num">12.9٪</td><td>حضرية</td></tr>
+    <tr><td><code>sink</code></td><td class="num">11.7٪</td><td>تضاريس</td></tr>
+    <tr><td><code>hand</code></td><td class="num">10.3٪</td><td>تضاريس</td></tr>
+    <tr class="hi"><td><code>load_per_road</code></td><td class="num">10.2٪</td><td>حضرية</td></tr>
+    <tr><td><code>relelev</code></td><td class="num">9.6٪</td><td>تضاريس</td></tr>
+    <tr><td><code>logacc</code></td><td class="num">7.1٪</td><td>تضاريس</td></tr>
+    <tr><td><code>slope</code></td><td class="num">6.2٪</td><td>تضاريس</td></tr>
+    <tr><td><code>twi</code></td><td class="num">6.0٪</td><td>تضاريس</td></tr>
+  </tbody>
+</table></div>
+<p>
+  <strong>الشكل الحضري يحمل ٣٨٫٨٪</strong> — أعلى من أي متغيّر تضاريسي منفرد.
+  كان الفريق يرجّح التضاريس، فرجّحت البيانات غير ذلك، وتغيّر ترجيح التصميم
+  للمدينة المنورة بناءً عليه.
+</p>
+
+<h3>النتيجة التي خالفت الحدس</h3>
+<div class="scroll"><table>
+  <thead><tr><th>خُمس كثافة الطرق</th><th>الكثافة كم/كم²</th><th>معدّل الغرق</th><th>n</th></tr></thead>
+  <tbody>
+    <tr><td>الخُمس 1 (الأقلّ)</td><td class="num">5.5</td><td class="num"><strong>13.7٪</strong></td><td class="num">12,499</td></tr>
+    <tr><td>الخُمس 2</td><td class="num">7.7</td><td class="num">31.4٪</td><td class="num">12,499</td></tr>
+    <tr><td>الخُمس 3</td><td class="num">10.1</td><td class="num">35.0٪</td><td class="num">12,498</td></tr>
+    <tr><td>الخُمس 4</td><td class="num">12.4</td><td class="num">41.8٪</td><td class="num">12,499</td></tr>
+    <tr class="hi"><td>الخُمس 5 (الأكثر)</td><td class="num">—</td><td class="num"><strong>40.2٪</strong></td><td class="num">12,499</td></tr>
+  </tbody>
+</table></div>
+<p>
+  العلاقة في <strong>الاتجاه المعاكس للحدس</strong>: الشبكة الكثيفة تغرق نحو
+  <strong>ثلاثة أضعاف</strong> المتفرّقة. والآلية هي النفاذية — كثافة الطرق بديل
+  عن المساحة المرصوفة، وما لا ينفذ يجري. والأثر يتشبّع عند الخُمس الأعلى بدل أن
+  يستمرّ في الصعود.
+</p>
+</section>
+
+<!-- ══════════ 19 ══════════ -->
+<section id="s19">
+<h2 class="sec"><span class="n">١٩</span>حدود النموذج</h2>
+<p class="lede">مُعلنة في بطاقة النموذج، وتُقال قبل أن تُكتشف.</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>الحدّ</th><th>الأثر</th></tr></thead>
+  <tbody>
+    <tr class="hi"><td><strong><code>dist_to_drain</code> غائبة</strong></td><td>المسافة إلى أقرب مصرف من أقوى الخصائص نظرياً. نيويورك تنشر مواقع المصائد، وإضافتها <strong>أعلى خطوة عائداً</strong> في النموذج كله.</td></tr>
+    <tr><td><strong>DEM ٣٠ م داخل مدينة</strong></td><td>نيويورك لديها LiDAR بدقّة قدم واحدة. إعادة التشغيل عليه تفصل «خصائصنا ضعيفة» عن «تضاريسنا خشنة».</td></tr>
+    <tr><td><strong>لا طبقة نفاذية</strong></td><td>كثافة الطرق تنوب عنها — بديل معقول لا بديل تامّ.</td></tr>
+    <tr><td><strong>لا حدّ للتعرّض المطري</strong></td><td>كل خلية تُعامل كأن المطر عليها متساوٍ.</td></tr>
+    <tr class="hi"><td><strong>تحيّز البلاغ</strong></td><td>البلاغ يأتي ممن يبلّغ. جزء من الإشارة قد يكون «من يشتكي» لا «أين تقع المشكلة» — وهو نفس التحيّز الذي نتّهم به قنوات البلاغ.</td></tr>
+  </tbody>
+</table></div>
+
+<div class="box hard">
+  <span class="lead">الدرجة ترتيب مئوي، لا احتمال غرق</span>
+  <p>
+    حين يقرأ مهندس «درجة ١٫٠٠» فهذا يعني <strong>هذا المقطع الأول في ترتيب
+    القابلية</strong> — لا أنّ احتمال غرقه ١٠٠٪. والفرق جوهري: الترتيب يقول
+    «ابدأ من هنا»، والاحتمال يقول «سيحدث كذا». نحن نملك الأول ولا نملك الثاني،
+    والمنصّة تكتب هذا التنبيه على صفحة المقاطع نفسها.
+  </p>
+  <p>
+    وتكتب معه تنبيهاً ثانياً: <strong>النموذج لا يعرف أين نُفِّذت شبكات التصريف
+    فعلاً.</strong> فمقطع ظاهره حرج قد يكون قد عُولج بالفعل — وهذا بالضبط ما
+    تصحّحه حملة التحقّق الميداني في المرحلة الأولى من خارطة الطريق.
+  </p>
+</div>
+
+<div class="box hard">
+  <span class="lead">المدينة المنورة مستهلك للنموذج لا مساهم فيه</span>
+  <p>
+    <strong>لا تُدرَّب ولا تُختبر.</strong> وهذا مُنفَّذ في الكود صراحةً:
+    <code>train_multi.py</code> يستبعد أي مدينة بلا <code>labels_url</code>، لأن
+    إدخال ٣٠ ألف صفّ غير مسمّى كسوالب كان سيهدم خط الأساس واختبار الانتقال معاً
+    <strong>بصمت</strong>. المدينة تستهلك النموذج بثقة مُقاسة، لا تساهم في تدريبه.
+  </p>
+</div>
+
+<h4>إعادة الإنتاج كاملة</h4>
+<p>أمر واحد يعيد بناء كل شيء من الصفر:</p>
+<div class="scroll"><table><tbody><tr><td><code>docker run --rm -v "$PWD:/app" -w /app/research python:3.11 sh -c "pip install -q rasterio numpy scipy scikit-learn xgboost joblib &amp;&amp; python build_city.py nyc &amp;&amp; python build_city.py chicago &amp;&amp; python train_multi.py"</code></td></tr></tbody></table></div>
+</section>
+
+<!-- ══════════ 20 ══════════ -->
+<section id="s20">
+<h2 class="sec"><span class="n">٢٠</span>المعمارية التقنية</h2>
+<p class="lede">خطّ معالجة يحسب دفعةً، وواجهة تخدم من الحافة.</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>الطبقة</th><th>التقنية</th><th>الدور</th></tr></thead>
+  <tbody>
+    <tr><td>خطّ المعالجة</td><td>Node CLI · <code>packages/pipeline</code></td><td>يعمل محلياً أو في Docker أو في CI. يسحب ويحسب ويصدّر.</td></tr>
+    <tr><td>الحوسبة الفضائية</td><td>Google Earth Engine</td><td>أرشيف بحجم بيتابايت مع حوسبة على الخادم — لا يُنزَّل شيء.</td></tr>
+    <tr><td>قاعدة البيانات</td><td>Postgres + PostGIS</td><td>تخزين الوحدات والملاحظات والنتائج، واستعلامات جغرافية.</td></tr>
+    <tr><td>الواجهة</td><td>Next.js · React · MapLibre GL</td><td>عربية RTL، وخرائط متجهة، وجداول قابلة للبحث والتصدير.</td></tr>
+    <tr><td>الاستضافة</td><td>Vercel</td><td>يخدم JSON مُصدَّراً مسبقاً من الحافة.</td></tr>
+  </tbody>
+</table></div>
+
+<div class="box note">
+  <span class="lead">لماذا لا تعمل المعالجة على الاستضافة</span>
+  <p>
+    لا نظام ملفات قابل للكتابة، ومهلة الدوال ١٠–٦٠ ثانية، ولا مجدول خلفي. ولا
+    حاجة أصلاً: القابلية تُحسب من التضاريس والشكل الحضري، وهما شبه ثابتين.
+    <strong>الحساب دفعةً، والخدمة من الحافة</strong> — وهو الشكل الصادق للمشكلة.
+  </p>
+</div>
+</section>
+
+<!-- ══════════ 21 ══════════ -->
+<section id="s21">
+<h2 class="sec"><span class="n">٢١</span>خطّ المعالجة مرحلةً بمرحلة</h2>
+<p class="lede">أوامر <code>packages/pipeline/src/cli.js</code> بترتيب التشغيل.</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>#</th><th>الأمر</th><th>ما يفعله</th></tr></thead>
+  <tbody>
+    <tr><td class="num">—</td><td><code>doctor</code></td><td>فحص الجاهزية: الاتصال بقاعدة البيانات، ومصادقة Earth Engine، وهل تأخّر أرشيف Sentinel-1 عن Sentinel-2.</td></tr>
+    <tr class="hi"><td class="num">1</td><td><code>build-units</code></td><td>يبني الوحدات من OSM: مقاطع الشوارع الـ30,337 بأسمائها وتصنيفها وأطوالها.</td></tr>
+    <tr><td class="num">2</td><td><code>build-districts</code></td><td>يبني الأحياء الـ91 من الحدود الإدارية، ويربط كل مقطع بحيّه.</td></tr>
+    <tr><td class="num">3</td><td><code>backfill-weather</code></td><td>يسحب أرشيف Open-Meteo ويبني الأحداث المطرية الـ30، ويحسب <code>rain72h</code> و<code>daysSinceRain</code>.</td></tr>
+    <tr><td class="num">4</td><td><code>backfill-s2</code></td><td>يسحب سلاسل Sentinel-2 عبر Earth Engine ويكتب الملاحظات.</td></tr>
+    <tr class="hi"><td class="num">5</td><td><code>load-risk</code></td><td>يحمّل مخرجات النموذج إلى قاعدة البيانات: الدرجة والنطاق والرتبة والمحرّكات والسبب المكتوب والإجراء المقترح، ويضع <code>requires_hydraulic_engineer</code> لكل مقطع نطاقه <code>critical</code>.</td></tr>
+    <tr><td class="num">6</td><td><code>ingest-social</code></td><td>يسحب من X عند توفّر مفتاح، وإلا من المجموعة التجريبية المُصطنعة، ثم يصنّف عربياً ويبني الإنذارات.</td></tr>
+    <tr class="hi"><td class="num">7</td><td><code>export-static</code></td><td>يصدّر كل شيء إلى <code>apps/web/public/data</code> كملفات JSON وGeoJSON جاهزة للخدمة من الحافة.</td></tr>
+  </tbody>
+</table></div>
+
+<h3>محرّك التوصيات</h3>
+<p>لكل مقطع إجراء واحد من اثنين، وهذا الانقسام هو أهمّ مخرج تشغيلي في المنصّة:</p>
+<div class="scroll"><table>
+  <thead><tr><th>النطاق</th><th>العدد</th><th>الإجراء المقترح</th><th>الكلفة الضمنية</th></tr></thead>
+  <tbody>
+    <tr class="hi"><td><strong>حرج</strong></td><td class="num">1,517</td><td>إدراج في خطة التصريف: فحص ميداني قبل الموسم المطري القادم</td><td>مشروع — ويحتاج مهندساً هيدروليكياً</td></tr>
+    <tr class="hi"><td><strong>مرتفع</strong></td><td class="num">483</td><td>تفقّد المصارف السطحية وتنظيفها قبل الموسم</td><td><strong>شاحنة تنظيف، لا خطة رأسمالية</strong></td></tr>
+  </tbody>
+</table></div>
+<p class="src">الأعداد أعلاه من أعلى 2,000 مقطع. وعلى كامل الشبكة: 1,517 حرجاً و4,551 مرتفعاً و9,102 متوسطاً و15,167 مستقرّاً.</p>
+
+<h3>الإنذار المسبق وبوابة المطر</h3>
+<p>
+  تسحب المنصّة توقّعات Open-Meteo، وتحسب لكل يوم <code>rain72hMm</code>
+  و<code>daysSinceRain</code>. وقبل الحالة المطرية بـ<strong>٧٢ ساعة</strong>
+  تُرتَّب المقاطع الأعلى خطراً لتمركز الفرق. وصفحة الخريطة تعرض
+  <strong>«شرط المطر»</strong> لعرض الحالة حسب هذه البوابة.
+</p>
+</section>
+
+<!-- ══════════ 22 ══════════ -->
+<section id="s22">
+<h2 class="sec"><span class="n">٢٢</span>ما تحقّقنا منه وما لم نتحقّق منه</h2>
+<p class="lede">الفرق بين ما نستطيع الدفاع عنه أمام لجنة وما لا نستطيع.</p>
+
+<div class="bound">
+  <div class="yes">
+    <h4>✓ مُتحقَّق منه</h4>
+    <ul>
+      <li>الخصائص التسع تحمل إشارة حقيقية — ١٫٤٤× و١٫٤٥× داخل المدينة</li>
+      <li>الإشارة <strong>تنتقل بين المدن</strong> — ١٫٢٤× و١٫٣٠× في الاتجاهين</li>
+      <li>الشكل الحضري يفوق التضاريس في الأهمية — ٣٨٫٨٪</li>
+      <li>الشبكة الكثيفة تغرق ٣ أضعاف المتفرّقة</li>
+      <li>خطّ المعالجة يعمل من طرفه إلى طرفه وينتج ٣٠٬٣٣٧ مقطعاً مُقيَّماً</li>
+    </ul>
+  </div>
+  <div class="no">
+    <h4>✘ غير مُتحقَّق منه بعد</h4>
+    <ul>
+      <li><strong>لا تحقّق ميداني في المدينة المنورة</strong> — لا أحد نزل ليؤكّد مقطعاً واحداً</li>
+      <li>كلفة الساكن (مدّة البقاء، الالتفاف، الضرر) — <span class="pending">بانتظار الاستبيان</span></li>
+      <li>مقارنة الأمانات على مؤشّر واحد — يحتاج وصولاً لأمانات أخرى</li>
+      <li>أسعار الاشتراك — تقديرية بانتظار مقارنة بالشراء الحكومي</li>
+      <li>تغذية وسائل التواصل الحيّة — المحوّل جاهز والبيانات مُصطنعة</li>
+    </ul>
+  </div>
+</div>
+
+<h3>أداتا التحقّق الجاريتان</h3>
+<p>
+  <strong>استبيان السكّان</strong> — ٢٣ سؤالاً، أهمّها اقتران اسم الحيّ بسؤال «هل
+  بلّغت؟». يسمح بمقارنة <em>الأحياء التي بلّغت</em> بـ<em>الأحياء التي رصدها
+  النموذج</em>. إن اختلفتا فادّعاء «الصورة المقلوبة» مثبت ببيانات السكّان
+  أنفسهم؛ وإن تطابقتا فالادّعاء ساقط ويجب أن نقوله.
+</p>
+<p>
+  <strong>مقابلة الأمانة</strong> — ١٢ سؤالاً مفتوحاً لستّة ادّعاءات لا يستطيع
+  ساكن الإجابة عنها: كيف تُختار مواقع المشاريع، وكيف يُعرف نجاح مشروع بعد
+  تشغيله، ومن يملك قرار الشراء وضمن أي بند ميزانية.
+</p>
+</section>
+
+<!-- ══════════ 23 ══════════ -->
+<section id="s23">
+<h2 class="sec"><span class="n">٢٣</span>خارطة الطريق</h2>
+<p class="lede">أربع مراحل، أولاها هي التي تحسم مصداقية كل ما قبلها.</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>المرحلة</th><th>المحتوى</th></tr></thead>
+  <tbody>
+    <tr class="hi"><td><strong>١ — حملة تحقّق ميداني</strong></td><td>زيارة عيّنة من المقاطع الحرجة مع فريق الأمانة بعد أول حالة مطرية، وقياس نسبة المطابقة بين الترتيب والواقع. <strong>هذه هي التسميات المحلية الأولى.</strong></td></tr>
+    <tr><td><strong>٢ — ربط بقنوات البلاغ</strong></td><td>مطابقة بلاغات بلدي+ و940 بطبقة النموذج، لتصحيح الصورة المقلوبة بين الأحياء الصامتة والنشطة.</td></tr>
+    <tr><td><strong>٣ — تشغيل موسم المطر</strong></td><td>إنذار ٧٢ ساعة قبل الحالة المطرية، وتمركز مسبق للفرق على المقاطع الأعلى خطراً.</td></tr>
+    <tr><td><strong>٤ — قياس أثر المشاريع</strong></td><td>فتح الأرشيف الفضائي لقياس مشاريع التصريف المنفَّذة قبل/بعد، قياساً مستقلاً عن تقرير المنفّذ.</td></tr>
+  </tbody>
+</table></div>
+
+<h4>أعلى خطوتين عائداً على النموذج</h4>
+<ol class="body">
+  <li>إضافة <code>dist_to_drain</code> — المسافة إلى أقرب مصرف. نيويورك تنشر مواقع المصائد، فيمكن التحقّق منها قبل تطبيقها على المدينة.</li>
+  <li>إعادة التشغيل على LiDAR بدل DEM ٣٠ م — لفصل «خصائصنا ضعيفة» عن «تضاريسنا خشنة».</li>
+</ol>
+</section>
+
+<!-- ══════════ 24 ══════════ -->
+<section id="s24">
+<h2 class="sec"><span class="n">٢٤</span>معجم المصطلحات</h2>
+<div class="scroll"><table>
+  <thead><tr><th>المصطلح</th><th>بالعربية البسيطة</th></tr></thead>
+  <tbody>
+    <tr><td><strong>DEM</strong> — نموذج ارتفاع رقمي</td><td>خريطة تقول كم يرتفع كل موضع عن سطح البحر. منها تُشتقّ كل خصائص التضاريس.</td></tr>
+    <tr><td><strong>HAND</strong></td><td>كم يرتفع هذا الموضع فوق أقرب مجرى ماء طبيعي. كلما قلّ، زاد احتمال وصول الماء إليه.</td></tr>
+    <tr><td><strong>TWI</strong></td><td>مؤشّر يجمع بين المساحة التي تصرّف إلى الموضع وبين ميله. يقيس ميل الموضع لتجميع الماء.</td></tr>
+    <tr><td><strong>المنخفض المغلق</strong> (sink)</td><td>حفرة في الأرض لا مخرج لها. الماء يدخلها ولا يغادرها إلا بالشفط أو التبخّر.</td></tr>
+    <tr><td><strong>تراكم الجريان</strong></td><td>كم من المساحة العليا يمرّ ماؤها عبر هذه النقطة.</td></tr>
+    <tr><td><strong>PR-AUC</strong></td><td>مقياس أداء يناسب الأحداث النادرة. خط أساسه نسبة حدوث الظاهرة نفسها.</td></tr>
+    <tr><td><strong>presence-only</strong></td><td>بيانات تقول أين وقعت الظاهرة، ولا تقول أين لم تقع. تحتاج معالجة خاصة عند التدريب.</td></tr>
+    <tr><td><strong>GroupKFold</strong></td><td>طريقة تجزئة تضمن ألا يقع جاران في التدريب والاختبار معاً.</td></tr>
+    <tr><td><strong>priority-flood</strong></td><td>خوارزمية تملأ المنخفضات في نموذج الارتفاع بطريقة صحيحة وسريعة.</td></tr>
+  </tbody>
+</table></div>
+</section>
+
+<!-- ══════════ 25 ══════════ -->
+<section id="s25">
+<h2 class="sec"><span class="n">٢٥</span>جدول الأرقام المرجعية</h2>
+<p class="lede">كل رقم يُذكر في العرض، ومن أين جاء. إن لم يكن هنا فلا يُقال.</p>
+
+<div class="scroll"><table>
+  <thead><tr><th>الرقم</th><th>ما يعنيه</th><th>المصدر</th></tr></thead>
+  <tbody>
+    <tr><td class="num">30,337</td><td>مقاطع الشوارع المُقيَّمة</td><td><code>public/data/meta.json</code></td></tr>
+    <tr><td class="num">6,068</td><td>مقاطع مرتفعة أو حرجة</td><td><code>segments.geojson</code></td></tr>
+    <tr><td class="num">1,517 / 4,551 / 9,102 / 15,167</td><td>حرج / مرتفع / متوسط / مستقرّ</td><td><code>segments.geojson</code></td></tr>
+    <tr><td class="num">2,000 · 327 كم</td><td>قائمة العمل وطولها</td><td><code>segments-top.json</code></td></tr>
+    <tr><td class="num">483</td><td>يكفيها تنظيف مصارف</td><td><code>segments-top.json</code></td></tr>
+    <tr><td class="num">73٪</td><td>نسبة الشوارع السكنية في أعلى 2,000</td><td><code>segments-top.json</code></td></tr>
+    <tr><td class="num">91 · 5,280 كم · 545 كم²</td><td>الأحياء وطول الشبكة والمساحة</td><td><code>meta.json</code></td></tr>
+    <tr><td class="num">30 · 65.6 ملم</td><td>الأحداث المطرية وأشدّ يوم</td><td><code>rain.json</code></td></tr>
+    <tr><td class="num">2.3٪</td><td>نسبة الأيام التي يهطل فيها ملّيمتر فأكثر (عتبة المنظمة العالمية للأرصاد)</td><td>أرشيف Open-Meteo منذ 2015 — ومُتحقَّق منه عبر خمسة مصادر مستقلّة</td></tr>
+    <tr><td class="num">101,756</td><td>بلاغات التدريب</td><td><code>MODEL-CARD.md</code> §٢٫١</td></tr>
+    <tr><td class="num">1.44× · 1.45× · 1.24× · 1.30×</td><td>تحسّن PR-AUC</td><td><code>MODEL-CARD.md</code> §٥٫١ و§٥٫٢</td></tr>
+    <tr><td class="num">38.8٪</td><td>وزن الشكل الحضري</td><td><code>MODEL-CARD.md</code> §٥٫٣</td></tr>
+    <tr><td class="num">102,000 ريال</td><td>تكلفة التشغيل السنوية للمدينة</td><td>أسعار Earth Engine المنشورة + استضافة [تقدير]</td></tr>
+    <tr><td class="num">3 وفيات · 122 وفاة · 10 وفيات</td><td>جازان 2024 · جدة 2009 · جدة 2011</td><td>عكاظ · CNN · دراسات محكّمة</td></tr>
+    <tr><td class="num">454 ألف · 8 ملايين متر</td><td>تصريف 2024 والإجمالي</td><td>وزارة البلديات والإسكان</td></tr>
+    <tr class="hi"><td class="pending">—</td><td>مدّة بقاء الماء · الالتفاف · الضرر</td><td><span class="pending">بانتظار استبيان السكّان</span></td></tr>
+  </tbody>
+</table></div>
+</section>
+
+<footer>
+  أُعدّ لفريق مِطياف — برمجان المنورة 2026. مرجع داخلي. كل رقم فيه له مصدر،
+  وكل ما لم يُتحقَّق منه موسوم بذلك صراحةً.
+  المصادر الأساسية في المستودع: <code>docs/MODEL-CARD.md</code> ·
+  <code>docs/MODEL-REPORT.md</code> · <code>docs/TECHNICAL-DOSSIER.md</code> ·
+  <code>brd/BRD-Masareb-v1.0.md</code>.
+</footer>
+
+</main>
+</div>
+</div>

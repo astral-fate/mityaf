@@ -1,0 +1,744 @@
+<title>Benchmarking Without Labels</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  :root{
+    --ground:#F6F8FA; --panel:#FFFFFF; --sunk:#EEF2F6;
+    --ink:#151A21; --ink2:#4E5A68; --ink3:#7C8998;
+    --rule:#DCE3EB; --rule2:#C3CEDA;
+    --teal:#0E6E6B; --teal-bg:#E3F1F0;
+    --amber:#8A5D0B; --amber-bg:#FAF0DC;
+    --red:#8C2F2A;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#0C1015; --panel:#141A21; --sunk:#10161C;
+    --ink:#E7ECF2; --ink2:#A8B4C2; --ink3:#7A8794;
+    --rule:#242E38; --rule2:#33404D;
+    --teal:#5CC9C2; --teal-bg:#0F2A29;
+    --amber:#D9A94E; --amber-bg:#2A2113;
+    --red:#E08A83;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#0C1015; --panel:#141A21; --sunk:#10161C;
+    --ink:#E7ECF2; --ink2:#A8B4C2; --ink3:#7A8794;
+    --rule:#242E38; --rule2:#33404D;
+    --teal:#5CC9C2; --teal-bg:#0F2A29;
+    --amber:#D9A94E; --amber-bg:#2A2113;
+    --red:#E08A83;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    background:var(--ground); color:var(--ink);
+    font-family:"Public Sans",system-ui,sans-serif;
+    margin:0; padding:clamp(1.4rem,4vw,3.5rem) clamp(1rem,4vw,2rem) 5rem;
+    line-height:1.62; -webkit-font-smoothing:antialiased;
+    font-variant-numeric:tabular-nums;
+  }
+  .wrap{max-width:74rem;margin:0 auto}
+  .narrow{max-width:46rem}
+
+  h1{
+    font-family:Newsreader,Georgia,serif; font-weight:600;
+    font-size:clamp(2rem,5.2vw,3.1rem); line-height:1.08;
+    letter-spacing:-.02em; margin:0 0 .6rem; text-wrap:balance;
+  }
+  .standfirst{font-size:1.1rem;color:var(--ink2);max-width:42rem;margin:0}
+  .meta{
+    margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--rule);
+    font-size:.8rem;color:var(--ink3);
+    display:flex;gap:1.4rem;flex-wrap:wrap;
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+  }
+
+  h2{
+    font-family:Newsreader,Georgia,serif;font-weight:600;
+    font-size:clamp(1.4rem,3vw,1.9rem);letter-spacing:-.015em;
+    margin:3.6rem 0 .4rem;text-wrap:balance;
+  }
+  h2 .num{
+    font-family:"JetBrains Mono",monospace;font-size:.72rem;
+    color:var(--teal);display:block;margin-bottom:.35rem;
+    letter-spacing:.14em;font-weight:600;
+  }
+  h3{font-size:1.02rem;font-weight:700;margin:2rem 0 .4rem;letter-spacing:-.005em}
+  p{margin:0 0 1rem;max-width:44rem}
+  .lede{font-size:1.03rem;color:var(--ink2);max-width:44rem}
+  a{color:var(--teal)}
+  strong{font-weight:700}
+  code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.86em}
+  code{background:var(--sunk);padding:.08rem .3rem;border-radius:.25rem}
+
+  /* tables */
+  .scroll{overflow-x:auto;margin:1.2rem 0 .5rem;
+          border:1px solid var(--rule);border-radius:.6rem;background:var(--panel)}
+  table{border-collapse:collapse;width:100%;font-size:.83rem;min-width:52rem}
+  th,td{padding:.6rem .8rem;text-align:left;border-bottom:1px solid var(--rule);
+        vertical-align:top}
+  th{background:var(--sunk);font-weight:600;font-size:.74rem;
+     letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);
+     white-space:nowrap;position:sticky;top:0}
+  tbody tr:last-child td{border-bottom:none}
+  td.n{font-family:"JetBrains Mono",monospace;white-space:nowrap}
+  tr.ours{background:var(--teal-bg)}
+  tr.ours td{font-weight:600}
+  .tier{font-family:"JetBrains Mono",monospace;font-size:.72rem;
+        font-weight:600;letter-spacing:.04em}
+  .t1{color:var(--red)} .t2{color:var(--amber)} .t3{color:var(--teal)}
+  caption{caption-side:bottom;text-align:left;padding:.7rem .8rem;
+          font-size:.78rem;color:var(--ink3);border-top:1px solid var(--rule)}
+
+  /* callouts */
+  .box{border:1px solid var(--rule);border-radius:.7rem;padding:1.15rem 1.3rem;
+       margin:1.5rem 0;background:var(--panel);max-width:46rem}
+  .box.key{background:var(--teal-bg);border-color:var(--teal)}
+  .box.warn{background:var(--amber-bg);border-color:var(--amber)}
+  .box b{display:block;margin-bottom:.4rem;font-size:.95rem}
+  .box p{margin:0 0 .6rem;font-size:.92rem}
+  .box p:last-child{margin-bottom:0}
+
+  /* two-column compare */
+  .cmp{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.4rem 0;max-width:52rem}
+  @media(max-width:44rem){.cmp{grid-template-columns:1fr}}
+  .col{border:1px solid var(--rule);border-radius:.7rem;padding:1.1rem 1.2rem;
+       background:var(--panel)}
+  .col.mine{border-color:var(--teal);background:var(--teal-bg)}
+  .col .tag{font-family:"JetBrains Mono",monospace;font-size:.7rem;
+            letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);
+            font-weight:600;margin-bottom:.5rem}
+  .col ul{margin:.5rem 0 0;padding-inline-start:1.05rem;font-size:.88rem;color:var(--ink2)}
+  .col li{margin-bottom:.35rem}
+  .big{font-family:"JetBrains Mono",monospace;font-size:1.75rem;font-weight:600;
+       letter-spacing:-.02em;line-height:1.1;display:block;margin:.2rem 0 .3rem}
+
+  figure{margin:1.8rem 0;max-width:52rem}
+  figure svg{display:block;width:100%;height:auto;
+             border:1px solid var(--rule);border-radius:.7rem;background:var(--panel)}
+  figcaption{font-size:.82rem;color:var(--ink3);margin-top:.6rem;max-width:44rem}
+  figcaption b{color:var(--ink2)}
+
+  ol.steps{counter-reset:s;list-style:none;padding:0;max-width:46rem}
+  ol.steps li{counter-increment:s;position:relative;padding-inline-start:2.4rem;
+              margin-bottom:1.1rem}
+  ol.steps li::before{
+    content:counter(s);position:absolute;inset-inline-start:0;top:.05rem;
+    font-family:"JetBrains Mono",monospace;font-size:.75rem;font-weight:600;
+    color:var(--teal);border:1.5px solid var(--teal);border-radius:50%;
+    width:1.55rem;height:1.55rem;display:grid;place-items:center;
+  }
+  ol.steps b{display:block}
+  ol.steps p{font-size:.92rem;color:var(--ink2);margin:.15rem 0 0}
+
+  ul.plain{padding-inline-start:1.1rem;max-width:44rem}
+  ul.plain li{margin-bottom:.5rem}
+
+  hr{border:none;border-top:1px solid var(--rule);margin:3rem 0}
+  .foot{margin-top:3.5rem;padding-top:1.2rem;border-top:1px solid var(--rule);
+        font-size:.8rem;color:var(--ink3)}
+</style>
+
+<div class="wrap">
+
+<header>
+  <h1>Benchmarking Without Labels</h1>
+  <p class="standfirst">
+    What the published flood-susceptibility literature actually measures, why its
+    scores are not comparable to ours, and the protocol for carrying a model into
+    Al&nbsp;Madinah — a city with no flood records at all.
+  </p>
+  <div class="meta">
+    <span>Mityaf · مِطياف</span>
+    <span>17 papers read</span>
+    <span>14 models under test</span>
+    <span>2026-08-29</span>
+  </div>
+</header>
+
+<!-- ─────────────────────────────────────────────────────────── -->
+<h2><span class="num">READ THIS FIRST</span>Their 0.98 and our 0.40 are not the same measurement</h2>
+
+<p class="lede">
+  Nearly every flood-susceptibility paper reports ROC-AUC above 0.90. Ours is
+  0.61. That gap is almost entirely an artefact of how the datasets are built —
+  not of model quality — and understanding why is the single most useful thing
+  in this document.
+</p>
+
+<div class="cmp">
+  <div class="col">
+    <div class="tag">The field's usual setup</div>
+    <span class="big">AUC 0.95–0.99</span>
+    <ul>
+      <li><b>Balanced sampling.</b> Vemula 2025 draws 1,247 flooded points and
+        exactly 1,247 non-flooded ones — a 1:1 ratio invented by the analyst.</li>
+      <li><b>Random splits.</b> Seleem 2022 splits 60/20/20 at random, so a test
+        cell can sit 2&nbsp;m from a training cell.</li>
+      <li><b>Non-flood points chosen to be easy.</b> Often sampled far from any
+        known flood, which makes the two classes trivially separable.</li>
+      <li><b>One seed, no intervals.</b> Almost never repeated.</li>
+    </ul>
+  </div>
+  <div class="col mine">
+    <div class="tag">Mityaf's setup</div>
+    <span class="big">PR-AUC 0.40 · lift 1.44×</span>
+    <ul>
+      <li><b>Natural prevalence.</b> 27.4% of NYC road cells flood, 35.8% in
+        Chicago. Nothing rebalanced.</li>
+      <li><b>Spatial blocking.</b> GroupKFold on 0.05° (~5.5&nbsp;km) blocks, so
+        no test cell borders a training cell.</li>
+      <li><b>Hard negatives.</b> Every negative is a cell with &gt;50&nbsp;m of
+        road — the model cannot win by answering "is there a road here?"</li>
+      <li><b>Cross-city transfer</b> as the primary endpoint, five seeds.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="box key">
+  <b>The number that proves the point</b>
+  <p>
+    Agostini, Pierson &amp; Garg (AAAI 2024) model exactly our data — NYC 311
+    storm-flooding complaints — and report <b>AUC 0.642</b> for their best
+    model, against 0.520 for the homogeneous-reporting baseline. Our
+    cross-city ROC-AUC is <b>0.609–0.652</b>.
+  </p>
+  <p>
+    When someone models the real, unbalanced, under-reported problem, they land
+    exactly where we land. The 0.98s come from a different problem.
+  </p>
+</div>
+
+<!-- ─────────────────────────────────────────────────────────── -->
+<h2><span class="num">01</span>The benchmark table</h2>
+
+<p class="lede">
+  Grouped by <b>evaluation rigour</b>, not by model — because the tier decides
+  whether two numbers can be compared at all. Within a tier, scores are roughly
+  commensurable. Across tiers, they are not.
+</p>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr>
+      <th>Tier</th><th>Study</th><th>Area</th><th>Unit</th><th>Labels</th>
+      <th>Pos : Neg</th><th>Split</th><th>Models</th><th>Best result</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="tier t1">T1</span></td>
+      <td>Vemula 2025</td><td>French Riviera</td><td>points, 25 m DEM</td>
+      <td>1,247 flooded</td><td class="n">1 : 1</td><td>random</td>
+      <td>Graph transformer, XGBoost, RF, ANN, SVC</td>
+      <td class="n">XGBoost AUC 0.9853<br>GT 0.9739</td>
+    </tr>
+    <tr>
+      <td><span class="tier t1">T1</span></td>
+      <td>Zhang &amp; Guo 2026</td><td>Yancheng, CN</td><td>grid</td>
+      <td>486 flood points</td><td class="n">¾-quantile<br>distance</td><td>random</td>
+      <td>RF, XGBoost, SVM + SHAP</td>
+      <td class="n">XGBoost AUC 0.938<br>acc 0.891</td>
+    </tr>
+    <tr>
+      <td><span class="tier t1">T1</span></td>
+      <td>Ajin 2025</td><td>Buzău, RO</td><td>grid</td>
+      <td>—</td><td class="n">balanced</td><td>random</td>
+      <td>AdaBoost, CatBoost, LightGBM, XGBoost</td>
+      <td class="n">CatBoost AUC 0.972<br><b>AP 0.971</b></td>
+    </tr>
+    <tr>
+      <td><span class="tier t1">T1</span></td>
+      <td>Bersabe &amp; Jun 2025</td><td>Seoul</td><td>grid</td>
+      <td>flood points 2010–22</td><td class="n">balanced</td><td>random</td>
+      <td>Logistic, RF, SVM</td>
+      <td class="n">RF AUC 0.902<br>acc 0.837</td>
+    </tr>
+    <tr>
+      <td><span class="tier t1">T1</span></td>
+      <td>Dey 2024</td><td>New Orleans</td><td>grid</td>
+      <td>—</td><td class="n">balanced</td><td>random</td>
+      <td>FR, DT, AdaBoost, GB, XGBoost, RF</td>
+      <td class="n">RF AUC 0.85</td>
+    </tr>
+    <tr>
+      <td><span class="tier t1">T1</span></td>
+      <td>Wang, Lyu &amp; Zhang 2023</td><td>Dalian, CN</td><td>spatial units</td>
+      <td>—</td><td class="n">—</td><td>semi-supervised,<br>&lt;1.2% labelled</td>
+      <td>Graph attention network</td>
+      <td class="n">GAT best of set</td>
+    </tr>
+
+    <tr>
+      <td><span class="tier t2">T2</span></td>
+      <td>Seleem 2022</td><td>Berlin</td><td>raster 30/10/5/2 m</td>
+      <td>4,333 flooded</td><td class="n">balanced</td>
+      <td>random 60/20/20<br><b>+ out-of-area</b></td>
+      <td>CNN, ANN, RF, SVM</td>
+      <td class="n">RF-2m AUC 0.96<br><b>out-of-area 0.80</b></td>
+    </tr>
+    <tr>
+      <td><span class="tier t2">T2</span></td>
+      <td>Han 2024</td><td>Beijing</td><td>grid</td>
+      <td>—</td><td class="n">—</td><td>—</td>
+      <td>RF, SVM-RBF, PSO-WELLSVM, MaxEnt</td>
+      <td class="n">PSO-WELLSVM<br>RF &amp; SVM overfit</td>
+    </tr>
+    <tr>
+      <td><span class="tier t2">T2</span></td>
+      <td>Zhang 2025</td><td>Zijiang basin</td><td>grid</td>
+      <td>—</td><td class="n">FR + one-class SVM<br>vs random buffer</td><td>—</td>
+      <td>ensemble vs single</td>
+      <td class="n">AUC 0.95<br><b>+24% from sampling alone</b></td>
+    </tr>
+    <tr>
+      <td><span class="tier t2">T2</span></td>
+      <td>Li 2022</td><td>Guangzhou</td><td>grid</td>
+      <td>presence-only</td><td class="n">PU learning</td><td>—</td>
+      <td>PBLC (PU) vs ANN</td>
+      <td class="n">better calibrated<br>than ANN</td>
+    </tr>
+    <tr>
+      <td><span class="tier t2">T2</span></td>
+      <td>Yuan 2023</td><td>Harris County, TX</td><td>road segment</td>
+      <td>crowdsourced + traffic</td><td class="n">—</td><td>by storm event</td>
+      <td>RF, AdaBoost</td>
+      <td class="n">RF AUC 0.860 (Harvey)<br>0.790 (Imelda)</td>
+    </tr>
+    <tr>
+      <td><span class="tier t2">T2</span></td>
+      <td>Yuan 2022</td><td>Harris County, TX</td><td>road-segment graph</td>
+      <td>traffic speed</td><td class="n">—</td><td>temporal</td>
+      <td>3 × STGCN variants</td>
+      <td class="n">precision &gt;98%<br>recall &gt;96% (nowcast)</td>
+    </tr>
+
+    <tr>
+      <td><span class="tier t3">T3</span></td>
+      <td>Agostini 2024</td><td>NYC</td><td>census tract</td>
+      <td>311 storm flooding</td><td class="n">natural</td>
+      <td>by reporting period</td>
+      <td>Bayesian spatial latent variable</td>
+      <td class="n"><b>AUC 0.642</b><br>vs 0.520 homogeneous</td>
+    </tr>
+    <tr>
+      <td><span class="tier t3">T3</span></td>
+      <td>Huang 2026</td><td>Houston, 9 watersheds</td><td>H3 hexagon</td>
+      <td>592 storm events</td><td class="n">regression</td>
+      <td><b>Leave-Location-Out</b><br>350/121/121</td>
+      <td>TabPFN v2.5/2.6, TabICL</td>
+      <td class="n">R² 0.663<br>from 0.7% of data</td>
+    </tr>
+    <tr>
+      <td><span class="tier t3">T3</span></td>
+      <td>Agonafir 2022a</td><td>NYC</td><td>zip code, weekly</td>
+      <td>311 complaints</td><td class="n">count</td><td>time series</td>
+      <td>LASSO / zero-inflated</td>
+      <td class="n">catch-basin 41%<br>slope 6.7%</td>
+    </tr>
+    <tr>
+      <td><span class="tier t3">T3</span></td>
+      <td>Agonafir 2022b</td><td>NYC</td><td>zip code</td>
+      <td>311 counts</td><td class="n">count</td><td>—</td>
+      <td>Random Forest regression</td>
+      <td class="n">building factors<br>&gt; elevation &gt; imperv.</td>
+    </tr>
+    <tr class="ours">
+      <td><span class="tier t3">T3+</span></td>
+      <td>Mityaf</td><td>NYC + Chicago</td><td>200 m cell, &gt;50 m road</td>
+      <td>101,756 complaints</td>
+      <td class="n">natural<br>27.4% / 35.8%</td>
+      <td>GroupKFold 5.5 km<br><b>+ leave-one-city-out</b></td>
+      <td>14 models (this study)</td>
+      <td class="n">PR-AUC 0.396 / 0.520<br>lift 1.44× / 1.45×<br>x-city 1.24× / 1.30×</td>
+    </tr>
+  </tbody>
+  <caption>
+    <b>T1</b> balanced classes + random split · <b>T2</b> one rigour control
+    (out-of-area test, principled negative sampling, or PU framing) ·
+    <b>T3</b> natural prevalence and/or spatially blocked · <b>T3+</b> adds
+    cross-domain transfer as the primary endpoint. Blank cells are values the
+    paper does not state or that could not be verified from the open version.
+  </caption>
+</table>
+</div>
+
+<!-- ─────────────────────────────────────────────────────────── -->
+<h2><span class="num">02</span>Why a cross-study leaderboard would be dishonest</h2>
+
+<p class="lede">
+  You asked for a leaderboard. Here is the uncomfortable answer: ranking these
+  studies against each other would be meaningless, and four pieces of published
+  evidence say so.
+</p>
+
+<figure>
+  <svg viewBox="0 0 800 250" role="img" aria-label="Four evaluation designs and the score range each produces: balanced with random split yields AUC 0.95 to 0.99; natural prevalence with random split yields about 0.85; spatial blocking yields about 0.70; cross-city transfer yields 0.61 to 0.65.">
+    <defs>
+      <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+        <polygon points="0 0, 8 3.2, 0 6.4" fill="currentColor"/>
+      </marker>
+    </defs>
+    <g font-family="JetBrains Mono, monospace" font-size="12" fill="currentColor">
+      <text x="20" y="26" font-size="11" opacity=".62">EVALUATION DESIGN</text>
+      <text x="560" y="26" font-size="11" opacity=".62">REPORTED SCORE</text>
+
+      <g stroke="currentColor" stroke-width="1.4" fill="none" opacity=".28">
+        <line x1="20" y1="36" x2="780" y2="36"/>
+      </g>
+
+      <!-- rows -->
+      <g>
+        <rect x="20" y="52" width="380" height="34" rx="6" fill="none"
+              stroke="currentColor" stroke-width="1.4" opacity=".45"/>
+        <text x="34" y="74">balanced 1:1  +  random split</text>
+        <line x1="410" y1="69" x2="545" y2="69" stroke="currentColor"
+              stroke-width="1.4" marker-end="url(#ar)" opacity=".5"/>
+        <text x="560" y="74" font-size="15" font-weight="600">AUC 0.95 – 0.99</text>
+      </g>
+      <g>
+        <rect x="20" y="98" width="380" height="34" rx="6" fill="none"
+              stroke="currentColor" stroke-width="1.4" opacity=".45"/>
+        <text x="34" y="120">natural prevalence  +  random split</text>
+        <line x1="410" y1="115" x2="545" y2="115" stroke="currentColor"
+              stroke-width="1.4" marker-end="url(#ar)" opacity=".5"/>
+        <text x="560" y="120" font-size="15" font-weight="600">≈ 0.85</text>
+      </g>
+      <g>
+        <rect x="20" y="144" width="380" height="34" rx="6" fill="none"
+              stroke="currentColor" stroke-width="1.4" opacity=".45"/>
+        <text x="34" y="166">+ spatial blocking</text>
+        <line x1="410" y1="161" x2="545" y2="161" stroke="currentColor"
+              stroke-width="1.4" marker-end="url(#ar)" opacity=".5"/>
+        <text x="560" y="166" font-size="15" font-weight="600">≈ 0.70</text>
+      </g>
+      <g>
+        <rect x="20" y="190" width="380" height="34" rx="6" fill="none"
+              stroke="#0E6E6B" stroke-width="2"/>
+        <text x="34" y="212" fill="#0E6E6B" font-weight="600">+ cross-city transfer</text>
+        <line x1="410" y1="207" x2="545" y2="207" stroke="#0E6E6B"
+              stroke-width="2" marker-end="url(#ar)"/>
+        <text x="560" y="212" font-size="15" font-weight="600" fill="#0E6E6B">0.61 – 0.65</text>
+      </g>
+    </g>
+  </svg>
+  <figcaption>
+    <b>Each control you add removes a source of optimism, and the score falls.</b>
+    The same model can produce any of these numbers on the same city. A study's
+    headline AUC therefore says more about its evaluation design than about its
+    model. Values are the ranges observed across the papers in the table above;
+    the bottom row is Mityaf's measured cross-city ROC-AUC.
+  </figcaption>
+</figure>
+
+<h3>Evidence 1 — equal AUC, completely different maps</h3>
+<p>
+  Vakhshoori &amp; Zare (2018) built susceptibility maps that scored
+  <b>exactly the same AUC of 0.77</b> yet disagreed on where the risk was. Maps
+  from the same method with only a different random seed
+  <b>differed in at least 29% of pixels</b>. No pair of maps with equal ROC-AUC
+  reached a Cohen's kappa above 0.61 against each other.
+</p>
+
+<h3>Evidence 2 — AUC 0.80 with kappa 0.02</h3>
+<p>
+  Seleem 2022 tested Berlin models on an area outside the training region. The
+  ANN at 30 m held <b>AUC 0.80</b> — respectable-looking — while its
+  <b>kappa fell to 0.02</b>, meaning agreement no better than chance. AUC
+  survived; the map was worthless.
+</p>
+
+<div class="box warn">
+  <b>Why this matters for you specifically</b>
+  <p>
+    Al Madinah <em>is</em> an out-of-area test. Seleem's is the closest published
+    analogue to what you are doing, and the honest reading of it is that
+    out-of-area performance degrades substantially and that AUC will hide it.
+    This is the argument for reporting lift and precision@K, which do not hide it.
+  </p>
+</div>
+
+<h3>Evidence 3 — the sampling choice outweighs the model choice</h3>
+<p>
+  Zhang 2025 changed only how non-flood points were selected — frequency-ratio
+  plus one-class SVM instead of random buffer sampling — and accuracy moved
+  <b>24 percentage points</b>. No model swap in this entire literature moves
+  anything by more than about 3. Your negative-sampling rule deserves its own
+  experiment more than your classifier does.
+</p>
+
+<h3>Evidence 4 — no model family reliably wins</h3>
+<p>
+  Random Forest wins in Berlin, Seoul, New Orleans and Cincinnati. XGBoost wins
+  in Yancheng and on the French Riviera. CatBoost wins in Romania. In Beijing,
+  <b>Han 2024 reports RF and SVM-RBF actively overfitting</b> and a PSO-WELLSVM
+  variant winning instead. Typical separation between the top two or three
+  models is 0.01–0.03 AUC — inside the noise of a single split.
+</p>
+
+<!-- ─────────────────────────────────────────────────────────── -->
+<h2><span class="num">03</span>Every method to try, and what each is actually for</h2>
+
+<p class="lede">
+  You asked to try everything — regression, graph, neural, all metrics. Here is
+  the full set, with an honest expected payoff for each. They are not equally
+  worth your time.
+</p>
+
+<div class="scroll">
+<table>
+  <thead><tr>
+    <th>Family</th><th>Methods</th><th>What it is for</th>
+    <th>Expected payoff</th><th>Risk</th>
+  </tr></thead>
+  <tbody>
+    <tr><td><b>Baselines</b></td>
+      <td class="mono">always_negative · logistic_l1 · logistic_l2 · decision_tree</td>
+      <td>Establishes the floor. Always-negative scores 72.6% accuracy and
+        1.00× lift — the trap in one row.</td>
+      <td class="n">Essential</td><td class="n">none</td></tr>
+
+    <tr><td><b>Bagging</b></td>
+      <td class="mono">random_forest · extra_trees</td>
+      <td>The most frequent winner in the literature.</td>
+      <td class="n">High — genuine contender</td><td class="n">low</td></tr>
+
+    <tr><td><b>Boosting</b></td>
+      <td class="mono">xgboost · lightgbm · catboost · hist_gb</td>
+      <td>The incumbent family. Strong within-city.</td>
+      <td class="n">High</td><td class="n">overfits city-specific structure</td></tr>
+
+    <tr><td><b>Kernel / neural</b></td>
+      <td class="mono">svm_rbf · mlp</td>
+      <td>Completeness, and Han 2024 found an SVM variant beat RF in Beijing.</td>
+      <td class="n">Moderate</td><td class="n">slow; MLP cannot be class-weighted</td></tr>
+
+    <tr><td><b>Classical</b></td>
+      <td class="mono">naive_bayes · knn</td>
+      <td>Cheap, and they appear in the literature's comparison tables.</td>
+      <td class="n">Low — completeness</td><td class="n">none</td></tr>
+
+    <tr><td><b>Modern tabular</b></td>
+      <td class="mono">TabPFN v2 · TabNet</td>
+      <td><b>Absent from every peer-reviewed flood-susceptibility paper.</b>
+        Huang 2026 used TabPFN for flood <em>depth</em> and reached R² 0.663 from
+        0.7% of the training data.</td>
+      <td class="n">Genuinely novel here</td>
+      <td class="n">62k rows may exceed its design range</td></tr>
+
+    <tr><td><b>Presence-only / PU</b></td>
+      <td class="mono">Elkan–Noto · bagging-PU · two-step · MaxEnt</td>
+      <td>The correct framing for your data. Your "negatives" are unverified —
+        unreported, not dry.</td>
+      <td class="n"><b>Highest scientific value</b></td>
+      <td class="n">may not raise metrics, only honesty</td></tr>
+
+    <tr><td><b>Graph</b></td>
+      <td class="mono">GCN · GAT · graph transformer</td>
+      <td>Your unit is a street segment in a connected network. Static
+        susceptibility on <em>road-network topology</em> appears unoccupied.</td>
+      <td class="n">Novel but unproven</td>
+      <td class="n"><b>XGBoost beat a graph transformer 0.9853 vs 0.9739</b></td></tr>
+
+    <tr><td><b>Regression head</b></td>
+      <td class="mono">count / Poisson models</td>
+      <td>Both Agonafir papers regress complaint <em>counts</em> rather than
+        classifying. Different question: how bad, not whether.</td>
+      <td class="n">Moderate</td>
+      <td class="n">counts confound severity with reporting rate</td></tr>
+
+    <tr><td><b>OOD / novelty</b></td>
+      <td class="mono">Mahalanobis · isolation forest · PSI · conformal</td>
+      <td>Not for the main task — flood cells are 27–36%, not rare outliers.
+        For detecting that Madinah sits outside the training distribution.</td>
+      <td class="n">High — this is the Madinah answer</td>
+      <td class="n">low</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="box key">
+  <b>If you only do three things</b>
+  <p>
+    <b>1.</b> Negative-sampling experiment — the literature says it moves results
+    8× more than the model does. <b>2.</b> PU learning — it is the correct
+    framing and the reviewer objection you cannot otherwise answer.
+    <b>3.</b> OOD detection — it is the only way to say something defensible
+    about Madinah.
+  </p>
+</div>
+
+<!-- ─────────────────────────────────────────────────────────── -->
+<h2><span class="num">04</span>Where our own bake-off stands</h2>
+
+<p class="lede">
+  Live numbers from <code>research/bakeoff.py</code>, still running. Primary
+  endpoint is mean cross-city PR-AUC lift, declared before the run.
+</p>
+
+<div class="scroll">
+<table>
+  <thead><tr>
+    <th>Model</th><th>Cross-city lift</th><th>Within-city lift</th>
+    <th>ROC</th><th>Best F1</th><th>Recall</th><th>P@100</th><th>Seeds</th>
+  </tr></thead>
+  <tbody>
+    <tr><td class="mono">logistic_l1</td><td class="n">1.329</td><td class="n">1.336</td>
+      <td class="n">0.650</td><td class="n">0.525</td><td class="n">0.817</td>
+      <td class="n">0.445</td><td class="n">1</td></tr>
+    <tr><td class="mono">logistic_l2</td><td class="n">1.329</td><td class="n">1.336</td>
+      <td class="n">0.650</td><td class="n">0.525</td><td class="n">0.815</td>
+      <td class="n">0.445</td><td class="n">1</td></tr>
+    <tr><td class="mono">decision_tree</td><td class="n">1.284</td><td class="n">1.349</td>
+      <td class="n">0.643</td><td class="n">0.531</td><td class="n">0.872</td>
+      <td class="n">0.350</td><td class="n">1</td></tr>
+    <tr><td class="mono">xgboost</td><td class="n">1.277</td><td class="n">1.437</td>
+      <td class="n">—</td><td class="n">0.517</td><td class="n">0.847</td>
+      <td class="n">0.430</td><td class="n">1</td></tr>
+    <tr><td class="mono">random_forest</td><td class="n">1.250</td><td class="n">1.364</td>
+      <td class="n">0.623</td><td class="n">0.513</td><td class="n">0.877</td>
+      <td class="n">0.367</td><td class="n">5</td></tr>
+    <tr><td class="mono">always_negative</td><td class="n">1.000</td><td class="n">1.000</td>
+      <td class="n">0.500</td><td class="n">0.479</td><td class="n">1.000</td>
+      <td class="n">0.035</td><td class="n">1</td></tr>
+  </tbody>
+  <caption>
+    Partial — SVM, MLP, LightGBM, CatBoost, k-NN, Naive Bayes and Extra Trees
+    still queued. Only random_forest has completed all five seeds.
+  </caption>
+</table>
+</div>
+
+<div class="box warn">
+  <b>The awkward early result</b>
+  <p>
+    <b>Logistic regression is beating XGBoost on transfer</b> — 1.329 against
+    1.277 — while losing within-city, 1.336 against 1.437. That is boosting
+    memorising city-specific structure and a linear model generalising past it.
+  </p>
+  <p>
+    If it survives five seeds and four cities, it matters: transfer is the only
+    endpoint that justifies deploying in Madinah, and the incumbent may be the
+    wrong choice for the claim the product actually makes. Nine features is a
+    small space, and linear models are hard to beat in small spaces.
+  </p>
+</div>
+
+<!-- ─────────────────────────────────────────────────────────── -->
+<h2><span class="num">05</span>The Madinah protocol — modelling a city with no labels</h2>
+
+<p class="lede">
+  This is the part that matters. Al Madinah has zero recorded flood incidents,
+  so no model can be trained or tested on it. Here is the defensible way to
+  proceed, in order.
+</p>
+
+<ol class="steps">
+  <li>
+    <b>Never train on Madinah. Say so loudly.</b>
+    <p>
+      <code>train_multi.py</code> already excludes any city without a
+      <code>labels_url</code>. Madinah supplies features and consumes a model —
+      8,647 cells, 30,337 segments, zero labels. Keep that exclusion explicit in
+      code, not just in prose.
+    </p>
+  </li>
+  <li>
+    <b>Make leave-one-city-out the headline, not within-city CV.</b>
+    <p>
+      Within-city spatial blocking answers "does this generalise across
+      neighbourhoods". It cannot answer "does this generalise across cities",
+      because drainage design, climate and reporting culture are held constant —
+      and those are exactly what differ in Madinah. Only LOCO tests the claim
+      you actually make.
+    </p>
+  </li>
+  <li>
+    <b>Get past n = 2 cities.</b>
+    <p>
+      Two cities give two transfer numbers, and a reviewer will call that
+      anecdotal. San Francisco (31,821 flooding complaints with clean lat/long)
+      and Dallas (~3,500 street-flood complaints with coordinates) are verified
+      available, and their Copernicus DEM tiles exist. Four to five cities makes
+      the transfer claim an actual distribution.
+    </p>
+  </li>
+  <li>
+    <b>Report the transfer degradation, do not hide it.</b>
+    <p>
+      Within-city 1.44× falls to 1.24× across cities. State that number as the
+      expected Madinah performance. Seleem 2022 is the precedent: out-of-area
+      AUC fell to 0.80 with kappa 0.02, and reporting that honestly is what
+      makes the rest credible.
+    </p>
+  </li>
+  <li>
+    <b>Flag out-of-distribution segments.</b>
+    <p>
+      Compute Mahalanobis distance from each Madinah cell to the pooled training
+      distribution, plus a per-feature Population Stability Index, and ship an
+      <code>ood_flag</code> beside <code>risk_pct</code>. The platform can then
+      say <em>"this street is unlike anything the model has seen"</em> rather
+      than silently extrapolating. This is the single most direct answer to the
+      obvious reviewer objection.
+    </p>
+  </li>
+  <li>
+    <b>Output a rank, never a probability.</b>
+    <p>
+      You already do this — <code>risk_pct</code> is a percentile. Keep it.
+      A model transferred across domains is not calibrated, and Madinah has no
+      labels to calibrate against. A rank is defensible; a probability would be
+      a lie with a decimal point.
+    </p>
+  </li>
+  <li>
+    <b>Validate against something, even if not labels.</b>
+    <p>
+      No flood inventory does not mean no ground truth at all. Municipal tanker
+      dispatch records, resident survey responses, and post-storm imagery each
+      give a partial check on whether the top-ranked segments are the ones that
+      actually pond. Any of these turns "untested" into "partially corroborated".
+    </p>
+  </li>
+</ol>
+
+<!-- ─────────────────────────────────────────────────────────── -->
+<h2><span class="num">06</span>What to report, so nobody can dismiss it</h2>
+
+<ul class="plain">
+  <li><b>PR-AUC and lift over prevalence</b>, not ROC-AUC and accuracy. You are
+    already ahead of the field here — exactly one paper found (Ajin 2025) reports
+    average precision, and none report lift.</li>
+  <li><b>Accuracy alongside the always-negative baseline.</b> 60.7% next to
+    72.6% looks like a loss until you show the 72.6% model catches zero floods.</li>
+  <li><b>Precision@K</b>, because that is how the platform is used — a ranked
+    list worked down until budget runs out, not a threshold applied to 30,337
+    segments.</li>
+  <li><b>Five seeds, mean ± sd, on every number.</b> Your feature importances
+    move ±1.7 points between seeds; a single-seed table invites exactly the
+    challenge you cannot answer.</li>
+  <li><b>The prevalence of every dataset</b>, so a reader can convert your
+    numbers to theirs and back.</li>
+  <li><b>Pinned library versions.</b> XGBoost 3.4.1 gives PR-AUC 0.342 where the
+    older version gave 0.340 — small, but it means an unpinned environment
+    cannot reproduce a published table.</li>
+</ul>
+
+<div class="box key">
+  <b>The one-sentence positioning</b>
+  <p>
+    <em>"We report a 1.24× cross-city lift under spatial blocking at natural
+    prevalence, where the field reports 0.95+ AUC on artificially balanced
+    samples with random splits — and we do so because ours is the only setup
+    that resembles deploying in a city with no flood records."</em>
+  </p>
+</div>
+
+<div class="foot">
+  Sources are the 17 open-access PDFs in <code>masareb/paper/references/</code>,
+  indexed in <code>REFERENCES.md</code>. Values marked as unstated could not be
+  verified from the open version of that paper and were left blank rather than
+  guessed. Mityaf figures come from <code>research/results_multi.json</code>,
+  <code>results_models.json</code> and <code>threshold_metrics.json</code>.
+</div>
+
+</div>
