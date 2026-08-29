@@ -85,12 +85,77 @@ REPORTS = [
     ("2018-12-18", "—", "بلاغ مسجَّل دون تأكيد", "SPA", "research", None, None),
     ("2019-05-15", "—", "بلاغ مسجَّل دون تأكيد", "Okaz", "research", None, None),
     ("2015-05-12", "المطار", "بلاغ مسجَّل دون تأكيد", "SPA", "research", None, None),
+    ("2022-06-01", "القبلتين", "مغور صناعية — تجمّع مستمر حتى تمهيد الأرض",
+     "resident", "resident", 24.4703460, 39.5779570),
+    ("2015-05-05", "مسجد الدرع", "نفق الملك عبدالله (from our own OSM tunnel tab", "geocoded", "research", 24.49614015, 39.6088314),
+    ("2024-04-30", "السلام", "طريق السلام، المدينة المنورة", "geocoded", "research", 24.4670222, 39.6026016),
+    ("2024-08-31", "المركزية", "البقيع، المدينة المنورة", "geocoded", "research", 24.4667491, 39.6161724),
+    ("2025-12-09", "التلعة", "الطريق الدائري الثاني، المدينة المنورة", "geocoded", "research", 24.4973401, 39.6353561),
+    ("2024-08-29", "السلام", "قربان، المدينة المنورة", "geocoded", "research", 24.4535566, 39.6230506),
 ]
 
 # The mechanism vocabulary is closed at exactly three keys; anything the
 # terrain does not place into one of them carries None, never a fourth
 # sentinel string. `ponding-segments.json` already spells "no mechanism" as
 # null and the two files must not disagree.
+# Coordinate quality, because it decides what the Madinah test can conclude.
+# "precise" means a resident opened a map and dropped a pin on the spot. "approx"
+# means we derived a point from a place name in a post -- «طريق السلام، الركن
+# الغربي» is a description of a road kilometres long, not a location.
+#
+# test_madinah.py shows why this matters: the two precise pins rank 0.990 and
+# 0.994, the three approximate ones 0.380, 0.003 and 0.789, and over all five the
+# ranking does not beat chance (p = 0.159, n = 5). Reporting "three pins in the
+# top 1%" without this distinction would be reporting a selected subset.
+COORD_QUALITY = {
+    (24.5040022, 39.7000415): "precise",   # resident dropped this pin
+    (24.503704, 39.702222):   "precise",   # resident dropped this pin
+    (24.4823, 39.5097):       "approx",    # from «طريق السلام، الركن الغربي»
+    (24.44919, 39.52306):     "approx",    # from «شارع البخاري», 2.4 km long
+    (24.50561, 39.65355):     "approx",    # from «حي تلعة الهبوب / قصر السعد»
+    (24.4703460, 39.5779570): "precise",   # resident dropped this pin
+    # Added by geocode_reports.py. "exact" is our own OSM tunnel geometry;
+    # "geocoded" is Nominatim returning a representative node on a named
+    # road, which is NOT the spot that flooded. Eight of the thirteen named
+    # locations could not be found at all -- شارع الإمام مسلم, حي الغربية,
+    # حي طيبة and صلاح الدين الأيوبي are simply absent from OSM here, the
+    # same coverage gap that hides حي الغربية from the platform entirely.
+    (24.49614015, 39.6088314): "exact",   # نفق الملك عبدالله (from our own OSM tunnel table)
+    (24.4670222, 39.6026016): "geocoded",   # طريق السلام، المدينة المنورة
+    (24.4667491, 39.6161724): "geocoded",   # البقيع، المدينة المنورة
+    (24.4973401, 39.6353561): "geocoded",   # الطريق الدائري الثاني، المدينة المنورة
+    (24.4535566, 39.6230506): "geocoded",   # قربان، المدينة المنورة
+}
+
+# Sites where ponding was observed and then STOPPED after ground works. These
+# are worth more than an incident report: each is a natural experiment on
+# whether changing the terrain changes the outcome, which is the entire premise
+# of the depression remedy.
+#
+# The first entry also marks a real limit of the method. Copernicus GLO-30
+# derives from TanDEM-X acquisitions flown 2011-2015, so ground reshaped after
+# that is invisible to us -- and a pit narrower than a 30 m cell is invisible at
+# any date. That is why we read sink = 0.000 on a site that demonstrably held
+# water for two years: the natural terrain there is a hillside falling 18.6 m
+# across 390 m, and the water was held by man-made excavation sitting inside a
+# single cell.
+RESOLVED = [
+    {"lat": 24.4703460, "lon": 39.5779570,
+     "district": "القبلتين",
+     "observed_from": "2022", "observed_until": "2024",
+     "resolved_by": "إزالة المغور الصناعية وتمهيد الأرض",
+     "resolved_when": "2024-2025",
+     "source": "resident",
+     "note": ("كانت المياه تتجمّع في مغور صناعية — حفرٌ من أعمال سابقة. بعد "
+              "إزالتها وتمهيد الأرض توقّف التجمّع تماماً."),
+     "our_slope_deg": 2.322, "our_sink_m": 0.000, "our_hand_m": -4.77,
+     "our_twi": 12.09, "our_rank_hydrology": 0.766,
+     "our_mechanism": None,
+     "why_we_missed_it": ("المصدر حفرٌ من صنع الإنسان أصغر من خليّة 30 متراً، "
+                          "فلا يراها نموذج الارتفاع. والتضاريس الطبيعية هنا "
+                          "منحدر ينزل 18.6 متراً عبر 390 متراً، لا حوض.")},
+]
+
 MECHANISM = {"الملك فهد": "depression", "قباء": "depression",
              "التلعة": "depression", "السلام": "convergence",
              "العزيزية": "convergence"}
@@ -192,6 +257,14 @@ def main() -> None:
     print(f"\n  days >= {PONDING_MM:.0f} mm on either source: {len(big)} "
           f"({len(big)/(len(wet)/365.25):.1f}/yr)")
     print(f"  of those, {len(unrec)} have no matching report -- predictions to check")
+    print(f"\n  resolved sites on record: {len(RESOLVED)}")
+    for r in RESOLVED:
+        print(f"    {r['district']:12} {r['observed_from']}-{r['observed_until']}"
+              f" -> fixed {r['resolved_when']}  ({r['resolved_by']})")
+        print(f"      our reading: sink {r['our_sink_m']:.3f} m, slope "
+              f"{r['our_slope_deg']:.2f} deg, hyd rank {r['our_rank_hydrology']:.3f}, "
+              f"mechanism {r['our_mechanism']}")
+
     print(f"\nwrote {OUT}")
 
 

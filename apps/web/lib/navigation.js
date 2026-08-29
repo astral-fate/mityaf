@@ -48,6 +48,7 @@ export const NAV = [
       { id: 'stats', title: 'الإحصاءات', icon: 'chart', href: '/dashboard/stats' },
       { id: 'rain', title: 'الأحداث المطرية', icon: 'drop', href: '/dashboard/rain' },
       { id: 'evidence', title: 'الأدلّة', icon: 'check', href: '/dashboard/evidence' },
+      { id: 'cases', title: 'حالات حقيقية', icon: 'check', href: '/dashboard/cases' },
     ],
   },
 ];

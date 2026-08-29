@@ -1,0 +1,261 @@
+{
+ "n_reports": 51,
+ "n_with_coords": 17,
+ "n_distinct_points": 11,
+ "n_districts_named": 12,
+ "draws": 100000,
+ "point_test": {
+  "rank_hydrology": {
+   "ranks": [
+    0.38,
+    0.963,
+    0.565,
+    0.996,
+    0.766,
+    0.003,
+    0.747,
+    0.342,
+    0.994,
+    0.99,
+    0.789
+   ],
+   "mean": 0.6849361865348944,
+   "min": 0.0026040808253947,
+   "p_one_sided": 0.01608,
+   "in_top_10pct": 4,
+   "in_top_20pct": 4
+  },
+  "rank_model": {
+   "ranks": [
+    0.744,
+    0.737,
+    0.889,
+    0.889,
+    0.406,
+    0.493,
+    0.605,
+    0.122,
+    0.75,
+    0.626,
+    0.1
+   ],
+   "mean": 0.5783396812173552,
+   "min": 0.0995484062366087,
+   "p_one_sided": 0.1869,
+   "in_top_10pct": 0,
+   "in_top_20pct": 2
+  },
+  "rank_roaddensity": {
+   "ranks": [
+    0.387,
+    0.142,
+    0.252,
+    0.997,
+    0.459,
+    0.136,
+    0.995,
+    0.466,
+    0.6,
+    0.682,
+    0.668
+   ],
+   "mean": 0.5258400333226454,
+   "min": 0.1364340574216303,
+   "p_one_sided": 0.38155,
+   "in_top_10pct": 2,
+   "in_top_20pct": 2
+  }
+ },
+ "point_test_by_quality": {
+  "trustworthy (exact+precise)": {
+   "rank_hydrology": {
+    "ranks": [
+     0.747,
+     0.766,
+     0.994,
+     0.99
+    ],
+    "mean": 0.874229488743119,
+    "min": 0.7474206414609224,
+    "p_one_sided": 0.00266,
+    "in_top_10pct": 2,
+    "in_top_20pct": 2
+   },
+   "rank_model": {
+    "ranks": [
+     0.605,
+     0.406,
+     0.75,
+     0.626
+    ],
+    "mean": 0.5967959916933119,
+    "min": 0.4059399413257738,
+    "p_one_sided": 0.2575,
+    "in_top_10pct": 0,
+    "in_top_20pct": 0
+   },
+   "rank_roaddensity": {
+    "ranks": [
+     0.995,
+     0.459,
+     0.6,
+     0.682
+    ],
+    "mean": 0.6838678841019218,
+    "min": 0.4588950786168705,
+    "p_one_sided": 0.10556,
+    "in_top_10pct": 1,
+    "in_top_20pct": 1
+   }
+  },
+  "geocoded from a road name": {
+   "rank_hydrology": {
+    "ranks": [
+     0.963,
+     0.565,
+     0.996,
+     0.342
+    ],
+    "mean": 0.716517783564624,
+    "min": 0.3418927382404325,
+    "p_one_sided": 0.07058,
+    "in_top_10pct": 2,
+    "in_top_20pct": 2
+   },
+   "rank_model": {
+    "ranks": [
+     0.737,
+     0.889,
+     0.889,
+     0.122
+    ],
+    "mean": 0.659508191317533,
+    "min": 0.1220621683093252,
+    "p_one_sided": 0.14216,
+    "in_top_10pct": 0,
+    "in_top_20pct": 2
+   },
+   "rank_roaddensity": {
+    "ranks": [
+     0.142,
+     0.252,
+     0.997,
+     0.466
+    ],
+    "mean": 0.46430925932030187,
+    "min": 0.141790552790322,
+    "p_one_sided": 0.59412,
+    "in_top_10pct": 1,
+    "in_top_20pct": 1
+   }
+  },
+  "approximate from post text": {
+   "rank_hydrology": {
+    "ranks": [
+     0.38,
+     0.003,
+     0.789
+    ],
+    "mean": 0.3904363208842887,
+    "min": 0.0026040808253947,
+    "p_one_sided": 0.73604,
+    "in_top_10pct": 0,
+    "in_top_20pct": 0
+   },
+   "rank_model": {
+    "ranks": [
+     0.744,
+     0.493,
+     0.1
+    ],
+    "mean": 0.4455065871158432,
+    "min": 0.0995484062366087,
+    "p_one_sided": 0.62306,
+    "in_top_10pct": 0,
+    "in_top_20pct": 0
+   },
+   "rank_roaddensity": {
+    "ranks": [
+     0.387,
+     0.136,
+     0.668
+    ],
+    "mean": 0.39717726428673455,
+    "min": 0.1364340574216303,
+    "p_one_sided": 0.72219,
+    "in_top_10pct": 0,
+    "in_top_20pct": 0
+   }
+  },
+  "all inferred (geocoded+approx)": {
+   "rank_hydrology": {
+    "ranks": [
+     0.963,
+     0.565,
+     0.996,
+     0.342,
+     0.38,
+     0.003,
+     0.789
+    ],
+    "mean": 0.5767685852730517,
+    "min": 0.0026040808253947,
+    "p_one_sided": 0.24658,
+    "in_top_10pct": 2,
+    "in_top_20pct": 2
+   },
+   "rank_model": {
+    "ranks": [
+     0.737,
+     0.889,
+     0.889,
+     0.122,
+     0.744,
+     0.493,
+     0.1
+    ],
+    "mean": 0.5677932180882374,
+    "min": 0.0995484062366087,
+    "p_one_sided": 0.2711,
+    "in_top_10pct": 0,
+    "in_top_20pct": 2
+   },
+   "rank_roaddensity": {
+    "ranks": [
+     0.142,
+     0.252,
+     0.997,
+     0.466,
+     0.387,
+     0.136,
+     0.668
+    ],
+    "mean": 0.43553840430591595,
+    "min": 0.1364340574216303,
+    "p_one_sided": 0.71716,
+    "in_top_10pct": 1,
+    "in_top_20pct": 1
+   }
+  }
+ },
+ "district_test": {
+  "rank_hydrology": {
+   "auc": 0.4604938271604938,
+   "p_one_sided": 0.6565,
+   "n_districts": 91,
+   "n_with_reports": 10
+  },
+  "rank_model": {
+   "auc": 0.36790123456790125,
+   "p_one_sided": 0.911,
+   "n_districts": 91,
+   "n_with_reports": 10
+  },
+  "rank_roaddensity": {
+   "auc": 0.6734567901234568,
+   "p_one_sided": 0.034,
+   "n_districts": 91,
+   "n_with_reports": 10
+  }
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "n_segments": 30337,
+ "median_filled_features": 0,
+ "spearman": {
+  "A_roaddensity vs C_model": 0.41629197610708457,
+  "B_hydrology  vs C_model": -0.14695915638885435,
+  "A_roaddensity vs B_hydrology": 0.04013104559696418
+ },
+ "top5pct_overlap": {
+  "roaddensity_vs_model": 0.12467018469656992,
+  "hydrology_vs_model": 0.07058047493403694,
+  "roaddensity_vs_hydrology": 0.06134564643799472
+ },
+ "ood_fraction": 0.040511586511520585,
+ "ood_threshold": 75.06582062941207,
+ "note": "No Madinah labels exist. Agreement is corroboration, not accuracy."
+}

@@ -41,12 +41,19 @@ def densify(coords, step_deg=CELL_DEG / 3):
     return out
 
 
-def build_matrix(city: str):
-    """Grid one city into the same 9-feature matrix used everywhere."""
+def build_matrix(city: str, points_override=None):
+    """Grid one city into the same 9-feature matrix used everywhere.
+
+    `points_override` swaps in a different set of complaint coordinates while
+    keeping the identical grid, terrain and road features. That is what lets
+    Phase 5 score the same cells against a second phenomenon -- drainage
+    failure rather than terrain ponding -- with everything else held constant,
+    so any difference is the label and not the geometry.
+    """
     cd = HERE / "cache" / city
     meta = json.loads((cd / "meta.json").read_text())
     terrain = np.load(cd / "terrain.npy")
-    points = np.load(cd / "points.npy")
+    points = np.load(cd / "points.npy") if points_override is None else points_override
     roads = json.loads((cd / "roads.json").read_text(encoding="utf-8"))
 
     bbox = meta["bbox"]
@@ -112,12 +119,14 @@ def build_matrix(city: str):
 
 
 def model(y_train):
-    import xgboost as xgb
-    return xgb.XGBClassifier(
-        n_estimators=350, max_depth=5, learning_rate=0.06,
-        subsample=0.85, colsample_bytree=0.85,
-        scale_pos_weight=float((y_train == 0).sum() / max(y_train.sum(), 1)),
-        eval_metric="aucpr", tree_method="hist", random_state=42, n_jobs=4)
+    """The incumbent classifier, built through the shared registry.
+
+    The hyperparameters moved to models.py so the bake-off and this script
+    cannot drift apart — one definition, two callers. Behaviour here is
+    unchanged, and bakeoff.py asserts that by reproducing results_multi.json.
+    """
+    from models import build
+    return build("xgboost", y_train, seed=42)
 
 
 def main() -> None:

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 import sys
 import urllib.request
 from pathlib import Path
@@ -24,6 +25,34 @@ HERE = Path(__file__).parent
 UA = {"User-Agent": "Mityaf-research/1.0 (urban flood feature validation)"}
 DEM_URL = "https://copernicus-dem-30m.s3.amazonaws.com/{t}/{t}.tif"
 OVERPASS = "https://overpass-api.de/api/interpreter"
+
+
+_POINT = re.compile(r"\(\s*(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)\s*\)")
+
+
+def coords(row: dict):
+    """(lon, lat) from one complaint row, or None if it is not geocoded.
+
+    Portals do not agree on how to publish a location. NYC and Chicago give
+    separate `latitude`/`longitude` fields; San Francisco names them `lat`/
+    `long`, which the SoQL query aliases away; Dallas publishes a single
+    location column serialised as the string "(lat,lon)", which nothing in
+    SoQL will split for us. Handling all three here keeps cities.py declarative
+    -- a new city stays three lines of config.
+    """
+    lat, lon = row.get("latitude"), row.get("longitude")
+    if lat and lon:
+        try:
+            return [float(lon), float(lat)]
+        except (TypeError, ValueError):
+            return None
+    for v in row.values():
+        if isinstance(v, str) and (m := _POINT.match(v.strip())):
+            return [float(m.group(2)), float(m.group(1))]   # stored lat first
+        if isinstance(v, dict) and "coordinates" in v:      # GeoJSON point
+            c = v["coordinates"]
+            return [float(c[0]), float(c[1])]
+    return None
 
 
 def cache_dir(city: str) -> Path:
@@ -153,8 +182,7 @@ def build(city: str) -> None:
     if cfg["labels_url"]:
         p = fetch(cfg["labels_url"].replace(" ", "%20"), cd / "labels.json")
         reports = json.loads(p.read_text(encoding="utf-8"))
-        pts = np.array([[float(r["longitude"]), float(r["latitude"])] for r in reports
-                        if r.get("latitude") and r.get("longitude")])
+        pts = np.array([xy for xy in (coords(r) for r in reports) if xy])
         print(f"    {len(pts):,} geocoded complaints "
               f"(expected ~{cfg['expected_labels']:,})")
     else:

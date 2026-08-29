@@ -1,0 +1,332 @@
+{
+ "model": "catboost",
+ "seeds": [
+  42,
+  1,
+  7
+ ],
+ "loco": [
+  {
+   "held": "nyc",
+   "option": "all three",
+   "cities": [
+    "chicago",
+    "sf",
+    "dallas"
+   ],
+   "skill": 0.11549952490346081,
+   "sd": 0.0007054382286285138
+  },
+  {
+   "held": "nyc",
+   "option": "top-2 (sf+dallas)",
+   "cities": [
+    "sf",
+    "dallas"
+   ],
+   "skill": 0.11664741187764595,
+   "sd": 0.0016544454568496636
+  },
+  {
+   "held": "nyc",
+   "option": "top-1 (sf)",
+   "cities": [
+    "sf"
+   ],
+   "skill": 0.13255124203746368,
+   "sd": 0.00020001691439701057
+  },
+  {
+   "held": "nyc",
+   "option": "worst-1 (chicago)",
+   "cities": [
+    "chicago"
+   ],
+   "skill": 0.1315495914635375,
+   "sd": 0.0007067545808558922
+  },
+  {
+   "held": "nyc",
+   "option": "only chicago",
+   "cities": [
+    "chicago"
+   ],
+   "skill": 0.1315495914635375,
+   "sd": 0.0007067545808558922
+  },
+  {
+   "held": "nyc",
+   "option": "only sf",
+   "cities": [
+    "sf"
+   ],
+   "skill": 0.13255124203746368,
+   "sd": 0.00020001691439701057
+  },
+  {
+   "held": "nyc",
+   "option": "only dallas",
+   "cities": [
+    "dallas"
+   ],
+   "skill": 0.10397429821841875,
+   "sd": 0.000795885621423001
+  },
+  {
+   "held": "chicago",
+   "option": "all three",
+   "cities": [
+    "nyc",
+    "sf",
+    "dallas"
+   ],
+   "skill": 0.17767387764369524,
+   "sd": 0.0018089836958746221
+  },
+  {
+   "held": "chicago",
+   "option": "top-2 (nyc+dallas)",
+   "cities": [
+    "nyc",
+    "dallas"
+   ],
+   "skill": 0.18439744816733938,
+   "sd": 0.0014722751548799046
+  },
+  {
+   "held": "chicago",
+   "option": "top-1 (nyc)",
+   "cities": [
+    "nyc"
+   ],
+   "skill": 0.20271585999096753,
+   "sd": 0.00078657464378328
+  },
+  {
+   "held": "chicago",
+   "option": "worst-1 (sf)",
+   "cities": [
+    "sf"
+   ],
+   "skill": 0.1841019176760632,
+   "sd": 0.0020256383253194816
+  },
+  {
+   "held": "chicago",
+   "option": "only nyc",
+   "cities": [
+    "nyc"
+   ],
+   "skill": 0.20271585999096753,
+   "sd": 0.00078657464378328
+  },
+  {
+   "held": "chicago",
+   "option": "only sf",
+   "cities": [
+    "sf"
+   ],
+   "skill": 0.1841019176760632,
+   "sd": 0.0020256383253194816
+  },
+  {
+   "held": "chicago",
+   "option": "only dallas",
+   "cities": [
+    "dallas"
+   ],
+   "skill": 0.1256034089467347,
+   "sd": 0.0012113991929432481
+  },
+  {
+   "held": "sf",
+   "option": "all three",
+   "cities": [
+    "nyc",
+    "chicago",
+    "dallas"
+   ],
+   "skill": 0.48298181713089244,
+   "sd": 0.00484225518426717
+  },
+  {
+   "held": "sf",
+   "option": "top-2 (nyc+dallas)",
+   "cities": [
+    "nyc",
+    "dallas"
+   ],
+   "skill": 0.4772344935563577,
+   "sd": 0.003854418254045788
+  },
+  {
+   "held": "sf",
+   "option": "top-1 (nyc)",
+   "cities": [
+    "nyc"
+   ],
+   "skill": 0.4559309032964937,
+   "sd": 0.0019303563611663026
+  },
+  {
+   "held": "sf",
+   "option": "worst-1 (chicago)",
+   "cities": [
+    "chicago"
+   ],
+   "skill": 0.4500308625723459,
+   "sd": 0.001742123211490572
+  },
+  {
+   "held": "sf",
+   "option": "only nyc",
+   "cities": [
+    "nyc"
+   ],
+   "skill": 0.4559309032964937,
+   "sd": 0.0019303563611663026
+  },
+  {
+   "held": "sf",
+   "option": "only chicago",
+   "cities": [
+    "chicago"
+   ],
+   "skill": 0.4500308625723459,
+   "sd": 0.001742123211490572
+  },
+  {
+   "held": "sf",
+   "option": "only dallas",
+   "cities": [
+    "dallas"
+   ],
+   "skill": 0.40341988666818424,
+   "sd": 0.011955160403732802
+  },
+  {
+   "held": "dallas",
+   "option": "all three",
+   "cities": [
+    "nyc",
+    "chicago",
+    "sf"
+   ],
+   "skill": 0.021857791336346622,
+   "sd": 0.0003242889100826795
+  },
+  {
+   "held": "dallas",
+   "option": "top-2 (sf+nyc)",
+   "cities": [
+    "sf",
+    "nyc"
+   ],
+   "skill": 0.02333993213515485,
+   "sd": 0.0005700550163142038
+  },
+  {
+   "held": "dallas",
+   "option": "top-1 (sf)",
+   "cities": [
+    "sf"
+   ],
+   "skill": 0.029004281438389998,
+   "sd": 0.00021460533476303062
+  },
+  {
+   "held": "dallas",
+   "option": "worst-1 (chicago)",
+   "cities": [
+    "chicago"
+   ],
+   "skill": 0.014861277074148816,
+   "sd": 0.00014774100325620155
+  },
+  {
+   "held": "dallas",
+   "option": "only nyc",
+   "cities": [
+    "nyc"
+   ],
+   "skill": 0.023359597423981224,
+   "sd": 0.0002804741045340143
+  },
+  {
+   "held": "dallas",
+   "option": "only chicago",
+   "cities": [
+    "chicago"
+   ],
+   "skill": 0.014861277074148816,
+   "sd": 0.00014774100325620155
+  },
+  {
+   "held": "dallas",
+   "option": "only sf",
+   "cities": [
+    "sf"
+   ],
+   "skill": 0.029004281438389998,
+   "sd": 0.00021460533476303062
+  }
+ ],
+ "similarity_loco": {
+  "nyc": {
+   "chicago": 0.7123917839924208,
+   "sf": 5.1967504577697445,
+   "dallas": 0.847695236358349
+  },
+  "chicago": {
+   "nyc": 1.4692494276689398,
+   "sf": 0.22926531544086043,
+   "dallas": 0.7876144971404331
+  },
+  "sf": {
+   "nyc": 2.2108128321852973,
+   "chicago": 0.25889657545920175,
+   "dallas": 0.9377996069886816
+  },
+  "dallas": {
+   "nyc": 1.4595785568075408,
+   "chicago": 0.6253754252394039,
+   "sf": 1.6279954025212238
+  }
+ },
+ "similarity_madinah": {
+  "nyc": 0.6996080387195222,
+  "chicago": 0.3129842709324101,
+  "sf": 3.2100208893723514,
+  "dallas": 1.5989599325373693
+ },
+ "madinah": {
+  "all four": {
+   "cities": [
+    "nyc",
+    "chicago",
+    "sf",
+    "dallas"
+   ],
+   "spearman_vs_hydrology": -0.13284058013825337,
+   "pin_ranks": [
+    0.6123,
+    0.8075,
+    0.7052
+   ],
+   "pin_mean": 0.7083333333333334
+  },
+  "picked (sf+dallas)": {
+   "cities": [
+    "sf",
+    "dallas"
+   ],
+   "spearman_vs_hydrology": -0.1394366425386934,
+   "pin_ranks": [
+    0.2767,
+    0.4731,
+    0.4025
+   ],
+   "pin_mean": 0.38410000000000005
+  }
+ }
+}

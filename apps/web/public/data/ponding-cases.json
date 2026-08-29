@@ -1,0 +1,1264 @@
+{
+ "count": 51,
+ "counts": {
+  "total": 51,
+  "corroborated": 22,
+  "located": 17,
+  "trusted": 10,
+  "inTop1Pct": 9,
+  "inTop10Pct": 10,
+  "resolved": 1
+ },
+ "note": "الترتيب ثابت ويُحسب من التضاريس وحدها، فهو لا يتغيّر بتغيّر اليوم. ما يعرضه هذا السجلّ هو مطابقة بأثر رجعي: كم هطل في ذلك اليوم، وما الرتبة التي كان الشارع يحملها أصلاً.",
+ "districts": [
+  "التلعة",
+  "الجرف",
+  "الخالدية",
+  "السلام",
+  "العزيزية",
+  "القبلتين",
+  "المركزية",
+  "المطار",
+  "الملك فهد",
+  "طيبة",
+  "قباء",
+  "مسجد الدرع"
+ ],
+ "years": [
+  "2026",
+  "2025",
+  "2024",
+  "2023",
+  "2022",
+  "2020",
+  "2019",
+  "2018",
+  "2017",
+  "2016",
+  "2015"
+ ],
+ "resolvedSites": [
+  {
+   "lat": 24.470346,
+   "lon": 39.577957,
+   "district": "القبلتين",
+   "from": "2022",
+   "until": "2024",
+   "fixedWhen": "2024-2025",
+   "fixedBy": "إزالة المغور الصناعية وتمهيد الأرض",
+   "note": "كانت المياه تتجمّع في مغور صناعية — حفرٌ من أعمال سابقة. بعد إزالتها وتمهيد الأرض توقّف التجمّع تماماً.",
+   "whyMissed": "المصدر حفرٌ من صنع الإنسان أصغر من خليّة 30 متراً، فلا يراها نموذج الارتفاع. والتضاريس الطبيعية هنا منحدر ينزل 18.6 متراً عبر 390 متراً، لا حوض.",
+   "ourRank": 0.766,
+   "ourSink": 0.0
+  }
+ ],
+ "items": [
+  {
+   "date": "2026-08-25",
+   "district": "السلام",
+   "place": "السلام / الجامعة",
+   "source": "Okaz",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 0.1,
+    "peak_mm": 0.1,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2026-03-26",
+   "district": "الملك فهد",
+   "place": "حديقة الجبل",
+   "source": "resident",
+   "stream": "resident",
+   "rain": {
+    "era5_mm": 20.6,
+    "power_mm": 1.0,
+    "peak_mm": 20.6,
+    "corroborated": true,
+    "via": "المصدران"
+   },
+   "location": {
+    "lat": 24.503704,
+    "lon": 39.702222,
+    "quality": "precise",
+    "qualityNote": "دقيق — ساكن وضع النقطة على الخريطة",
+    "trusted": true,
+    "distanceM": 8
+   },
+   "segment": {
+    "id": "seg_354293307_01",
+    "name": null,
+    "district": "الملك فهد",
+    "mechanism": "depression",
+    "rankHydrology": 0.994,
+    "rankModel": 0.75,
+    "rankRoadDensity": 0.6,
+    "band": "حرج",
+    "predictions": {
+     "catboost": 0.862,
+     "decision_tree": 0.718,
+     "extra_trees": 0.68,
+     "hist_gb": 0.932,
+     "lightgbm": 0.918,
+     "logistic_l1": 0.764,
+     "logistic_l2": 0.764,
+     "random_forest": 0.596,
+     "xgboost": 0.86
+    }
+   }
+  },
+  {
+   "date": "2025-12-09",
+   "district": "التلعة",
+   "place": "الطريق الدائري الثاني، المدينة المنورة",
+   "source": "geocoded",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 4.7,
+    "power_mm": 13.7,
+    "peak_mm": 13.7,
+    "corroborated": true,
+    "via": "المصدران"
+   },
+   "location": {
+    "lat": 24.4973401,
+    "lon": 39.6353561,
+    "quality": "geocoded",
+    "qualityNote": "مُرمَّز — مركز طريق مسمّى، لا موقع الغرق",
+    "trusted": false,
+    "distanceM": 22
+   },
+   "segment": {
+    "id": "seg_54752180_04",
+    "name": null,
+    "district": "بني حارثة",
+    "mechanism": null,
+    "rankHydrology": 0.342,
+    "rankModel": 0.122,
+    "rankRoadDensity": 0.466,
+    "band": "منخفض",
+    "predictions": {
+     "catboost": 0.373,
+     "decision_tree": 0.654,
+     "extra_trees": 0.217,
+     "hist_gb": 0.193,
+     "lightgbm": 0.319,
+     "logistic_l1": 0.63,
+     "logistic_l2": 0.63,
+     "random_forest": 0.152,
+     "xgboost": 0.359
+    }
+   }
+  },
+  {
+   "date": "2025-12-09",
+   "district": "التلعة",
+   "place": "طريق السلام / الدائري الثاني / طريق الجامعات",
+   "source": "Okaz",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 4.7,
+    "power_mm": 13.7,
+    "peak_mm": 13.7,
+    "corroborated": true,
+    "via": "المصدران"
+   }
+  },
+  {
+   "date": "2025-12-07",
+   "district": "الملك فهد",
+   "place": "حي الملك فهد",
+   "source": "resident",
+   "stream": "resident",
+   "rain": {
+    "era5_mm": 1.8,
+    "power_mm": 0.1,
+    "peak_mm": 1.8,
+    "corroborated": true,
+    "via": "ERA5"
+   },
+   "location": {
+    "lat": 24.5040022,
+    "lon": 39.7000415,
+    "quality": "precise",
+    "qualityNote": "دقيق — ساكن وضع النقطة على الخريطة",
+    "trusted": true,
+    "distanceM": 23
+   },
+   "segment": {
+    "id": "seg_420602465_00",
+    "name": null,
+    "district": "الملك فهد",
+    "mechanism": "depression",
+    "rankHydrology": 0.99,
+    "rankModel": 0.626,
+    "rankRoadDensity": 0.682,
+    "band": "مرتفع",
+    "predictions": {
+     "catboost": 0.806,
+     "decision_tree": 0.718,
+     "extra_trees": 0.568,
+     "hist_gb": 0.908,
+     "lightgbm": 0.88,
+     "logistic_l1": 0.872,
+     "logistic_l2": 0.872,
+     "random_forest": 0.488,
+     "xgboost": 0.814
+    }
+   }
+  },
+  {
+   "date": "2025-12-03",
+   "district": "السلام",
+   "place": "السلام / العزيزية",
+   "source": "research agent",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 0.0,
+    "peak_mm": 0.0,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2025-03-30",
+   "district": "الملك فهد",
+   "place": "حي الملك فهد",
+   "source": "resident",
+   "stream": "resident",
+   "rain": {
+    "era5_mm": 1.4,
+    "power_mm": 0.6,
+    "peak_mm": 1.4,
+    "corroborated": true,
+    "via": "ERA5"
+   },
+   "location": {
+    "lat": 24.5040022,
+    "lon": 39.7000415,
+    "quality": "precise",
+    "qualityNote": "دقيق — ساكن وضع النقطة على الخريطة",
+    "trusted": true,
+    "distanceM": 23
+   },
+   "segment": {
+    "id": "seg_420602465_00",
+    "name": null,
+    "district": "الملك فهد",
+    "mechanism": "depression",
+    "rankHydrology": 0.99,
+    "rankModel": 0.626,
+    "rankRoadDensity": 0.682,
+    "band": "مرتفع",
+    "predictions": {
+     "catboost": 0.806,
+     "decision_tree": 0.718,
+     "extra_trees": 0.568,
+     "hist_gb": 0.908,
+     "lightgbm": 0.88,
+     "logistic_l1": 0.872,
+     "logistic_l2": 0.872,
+     "random_forest": 0.488,
+     "xgboost": 0.814
+    }
+   }
+  },
+  {
+   "date": "2025-01-06",
+   "district": "السلام",
+   "place": "طريق السلام / الجامعة",
+   "source": "Okaz",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 4.7,
+    "power_mm": 11.8,
+    "peak_mm": 11.8,
+    "corroborated": true,
+    "via": "المصدران"
+   }
+  },
+  {
+   "date": "2024-08-31",
+   "district": "—",
+   "place": "المسجد النبوي / البقيع",
+   "source": "Al Jazeera Mubasher",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.1,
+    "power_mm": 26.6,
+    "peak_mm": 26.6,
+    "corroborated": true,
+    "via": "NASA POWER"
+   }
+  },
+  {
+   "date": "2024-08-31",
+   "district": "المركزية",
+   "place": "البقيع، المدينة المنورة",
+   "source": "geocoded",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.1,
+    "power_mm": 26.6,
+    "peak_mm": 26.6,
+    "corroborated": true,
+    "via": "NASA POWER"
+   },
+   "location": {
+    "lat": 24.4667491,
+    "lon": 39.6161724,
+    "quality": "geocoded",
+    "qualityNote": "مُرمَّز — مركز طريق مسمّى، لا موقع الغرق",
+    "trusted": false,
+    "distanceM": 151
+   },
+   "segment": {
+    "id": "seg_135268854_02",
+    "name": "شارع عبدالعزيز بن صالح",
+    "district": "بني خدرة",
+    "mechanism": null,
+    "rankHydrology": 0.565,
+    "rankModel": 0.889,
+    "rankRoadDensity": 0.252,
+    "band": "منخفض",
+    "predictions": {
+     "catboost": 0.875,
+     "decision_tree": 0.718,
+     "extra_trees": 0.811,
+     "hist_gb": 0.928,
+     "lightgbm": 0.876,
+     "logistic_l1": 0.674,
+     "logistic_l2": 0.675,
+     "random_forest": 0.782,
+     "xgboost": 0.865
+    }
+   }
+  },
+  {
+   "date": "2024-08-30",
+   "district": "التلعة",
+   "place": "حي تلعة الهبوب / قصر السعد",
+   "source": "@AskAlmadinah30",
+   "stream": "x",
+   "rain": {
+    "era5_mm": 0.1,
+    "power_mm": 26.6,
+    "peak_mm": 26.6,
+    "corroborated": true,
+    "via": "NASA POWER"
+   },
+   "location": {
+    "lat": 24.50561,
+    "lon": 39.65355,
+    "quality": "approx",
+    "qualityNote": "تقريبي — مستنتج من نصّ منشور",
+    "trusted": false,
+    "distanceM": 28
+   },
+   "segment": {
+    "id": "seg_420631130_00",
+    "name": null,
+    "district": "التلعة",
+    "mechanism": null,
+    "rankHydrology": 0.789,
+    "rankModel": 0.1,
+    "rankRoadDensity": 0.668,
+    "band": "متوسط",
+    "predictions": {
+     "catboost": 0.706,
+     "decision_tree": 0.654,
+     "extra_trees": 0.409,
+     "hist_gb": 0.592,
+     "lightgbm": 0.613,
+     "logistic_l1": 0.703,
+     "logistic_l2": 0.702,
+     "random_forest": 0.512,
+     "xgboost": 0.59
+    }
+   }
+  },
+  {
+   "date": "2024-08-29",
+   "district": "السلام",
+   "place": "السلام / قربان",
+   "source": "research agent",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.1,
+    "power_mm": 0.0,
+    "peak_mm": 0.1,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2024-08-29",
+   "district": "السلام",
+   "place": "قربان، المدينة المنورة",
+   "source": "geocoded",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.1,
+    "power_mm": 0.0,
+    "peak_mm": 0.1,
+    "corroborated": false,
+    "via": "لا مصدر"
+   },
+   "location": {
+    "lat": 24.4535566,
+    "lon": 39.6230506,
+    "quality": "geocoded",
+    "qualityNote": "مُرمَّز — مركز طريق مسمّى، لا موقع الغرق",
+    "trusted": false,
+    "distanceM": 35
+   },
+   "segment": {
+    "id": "seg_630524076_00",
+    "name": null,
+    "district": "قربان",
+    "mechanism": "depression",
+    "rankHydrology": 0.963,
+    "rankModel": 0.737,
+    "rankRoadDensity": 0.142,
+    "band": "مرتفع",
+    "predictions": {
+     "catboost": 0.875,
+     "decision_tree": 0.718,
+     "extra_trees": 0.671,
+     "hist_gb": 0.95,
+     "lightgbm": 0.884,
+     "logistic_l1": 0.666,
+     "logistic_l2": 0.666,
+     "random_forest": 0.613,
+     "xgboost": 0.868
+    }
+   }
+  },
+  {
+   "date": "2024-08-28",
+   "district": "الملك فهد",
+   "place": "حي الملك فهد",
+   "source": "resident",
+   "stream": "resident",
+   "rain": {
+    "era5_mm": 0.2,
+    "power_mm": 0.0,
+    "peak_mm": 0.2,
+    "corroborated": false,
+    "via": "لا مصدر"
+   },
+   "location": {
+    "lat": 24.5040022,
+    "lon": 39.7000415,
+    "quality": "precise",
+    "qualityNote": "دقيق — ساكن وضع النقطة على الخريطة",
+    "trusted": true,
+    "distanceM": 23
+   },
+   "segment": {
+    "id": "seg_420602465_00",
+    "name": null,
+    "district": "الملك فهد",
+    "mechanism": "depression",
+    "rankHydrology": 0.99,
+    "rankModel": 0.626,
+    "rankRoadDensity": 0.682,
+    "band": "مرتفع",
+    "predictions": {
+     "catboost": 0.806,
+     "decision_tree": 0.718,
+     "extra_trees": 0.568,
+     "hist_gb": 0.908,
+     "lightgbm": 0.88,
+     "logistic_l1": 0.872,
+     "logistic_l2": 0.872,
+     "random_forest": 0.488,
+     "xgboost": 0.814
+    }
+   }
+  },
+  {
+   "date": "2024-08-16",
+   "district": "—",
+   "place": "شوارع المدينة المنورة",
+   "source": "@1984_asd",
+   "stream": "x",
+   "rain": {
+    "era5_mm": 0.1,
+    "power_mm": 0.0,
+    "peak_mm": 0.1,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2024-04-30",
+   "district": "السلام",
+   "place": "طريق السلام",
+   "source": "research agent",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 1.3,
+    "power_mm": 10.2,
+    "peak_mm": 10.2,
+    "corroborated": true,
+    "via": "المصدران"
+   }
+  },
+  {
+   "date": "2024-04-30",
+   "district": "السلام",
+   "place": "طريق السلام، المدينة المنورة",
+   "source": "geocoded",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 1.3,
+    "power_mm": 10.2,
+    "peak_mm": 10.2,
+    "corroborated": true,
+    "via": "المصدران"
+   },
+   "location": {
+    "lat": 24.4670222,
+    "lon": 39.6026016,
+    "quality": "geocoded",
+    "qualityNote": "مُرمَّز — مركز طريق مسمّى، لا موقع الغرق",
+    "trusted": false,
+    "distanceM": 35
+   },
+   "segment": {
+    "id": "seg_586131953_01",
+    "name": "الدائري الأول - طريق الملك فيصل",
+    "district": "النقاء",
+    "mechanism": "depression",
+    "rankHydrology": 0.996,
+    "rankModel": 0.889,
+    "rankRoadDensity": 0.997,
+    "band": "حرج",
+    "predictions": {
+     "catboost": 0.876,
+     "decision_tree": 0.718,
+     "extra_trees": 0.673,
+     "hist_gb": 0.938,
+     "lightgbm": 0.909,
+     "logistic_l1": 0.972,
+     "logistic_l2": 0.972,
+     "random_forest": 0.641,
+     "xgboost": 0.905
+    }
+   }
+  },
+  {
+   "date": "2024-04-29",
+   "district": "العزيزية",
+   "place": "شارع البخاري",
+   "source": "@t_3r0",
+   "stream": "x",
+   "rain": {
+    "era5_mm": 1.3,
+    "power_mm": 4.5,
+    "peak_mm": 4.5,
+    "corroborated": true,
+    "via": "المصدران"
+   },
+   "location": {
+    "lat": 24.44919,
+    "lon": 39.52306,
+    "quality": "approx",
+    "qualityNote": "تقريبي — مستنتج من نصّ منشور",
+    "trusted": false,
+    "distanceM": 0
+   },
+   "segment": {
+    "id": "seg_293765271_10",
+    "name": "شارع الامام البخاري",
+    "district": "الدفاع",
+    "mechanism": null,
+    "rankHydrology": 0.38,
+    "rankModel": 0.744,
+    "rankRoadDensity": 0.387,
+    "band": "منخفض",
+    "predictions": {
+     "catboost": 0.77,
+     "decision_tree": 0.718,
+     "extra_trees": 0.641,
+     "hist_gb": 0.832,
+     "lightgbm": 0.794,
+     "logistic_l1": 0.769,
+     "logistic_l2": 0.77,
+     "random_forest": 0.57,
+     "xgboost": 0.772
+    }
+   }
+  },
+  {
+   "date": "2024-04-29",
+   "district": "السلام",
+   "place": "طريق السلام، الركن الغربي",
+   "source": "resident + @samir_gabbani",
+   "stream": "both",
+   "rain": {
+    "era5_mm": 1.3,
+    "power_mm": 4.5,
+    "peak_mm": 4.5,
+    "corroborated": true,
+    "via": "المصدران"
+   },
+   "location": {
+    "lat": 24.4823,
+    "lon": 39.5097,
+    "quality": "approx",
+    "qualityNote": "تقريبي — مستنتج من نصّ منشور",
+    "trusted": false,
+    "distanceM": 180
+   },
+   "segment": {
+    "id": "seg_692590973_06",
+    "name": null,
+    "district": "السلام",
+    "mechanism": null,
+    "rankHydrology": 0.003,
+    "rankModel": 0.493,
+    "rankRoadDensity": 0.136,
+    "band": "منخفض",
+    "predictions": {
+     "catboost": 0.79,
+     "decision_tree": 0.917,
+     "extra_trees": 0.37,
+     "hist_gb": 0.751,
+     "lightgbm": 0.825,
+     "logistic_l1": 0.523,
+     "logistic_l2": 0.523,
+     "random_forest": 0.454,
+     "xgboost": 0.669
+    }
+   }
+  },
+  {
+   "date": "2024-01-14",
+   "district": "—",
+   "place": "بلاغ مسجَّل دون تأكيد",
+   "source": "Al-Madina",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 0.0,
+    "peak_mm": 0.0,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2023-01-04",
+   "district": "الملك فهد",
+   "place": "شوارع حي الملك فهد — ماء راكد",
+   "source": "resident",
+   "stream": "resident",
+   "rain": {
+    "era5_mm": 24.9,
+    "power_mm": 27.9,
+    "peak_mm": 27.9,
+    "corroborated": true,
+    "via": "المصدران"
+   },
+   "location": {
+    "lat": 24.5040022,
+    "lon": 39.7000415,
+    "quality": "precise",
+    "qualityNote": "دقيق — ساكن وضع النقطة على الخريطة",
+    "trusted": true,
+    "distanceM": 23
+   },
+   "segment": {
+    "id": "seg_420602465_00",
+    "name": null,
+    "district": "الملك فهد",
+    "mechanism": "depression",
+    "rankHydrology": 0.99,
+    "rankModel": 0.626,
+    "rankRoadDensity": 0.682,
+    "band": "مرتفع",
+    "predictions": {
+     "catboost": 0.806,
+     "decision_tree": 0.718,
+     "extra_trees": 0.568,
+     "hist_gb": 0.908,
+     "lightgbm": 0.88,
+     "logistic_l1": 0.872,
+     "logistic_l2": 0.872,
+     "random_forest": 0.488,
+     "xgboost": 0.814
+    }
+   }
+  },
+  {
+   "date": "2022-11-11",
+   "district": "الملك فهد",
+   "place": "حي الملك فهد",
+   "source": "resident",
+   "stream": "resident",
+   "rain": {
+    "era5_mm": 10.6,
+    "power_mm": 2.6,
+    "peak_mm": 10.6,
+    "corroborated": true,
+    "via": "المصدران"
+   },
+   "location": {
+    "lat": 24.5040022,
+    "lon": 39.7000415,
+    "quality": "precise",
+    "qualityNote": "دقيق — ساكن وضع النقطة على الخريطة",
+    "trusted": true,
+    "distanceM": 23
+   },
+   "segment": {
+    "id": "seg_420602465_00",
+    "name": null,
+    "district": "الملك فهد",
+    "mechanism": "depression",
+    "rankHydrology": 0.99,
+    "rankModel": 0.626,
+    "rankRoadDensity": 0.682,
+    "band": "مرتفع",
+    "predictions": {
+     "catboost": 0.806,
+     "decision_tree": 0.718,
+     "extra_trees": 0.568,
+     "hist_gb": 0.908,
+     "lightgbm": 0.88,
+     "logistic_l1": 0.872,
+     "logistic_l2": 0.872,
+     "random_forest": 0.488,
+     "xgboost": 0.814
+    }
+   }
+  },
+  {
+   "date": "2022-08-20",
+   "district": "قباء",
+   "place": "شارع الإمام مسلم / قرب قباء",
+   "source": "@NewKhalij",
+   "stream": "x",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 8.5,
+    "peak_mm": 8.5,
+    "corroborated": true,
+    "via": "NASA POWER"
+   }
+  },
+  {
+   "date": "2022-08-15",
+   "district": "الملك فهد",
+   "place": "حي الملك فهد — بقي الماء حتى ضخّته الصهاريج",
+   "source": "resident",
+   "stream": "resident",
+   "rain": {
+    "era5_mm": 0.1,
+    "power_mm": 0.7,
+    "peak_mm": 0.7,
+    "corroborated": false,
+    "via": "لا مصدر"
+   },
+   "location": {
+    "lat": 24.5040022,
+    "lon": 39.7000415,
+    "quality": "precise",
+    "qualityNote": "دقيق — ساكن وضع النقطة على الخريطة",
+    "trusted": true,
+    "distanceM": 23
+   },
+   "segment": {
+    "id": "seg_420602465_00",
+    "name": null,
+    "district": "الملك فهد",
+    "mechanism": "depression",
+    "rankHydrology": 0.99,
+    "rankModel": 0.626,
+    "rankRoadDensity": 0.682,
+    "band": "مرتفع",
+    "predictions": {
+     "catboost": 0.806,
+     "decision_tree": 0.718,
+     "extra_trees": 0.568,
+     "hist_gb": 0.908,
+     "lightgbm": 0.88,
+     "logistic_l1": 0.872,
+     "logistic_l2": 0.872,
+     "random_forest": 0.488,
+     "xgboost": 0.814
+    }
+   }
+  },
+  {
+   "date": "2022-06-01",
+   "district": "القبلتين",
+   "place": "مغور صناعية — تجمّع مستمر حتى تمهيد الأرض",
+   "source": "resident",
+   "stream": "resident",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 0.0,
+    "peak_mm": 0.0,
+    "corroborated": false,
+    "via": "لا مصدر"
+   },
+   "location": {
+    "lat": 24.470346,
+    "lon": 39.577957,
+    "quality": "precise",
+    "qualityNote": "دقيق — ساكن وضع النقطة على الخريطة",
+    "trusted": true,
+    "distanceM": 110
+   },
+   "segment": {
+    "id": "seg_474765559_00",
+    "name": null,
+    "district": "القبلتين",
+    "mechanism": null,
+    "rankHydrology": 0.766,
+    "rankModel": 0.406,
+    "rankRoadDensity": 0.459,
+    "band": "متوسط",
+    "predictions": {
+     "catboost": 0.694,
+     "decision_tree": 0.654,
+     "extra_trees": 0.398,
+     "hist_gb": 0.668,
+     "lightgbm": 0.653,
+     "logistic_l1": 0.505,
+     "logistic_l2": 0.504,
+     "random_forest": 0.41,
+     "xgboost": 0.633
+    }
+   }
+  },
+  {
+   "date": "2022-04-28",
+   "district": "الملك فهد",
+   "place": "عبدالله ابن اسلم البلوي",
+   "source": "resident",
+   "stream": "resident",
+   "rain": {
+    "era5_mm": 6.4,
+    "power_mm": 4.2,
+    "peak_mm": 6.4,
+    "corroborated": true,
+    "via": "المصدران"
+   },
+   "location": {
+    "lat": 24.5040022,
+    "lon": 39.7000415,
+    "quality": "precise",
+    "qualityNote": "دقيق — ساكن وضع النقطة على الخريطة",
+    "trusted": true,
+    "distanceM": 23
+   },
+   "segment": {
+    "id": "seg_420602465_00",
+    "name": null,
+    "district": "الملك فهد",
+    "mechanism": "depression",
+    "rankHydrology": 0.99,
+    "rankModel": 0.626,
+    "rankRoadDensity": 0.682,
+    "band": "مرتفع",
+    "predictions": {
+     "catboost": 0.806,
+     "decision_tree": 0.718,
+     "extra_trees": 0.568,
+     "hist_gb": 0.908,
+     "lightgbm": 0.88,
+     "logistic_l1": 0.872,
+     "logistic_l2": 0.872,
+     "random_forest": 0.488,
+     "xgboost": 0.814
+    }
+   }
+  },
+  {
+   "date": "2020-08-20",
+   "district": "—",
+   "place": "بلاغ مسجَّل دون تأكيد",
+   "source": "research agent",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 0.0,
+    "peak_mm": 0.0,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2020-07-25",
+   "district": "—",
+   "place": "بلاغ مسجَّل دون تأكيد",
+   "source": "research agent",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 0.0,
+    "peak_mm": 0.0,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2020-06-20",
+   "district": "الخالدية",
+   "place": "بلاغ مسجَّل دون تأكيد",
+   "source": "research agent",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 0.0,
+    "peak_mm": 0.0,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2019-11-10",
+   "district": "—",
+   "place": "شوارع المدينة",
+   "source": "research agent",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.2,
+    "power_mm": 4.7,
+    "peak_mm": 4.7,
+    "corroborated": true,
+    "via": "NASA POWER"
+   }
+  },
+  {
+   "date": "2019-06-09",
+   "district": "طيبة",
+   "place": "حي طيبة — قنوات السيول",
+   "source": "Okaz",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 0.0,
+    "peak_mm": 0.0,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2019-05-15",
+   "district": "—",
+   "place": "بلاغ مسجَّل دون تأكيد",
+   "source": "Okaz",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.1,
+    "power_mm": 0.0,
+    "peak_mm": 0.1,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2019-03-16",
+   "district": "قباء",
+   "place": "صلاح الدين الأيوبي / قباء — مياه راكدة",
+   "source": "Okaz",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 0.0,
+    "peak_mm": 0.0,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2018-12-18",
+   "district": "—",
+   "place": "بلاغ مسجَّل دون تأكيد",
+   "source": "SPA",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 0.0,
+    "peak_mm": 0.0,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2018-12-03",
+   "district": "—",
+   "place": "شوارع",
+   "source": "Okaz",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.3,
+    "power_mm": 0.5,
+    "peak_mm": 0.5,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2018-10-31",
+   "district": "—",
+   "place": "شوارع وطرق أحياء المدينة",
+   "source": "@Almadin26146411",
+   "stream": "x",
+   "rain": {
+    "era5_mm": 51.4,
+    "power_mm": 7.6,
+    "peak_mm": 51.4,
+    "corroborated": true,
+    "via": "المصدران"
+   }
+  },
+  {
+   "date": "2018-05-03",
+   "district": "—",
+   "place": "بلاغ مسجَّل دون تأكيد",
+   "source": "research agent",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.1,
+    "power_mm": 0.0,
+    "peak_mm": 0.1,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2018-02-25",
+   "district": "العزيزية",
+   "place": "طريق الهجرة — سلطانة، مخطط باقدو",
+   "source": "Al-Madina",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 5.6,
+    "power_mm": 1.9,
+    "peak_mm": 5.6,
+    "corroborated": true,
+    "via": "المصدران"
+   }
+  },
+  {
+   "date": "2017-11-15",
+   "district": "المطار",
+   "place": "بلاغ مسجَّل دون تأكيد",
+   "source": "research agent",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 0.0,
+    "peak_mm": 0.0,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2017-10-04",
+   "district": "الجرف",
+   "place": "بلاغ مسجَّل دون تأكيد",
+   "source": "research agent",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 0.0,
+    "peak_mm": 0.0,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2017-08-18",
+   "district": "—",
+   "place": "شوارع المدينة، فجر الجمعة",
+   "source": "@NibiruNews1",
+   "stream": "x",
+   "rain": {
+    "era5_mm": 6.1,
+    "power_mm": 0.0,
+    "peak_mm": 6.1,
+    "corroborated": true,
+    "via": "ERA5"
+   }
+  },
+  {
+   "date": "2017-05-22",
+   "district": "—",
+   "place": "بلاغ مسجَّل دون تأكيد",
+   "source": "Al-Madina",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.2,
+    "power_mm": 0.0,
+    "peak_mm": 0.2,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2016-11-14",
+   "district": "—",
+   "place": "بلاغ مسجَّل دون تأكيد",
+   "source": "Okaz",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 0.0,
+    "peak_mm": 0.0,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2016-08-08",
+   "district": "—",
+   "place": "بلاغ مسجَّل دون تأكيد",
+   "source": "research agent",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.3,
+    "power_mm": 0.0,
+    "peak_mm": 0.3,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2016-02-10",
+   "district": "—",
+   "place": "بلاغ مسجَّل دون تأكيد",
+   "source": "Al-Madina",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 0.0,
+    "peak_mm": 0.0,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2016-01-18",
+   "district": "—",
+   "place": "بلاغ مسجَّل دون تأكيد",
+   "source": "Al-Madina",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 0.0,
+    "peak_mm": 0.0,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2015-11-19",
+   "district": "—",
+   "place": "حي الغربية / الجبور — الماء يبقى حتى خمسة أيام",
+   "source": "Al-Madina",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 4.9,
+    "power_mm": 10.6,
+    "peak_mm": 10.6,
+    "corroborated": true,
+    "via": "المصدران"
+   }
+  },
+  {
+   "date": "2015-10-12",
+   "district": "—",
+   "place": "بلاغ مسجَّل دون تأكيد",
+   "source": "Al-Riyadh",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 0.0,
+    "peak_mm": 0.0,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2015-05-12",
+   "district": "المطار",
+   "place": "بلاغ مسجَّل دون تأكيد",
+   "source": "SPA",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.0,
+    "power_mm": 0.0,
+    "peak_mm": 0.0,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  },
+  {
+   "date": "2015-05-05",
+   "district": "مسجد الدرع",
+   "place": "نفق الملك عبدالله (from our own OSM tunnel tab",
+   "source": "geocoded",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.1,
+    "power_mm": 0.0,
+    "peak_mm": 0.1,
+    "corroborated": false,
+    "via": "لا مصدر"
+   },
+   "location": {
+    "lat": 24.49614015,
+    "lon": 39.6088314,
+    "quality": "exact",
+    "qualityNote": "مضبوط — من هندسة OSM نفسها",
+    "trusted": true,
+    "distanceM": 34
+   },
+   "segment": {
+    "id": "seg_625949950_02",
+    "name": "طريق الملك عبدالله",
+    "district": "مسجد الدرع",
+    "mechanism": null,
+    "rankHydrology": 0.747,
+    "rankModel": 0.605,
+    "rankRoadDensity": 0.995,
+    "band": "متوسط",
+    "predictions": {
+     "catboost": 0.758,
+     "decision_tree": 0.654,
+     "extra_trees": 0.522,
+     "hist_gb": 0.765,
+     "lightgbm": 0.665,
+     "logistic_l1": 0.944,
+     "logistic_l2": 0.944,
+     "random_forest": 0.498,
+     "xgboost": 0.768
+    }
+   }
+  },
+  {
+   "date": "2015-05-05",
+   "district": "—",
+   "place": "نفق الملك عبدالله — تجمع مائي حاد داخل النفق",
+   "source": "SPA",
+   "stream": "research",
+   "rain": {
+    "era5_mm": 0.1,
+    "power_mm": 0.0,
+    "peak_mm": 0.1,
+    "corroborated": false,
+    "via": "لا مصدر"
+   }
+  }
+ ]
+}
