@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DataTable from '@/components/DataTable';
 import FilterBar from '@/components/FilterBar';
-import { fmt, loadSegments } from '@/lib/data';
+import { fmt, loadSegmentList } from '@/lib/data';
 import { segmentLabel } from '@/lib/segmentLabel';
 import { useFilters } from '@/lib/useFilters';
 import { exportSegmentsWorkbook } from '@/lib/excel';
@@ -38,11 +38,14 @@ export default function Segments() {
   const [roadNames, setRoadNames] = useState([]);
 
   useEffect(() => {
-    loadSegments().then((s) => {
+    // segments-list.json, not segments.geojson: this page is a sortable table
+    // with no map, so the 2.54 MB of LineString geometry in the collection was
+    // downloaded and parsed for nothing on every visit.
+    loadSegmentList().then((s) => {
       // roadNames is the interned lookup the derived labels index into; it
-      // lives on the collection, so it has to be kept off the feature map.
+      // lives on the collection, so it has to be kept off the row map.
       setRoadNames(s?.roadNames ?? []);
-      setRows((s?.features ?? []).map((f) => f.properties));
+      setRows(s?.items ?? []);
       setLoaded(true);
     });
   }, []);

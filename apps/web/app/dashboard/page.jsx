@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import {
   fmt, loadIncidents, loadMeta, loadPondingDistricts, loadPondingShortlist,
-  loadRain, loadSegments,
+  loadRain,
 } from '@/lib/data';
 import { MECHANISMS, MECHANISM_ORDER } from '@/lib/mechanisms';
 
@@ -30,24 +30,22 @@ export default function Overview() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    // Deliberately NOT loading segments.geojson. This page needs a feature
+    // count and four band tallies; fetching 9 MB and parsing it (~200 ms on the
+    // main thread) to derive four integers made the first page anyone opens the
+    // slowest. The pipeline now writes them into meta.json, which is 2 KB.
     Promise.all([
       loadMeta(), loadRain(), loadPondingDistricts(), loadPondingShortlist(),
-      loadIncidents(), loadSegments(),
-    ]).then(([meta, rain, dist, shortlist, inc, seg]) => {
-      const feats = seg?.features ?? [];
-      const bands = {};
-      for (const f of feats) {
-        const b = f.properties?.b ?? 'insufficient_data';
-        bands[b] = (bands[b] ?? 0) + 1;
-      }
+      loadIncidents(),
+    ]).then(([meta, rain, dist, shortlist, inc]) => {
       setD({
         meta,
         rain,
         districts: (dist?.features ?? []).map((f) => f.properties),
         shortlist,
         incidents: inc?.items ?? [],
-        seg: feats.length,
-        bands,
+        seg: meta?.segmentCount ?? 0,
+        bands: meta?.segmentBands ?? {},
       });
       setLoaded(true);
     });

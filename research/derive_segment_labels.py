@@ -51,6 +51,91 @@ def to_xyz(lon, lat):
     return np.stack([c * np.cos(lo), c * np.sin(lo), np.sin(la)], axis=-1)
 
 
+SHARDS = 64
+SHARD_DIR = WEB / "seg"
+
+
+def shard_key(seg_id: str) -> int:
+    """Bucket a segment id. Must match segmentShard() in apps/web/lib/data.js.
+
+    A plain code-unit sum, because the only requirement is that both languages
+    agree and the ids (seg_<digits>_<digits>) are ASCII. Anything cleverer would
+    be one more thing to keep in sync across two runtimes.
+    """
+    return sum(ord(c) for c in seg_id) % SHARDS
+
+
+def shard_segments(data: dict) -> None:
+    """Split the collection so a detail page fetches ~140 KB, not 9 MB.
+
+    The segment detail view needs one feature. It was loading segments.geojson
+    (9.1 MB) to find it, plus segments-top.json, plus ponding-segments.json
+    (13 MB) whenever the id was not on the 2,617-row shortlist -- which is the
+    common case, since 27,720 of 30,337 segments are not. Measured cold, that
+    page moved 11.95 MB to render one street.
+
+    Sixty-four buckets keeps each one small enough to parse instantly while
+    keeping the directory listable, which per-id files would not be at 30,337
+    entries.
+    """
+    # The detail view also wants the ponding record -- mechanism, priority,
+    # ranks, terrain -- which lives in ponding-segments.json. Merging it in here
+    # is what turns that page into a single request; leaving it out would just
+    # move the 13 MB fetch rather than remove it.
+    # Copy the whole record and drop what is redundant, rather than listing the
+    # fields to keep. The first version whitelisted seven keys and missed `pct`
+    # and `ood`, so the page threw on seg.pct[k]. A whitelist silently omits
+    # whatever it does not know about; a blacklist fails loudly by carrying
+    # something extra.
+    DROP = {"id", "name"}       # both already on feature.properties
+    ponding = {}
+    if SEGS.exists():
+        for it in json.loads(SEGS.read_text(encoding="utf-8")).get("items", []):
+            ponding[it["id"]] = {k: v for k, v in it.items() if k not in DROP}
+
+    buckets: dict[int, list] = {i: [] for i in range(SHARDS)}
+    for f in data["features"]:
+        sid = f["properties"]["id"]
+        rec = ponding.get(sid)
+        if rec:
+            f = {**f, "ponding": rec}
+        buckets[shard_key(sid)].append(f)
+
+    SHARD_DIR.mkdir(parents=True, exist_ok=True)
+    for old in SHARD_DIR.glob("*.json"):
+        old.unlink()
+
+    sizes = []
+    for i, feats in buckets.items():
+        payload = {
+            "shard": i,
+            # the lookup carries the road names it references, so a detail page
+            # never needs the parent collection for a label
+            "roadNames": data.get("roadNames", []),
+            "features": feats,
+        }
+        p = SHARD_DIR / f"{i:02d}.json"
+        p.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+        sizes.append(p.stat().st_size)
+
+    print(f"  sharded {len(data['features']):,} segments into {SHARDS} files "
+          f"in {SHARD_DIR.name}/ "
+          f"(median {sorted(sizes)[len(sizes)//2]/1024:.0f} KB, "
+          f"max {max(sizes)/1024:.0f} KB)")
+
+    # The list page renders a sortable table and no map, so every byte of
+    # geometry it downloads is wasted -- 2.54 MB of the 9.06 MB collection.
+    # This is the same rows without it.
+    lst = WEB / "segments-list.json"
+    lst.write_text(json.dumps({
+        "count": len(data["features"]),
+        "roadNames": data.get("roadNames", []),
+        "items": [f["properties"] for f in data["features"]],
+    }, ensure_ascii=False), encoding="utf-8")
+    print(f"  wrote {lst.name}: {lst.stat().st_size/1048576:.2f} MB "
+          f"(vs {GEO.stat().st_size/1048576:.2f} MB with geometry)")
+
+
 def main() -> None:
     els = json.loads((CACHE / "roads.json").read_text(encoding="utf-8"))["elements"]
 
@@ -195,6 +280,8 @@ def main() -> None:
                 stamped += 1
         cases.write_text(json.dumps(cj, ensure_ascii=False), encoding="utf-8")
         print(f"  stamped {stamped} derived labels into {cases.name}")
+
+    shard_segments(data)
 
     if OUT.exists():
         OUT.unlink()

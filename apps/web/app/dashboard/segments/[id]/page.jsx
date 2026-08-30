@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { fmt, loadSegments, loadTopSegments, loadPondingShortlist, loadPondingSegments } from '@/lib/data';
+import { fmt, loadMeta, loadSegmentById, loadTopSegments } from '@/lib/data';
 import { segmentLabel } from '@/lib/segmentLabel';
 import { BANDS } from '@/lib/bands';
 import { mechanismOf } from '@/lib/mechanisms';
@@ -87,33 +87,28 @@ export default function SegmentDetail() {
   const [roadNames, setRoadNames] = useState([]);
   const [total, setTotal] = useState(null);
 
-  useEffect(() => {
-    Promise.all([loadSegments(), loadTopSegments()]).then(([segs, top]) => {
-      const f = (segs?.features ?? []).find((x) => x.properties.id === id) ?? null;
-      setFeat(f);
-      setRoadNames(segs?.roadNames ?? []);
-      setTotal(segs?.features?.length ?? null);
-      setDetail((top?.items ?? []).find((x) => x.segmentUnitId === id) ?? null);
-      setState(f ? 'ok' : 'missing');
-    });
-  }, [id]);
-
-  // Prefer the 2,617-item shortlist; only pull the 13.26 MB full segment
-  // file when this id did not make the cut. That fallback is the common
-  // case -- 27,720 of 30,337 ids are not on the shortlist -- and splitting
-  // the file per id is its own plan, recorded in progress.md.
+  // One shard (~284 KB) instead of the whole collection. This page used to
+  // fetch segments.geojson (9.1 MB) to find one feature and then
+  // ponding-segments.json (13 MB) for its mechanism and ranks, because the
+  // shortlist covers only 2,617 of 30,337 ids. Measured cold: 11.95 MB and
+  // 1,876 ms. The shard carries the ponding record with the feature, so the
+  // whole page is a single request.
   useEffect(() => {
     let cancelled = false;
-    loadPondingShortlist().then(async (shortlist) => {
-      let found = (shortlist?.items ?? []).find((x) => x.id === id) ?? null;
-      if (!found) {
-        const all = await loadPondingSegments();
-        found = (all?.items ?? []).find((x) => x.id === id) ?? null;
-      }
-      if (!cancelled) setPondingSeg(found);
+    Promise.all([loadSegmentById(id), loadTopSegments()]).then(([hit, top]) => {
+      if (cancelled) return;
+      setFeat(hit.feature);
+      setRoadNames(hit.roadNames);
+      setPondingSeg(hit.feature?.ponding ?? null);
+      setDetail((top?.items ?? []).find((x) => x.segmentUnitId === id) ?? null);
+      setState(hit.feature ? 'ok' : 'missing');
     });
     return () => { cancelled = true; };
   }, [id]);
+
+  // The denominator for «rank N of M». Read from meta.json rather than by
+  // counting 30,337 features, which is what the 9 MB fetch was partly for.
+  useEffect(() => { loadMeta().then((m) => setTotal(m?.segmentCount ?? null)); }, []);
 
   const drivers = useMemo(() => {
     if (!detail?.topDrivers) return [];

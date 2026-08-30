@@ -33,6 +33,34 @@ export async function loadJson(name, { signal } = {}) {
 
 export const loadMeta = () => loadJson('meta.json');
 export const loadSegments = () => loadJson('segments.geojson');
+/** The same rows without geometry: the list page draws a table, not a map. */
+export const loadSegmentList = () => loadJson('segments-list.json');
+
+/**
+ * Which shard holds a segment. MUST match shard_key() in
+ * research/derive_segment_labels.py -- a plain code-unit sum, mod 64, because
+ * the only requirement is that Python and JS agree and the ids are ASCII.
+ */
+export function segmentShard(id, shards = 64) {
+  let n = 0;
+  for (let i = 0; i < id.length; i += 1) n += id.charCodeAt(i);
+  return n % shards;
+}
+
+/**
+ * One segment, without its 30,336 neighbours.
+ *
+ * The detail view used to load segments.geojson (9.1 MB) to find a single
+ * feature, then fall back to ponding-segments.json (13 MB) whenever the id was
+ * not on the 2,617-row shortlist -- true for 27,720 of 30,337 segments. Cold,
+ * that page moved 11.95 MB to draw one street. A shard is ~149 KB.
+ */
+export async function loadSegmentById(id, opts) {
+  const shard = String(segmentShard(id)).padStart(2, '0');
+  const data = await loadJson(`seg/${shard}.json`, opts);
+  const feature = (data?.features ?? []).find((f) => f.properties?.id === id) ?? null;
+  return { feature, roadNames: data?.roadNames ?? [] };
+}
 export const loadGreen = () => loadJson('green.geojson');
 export const loadTopSegments = () => loadJson('segments-top.json');
 export const loadWasteEvents = () => loadJson('waste-events.json');
@@ -44,7 +72,10 @@ export const loadSocial = () => loadJson('social.json');
  *  pull every reading in the city to draw one chart. */
 export const loadGreenDetail = (id) => loadJson(`green/${id}.json`);
 
-export const loadPondingSegments = () => loadJson('ponding-segments.json');
+// ponding-segments.json is 13 MB and has no consumer: the segment detail page
+// used to fetch it for one record, and that record now rides in the shard.
+// The loader is deliberately not exported -- reinstating it would quietly
+// restore a 13 MB download to a page that needs 339 KB.
 export const loadPondingShortlist = () => loadJson('ponding-shortlist.json');
 export const loadTunnels = () => loadJson('ponding-tunnels.json');
 export const loadPondingDistricts = () => loadJson('ponding-districts.geojson');

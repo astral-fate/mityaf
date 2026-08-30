@@ -464,10 +464,23 @@ async function exportMeta() {
     `SELECT round(sum(length_m)/1000)::int AS km FROM units WHERE unit_type='segment' AND active`,
   );
 
+  // Band tallies live here so the overview does not have to. It previously
+  // fetched segments.geojson -- 9 MB, ~200 ms to parse in a browser -- and used
+  // it to compute four integers, on the first page anyone loads.
+  const { rows: bands } = await query(
+    `SELECT COALESCE(r.risk_band, 'insufficient_data') AS band, count(*)::int AS n
+       FROM units u
+       LEFT JOIN segment_risk r ON r.segment_unit_id = u.unit_id
+      WHERE u.unit_type = 'segment' AND u.active
+      GROUP BY 1`,
+  );
+
   return writeJson('meta.json', {
     generatedAt: new Date().toISOString(),
     aoi: config.aoi,
     units: Object.fromEntries(counts.map((c) => [c.unit_type, c.n])),
+    segmentBands: Object.fromEntries(bands.map((b) => [b.band, b.n])),
+    segmentCount: bands.reduce((a, b) => a + b.n, 0),
     networkKm: km[0]?.km ?? null,
     observations: totals[0].observations,
     wasteEvents: totals[0].waste_events,
