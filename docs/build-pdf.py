@@ -33,7 +33,8 @@ HEADER = '<div style="display:none"></div>'
 
 
 TITLES = {"mityaf-documentation-ar": "مِطياف — التوثيق الشامل",
-          "mityaf-chapter-en": "Mityaf — Measuring Where Water Will Stand"}
+          "mityaf-chapter-en": "Mityaf — Measuring Where Water Will Stand",
+          "mityaf-methods-en": "Mityaf — How the Method Works, Piece by Piece"}
 TITLE = TITLES.get(STEM, STEM)
 
 

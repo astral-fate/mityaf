@@ -1,0 +1,111 @@
+{
+ "release": "2026-08-19.0",
+ "bbox": [
+  39.5,
+  24.36,
+  39.72,
+  24.58
+ ],
+ "total": 61638,
+ "named": 3791,
+ "arabic": 1946,
+ "distinctNames": 214,
+ "byClass": [
+  {
+   "class": "residential",
+   "n": 38062,
+   "named": 541,
+   "arabic": 111
+  },
+  {
+   "class": "unknown",
+   "n": 7637,
+   "named": 0,
+   "arabic": 0
+  },
+  {
+   "class": "secondary",
+   "n": 5708,
+   "named": 1481,
+   "arabic": 626
+  },
+  {
+   "class": "tertiary",
+   "n": 3955,
+   "named": 404,
+   "arabic": 201
+  },
+  {
+   "class": "service",
+   "n": 2718,
+   "named": 5,
+   "arabic": 2
+  },
+  {
+   "class": "primary",
+   "n": 960,
+   "named": 680,
+   "arabic": 466
+  },
+  {
+   "class": "unclassified",
+   "n": 785,
+   "named": 35,
+   "arabic": 3
+  },
+  {
+   "class": "trunk",
+   "n": 531,
+   "named": 344,
+   "arabic": 258
+  },
+  {
+   "class": "motorway",
+   "n": 510,
+   "named": 260,
+   "arabic": 243
+  },
+  {
+   "class": "footway",
+   "n": 466,
+   "named": 26,
+   "arabic": 22
+  },
+  {
+   "class": "pedestrian",
+   "n": 205,
+   "named": 15,
+   "arabic": 14
+  },
+  {
+   "class": "cycleway",
+   "n": 38,
+   "named": 0,
+   "arabic": 0
+  },
+  {
+   "class": "track",
+   "n": 36,
+   "named": 0,
+   "arabic": 0
+  },
+  {
+   "class": "steps",
+   "n": 15,
+   "named": 0,
+   "arabic": 0
+  },
+  {
+   "class": "living_street",
+   "n": 10,
+   "named": 0,
+   "arabic": 0
+  },
+  {
+   "class": "path",
+   "n": 2,
+   "named": 0,
+   "arabic": 0
+  }
+ ]
+}

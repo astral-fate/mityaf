@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mityaf — How the Method Works, Piece by Piece</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<style>
+:root{
+  --ink:#151a1f; --mid:#4a5560; --soft:#79858f; --rule:#d8dde1; --hair:#eaeef0;
+  --paper:#ffffff; --tint:#f5f7f8;
+  --terrain:#1d6b8c;   /* the six DEM features */
+  --urban:#a2622a;     /* the three OSM features */
+  --water:#2f8fbf;
+  --good:#2f7d4f; --warn:#b3541e;
+  --serif:"Source Serif 4",Georgia,serif;
+  --sans:"IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --ar:"IBM Plex Sans Arabic",sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);
+  font-size:10.6pt;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:172mm;margin:0 auto;padding:14mm 0 20mm}
+
+/* ── cover ─────────────────────────────────────────────────────────────── */
+.cover{padding:26mm 0 12mm;border-bottom:2px solid var(--ink);margin-bottom:9mm}
+.kicker{font-family:var(--sans);font-size:8.5pt;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--soft);margin:0 0 5mm}
+h1{font-size:27pt;line-height:1.14;margin:0;font-weight:700;letter-spacing:-.015em}
+.sub{font-size:12pt;color:var(--mid);margin:5mm 0 0;max-width:130mm}
+.meta{font-family:var(--mono);font-size:8pt;color:var(--soft);margin-top:8mm}
+
+/* ── structure ─────────────────────────────────────────────────────────── */
+h2{font-family:var(--sans);font-size:15pt;font-weight:600;margin:11mm 0 3mm;
+  padding-bottom:2mm;border-bottom:1px solid var(--rule);letter-spacing:-.01em}
+h2 .n{font-family:var(--mono);font-size:9pt;color:var(--soft);
+  margin-right:3mm;font-weight:400}
+h3{font-family:var(--sans);font-size:11.5pt;font-weight:600;margin:7mm 0 2mm}
+h4{font-family:var(--sans);font-size:10pt;font-weight:600;margin:5mm 0 1.5mm;
+  color:var(--mid)}
+p{margin:0 0 3mm}
+.lead{font-size:11.6pt;color:var(--mid)}
+strong{font-weight:600}
+code,.m{font-family:var(--mono);font-size:.86em;
+  background:var(--tint);padding:.5mm 1.2mm;border-radius:2px}
+.ar{font-family:var(--ar);direction:rtl;unicode-bidi:isolate}
+
+/* ── feature cards ─────────────────────────────────────────────────────── */
+.feat{border:1px solid var(--rule);border-left:3px solid var(--terrain);
+  padding:5mm 6mm;margin:4mm 0;break-inside:avoid;background:var(--paper)}
+.feat.urban{border-left-color:var(--urban)}
+.feat h3{margin:0 0 1mm;display:flex;align-items:baseline;gap:3mm;flex-wrap:wrap}
+.feat h3 code{background:var(--terrain);color:#fff;font-size:8.5pt;
+  padding:.8mm 2mm;border-radius:2px}
+.feat.urban h3 code{background:var(--urban)}
+.feat .unit{font-family:var(--mono);font-size:8pt;color:var(--soft)}
+.qa{margin:3mm 0 0}
+.qa dt{font-family:var(--sans);font-size:8.5pt;font-weight:600;color:var(--soft);
+  letter-spacing:.04em;text-transform:uppercase;margin-top:2.5mm}
+.qa dd{margin:.6mm 0 0}
+
+/* ── figures ───────────────────────────────────────────────────────────── */
+figure{margin:5mm 0;break-inside:avoid}
+figure svg{display:block;width:100%;height:auto;
+  border:1px solid var(--hair);background:var(--tint)}
+figcaption{font-family:var(--sans);font-size:8.5pt;color:var(--soft);
+  margin-top:2mm;line-height:1.5}
+figcaption b{color:var(--mid)}
+
+/* ── tables ────────────────────────────────────────────────────────────── */
+table{width:100%;border-collapse:collapse;font-family:var(--sans);
+  font-size:9pt;margin:4mm 0;break-inside:avoid}
+th{text-align:left;font-weight:600;color:var(--soft);font-size:8pt;
+  letter-spacing:.04em;text-transform:uppercase;
+  padding:2mm 2.5mm;border-bottom:1.4px solid var(--ink)}
+td{padding:2mm 2.5mm;border-bottom:1px solid var(--hair);vertical-align:top}
+td.n,th.n{text-align:right;font-family:var(--mono);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.win td{background:#f0f7f2}
+tr.win td:first-child{font-weight:600}
+
+/* ── call-outs ─────────────────────────────────────────────────────────── */
+.note{border-left:3px solid var(--water);background:var(--tint);
+  padding:4mm 5mm;margin:4mm 0;break-inside:avoid}
+.note.warn{border-left-color:var(--warn)}
+.note.key{border-left-color:var(--good)}
+.note p:last-child{margin-bottom:0}
+.note .lbl{font-family:var(--sans);font-size:8pt;font-weight:600;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--water);
+  display:block;margin-bottom:1.5mm}
+.note.warn .lbl{color:var(--warn)} .note.key .lbl{color:var(--good)}
+
+.formula{font-family:var(--mono);font-size:9.5pt;background:#0f1720;color:#e7edf2;
+  padding:4mm 5mm;margin:4mm 0;border-radius:3px;line-height:1.75;
+  overflow-x:auto;break-inside:avoid;white-space:pre}
+.formula .c{color:#7d8f9c}
+.formula .k{color:#7ec8e3}
+
+ul,ol{margin:0 0 3mm;padding-left:5mm}
+li{margin-bottom:1.2mm}
+.tight li{margin-bottom:.4mm}
+
+@media print{
+  @page{size:A4;margin:17mm 15mm 18mm}
+  .wrap{max-width:none;padding:0}
+  .cover{padding-top:6mm}
+  h2{break-after:avoid} h3,h4{break-after:avoid}
+  .pb{break-before:page}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="cover">
+  <p class="kicker">Mityaf · Al Madinah street-ponding platform</p>
+  <h1>How the Method Works,<br>Piece by Piece</h1>
+  <p class="sub">Every term in the technical pitch, explained from first
+    principles — what a DEM is, what HAND actually measures, why we trained on
+    American cities, and why the simpler method is the one that ships.</p>
+  <p class="meta">Companion to the methodology section · all figures traceable to
+    <span style="font-family:var(--mono)">research/</span></p>
+</header>
+
+<p class="lead">This document exists because the pitch compresses about six
+distinct ideas into ninety seconds. Each of them is simple on its own. What
+follows takes them one at a time, in the order the system uses them, with
+nothing assumed.</p>
+
+<div class="note">
+  <span class="lbl">The one-sentence version</span>
+  <p>We read the <em>shape of the ground</em> from a free satellite elevation
+  model, turn that shape into nine numbers for every street segment in Al
+  Madinah, and use those numbers to rank all 30,337 segments by how likely they
+  are to hold standing water after rain. No sensors, no ground labels from the
+  city itself.</p>
+</div>
+
+<h2><span class="n">01</span>The foundation: what a DEM is</h2>
+
+<p>A <strong>Digital Elevation Model</strong> is a grid laid over the earth
+where every cell holds one number: the height of the ground at that spot, in
+metres above sea level. Think of a spreadsheet the size of a city, where cell
+(412, 388) contains <code>619.4</code>.</p>
+
+<p>Ours is <strong>Copernicus DEM GLO-30</strong>, published free by the European
+Space Agency. Over Al Madinah it is a grid of <strong>817 × 818 cells</strong>,
+each cell <strong>30 metres</strong> across. That resolution is the single most
+important constraint in the whole system, so it is worth being concrete: one
+cell is roughly the width of a six-lane road plus its verges. Anything narrower
+than 30 m — a kerb, a gutter, a single blocked drain — does not exist in this
+data.</p>
+
+<div class="note warn">
+  <span class="lbl">A distinction that matters later</span>
+  <p>GLO-30 is a <strong>surface</strong> model (DSM), not a bare-earth
+  <strong>terrain</strong> model (DTM). It records the top of whatever the radar
+  hit — including bridges and overpasses. This is exactly why underpasses are
+  invisible to it, and why they need a separate rule. Hold that thought for §7.</p>
+</div>
+
+<h3>From heights to features</h3>
+<p>A raw height is nearly useless on its own. Knowing a street sits at 619 m
+tells you nothing — the whole city sits around 600 m. What predicts ponding is
+the <em>relationship</em> between a point and the ground around it. So we derive
+six quantities from the height grid. Each one answers a different question about
+that relationship.</p>
+
+<h2><span class="n">02</span>The six terrain features, one at a time</h2>
+
+<div class="feat">
+  <h3><code>sink</code> Depression depth <span class="unit">metres</span></h3>
+  <dl class="qa">
+    <dt>The question it answers</dt>
+    <dd>If you poured water here, how deep would it pool before spilling out?</dd>
+    <dt>How it is computed</dt>
+    <dd>Take the height grid and algorithmically <em>fill</em> every closed
+      hollow until water could drain off the edge — a standard operation called
+      <strong>priority-flood depression filling</strong>. Then subtract the
+      original grid from the filled one. Where the two differ, that difference
+      <em>is</em> the depth of the bowl at that point. Where the land already
+      drained freely, the difference is zero.</dd>
+    <dt>Why it predicts ponding</dt>
+    <dd>It is the most physically direct predictor there is. A closed hollow with
+      no outlet is, definitionally, where water stays. This is the literal
+      puddle depth the land would hold.</dd>
+    <dt>What to watch</dt>
+    <dd>Most of the city reads <code>0.00</code>, because most ground drains
+      somewhere. A non-zero <code>sink</code> is already unusual.</dd>
+  </dl>
+</div>
+
+<figure>
+<svg viewBox="0 0 720 190" role="img" aria-label="Cross-section showing depression depth as the gap between the original ground surface and the filled surface.">
+  <line x1="40" y1="60" x2="680" y2="60" stroke="#2f8fbf" stroke-width="1.6"
+        stroke-dasharray="6 4"/>
+  <text x="44" y="53" font-family="IBM Plex Sans, sans-serif" font-size="10"
+        fill="#2f8fbf">fill level — where water would spill out</text>
+  <path d="M40 60 L200 60 L250 118 L420 130 L470 62 L680 60" fill="none"
+        stroke="#151a1f" stroke-width="2.4"/>
+  <path d="M200 60 L250 118 L420 130 L470 62 Z" fill="#2f8fbf" opacity=".2"/>
+  <g stroke="#a2622a" stroke-width="1.4">
+    <line x1="330" y1="61" x2="330" y2="126"/>
+    <line x1="325" y1="61" x2="335" y2="61"/>
+    <line x1="325" y1="126" x2="335" y2="126"/>
+  </g>
+  <text x="340" y="98" font-family="IBM Plex Mono, monospace" font-size="10"
+        fill="#a2622a">sink = 0.32 m</text>
+  <text x="40" y="165" font-family="IBM Plex Sans, sans-serif" font-size="10"
+        fill="#4a5560">The solid line is the real ground. The dashed line is the
+    same ground after filling. Their gap is the depression depth.</text>
+</svg>
+<figcaption><b>Figure 1 — <code>sink</code>.</b> Depression depth is not measured
+  directly; it falls out as a by-product of filling the hollows. The rise applied
+  at each cell <em>is</em> the depth there.</figcaption>
+</figure>
+
+<div class="feat">
+  <h3><code>hand</code> Height Above Nearest Drainage <span class="unit">metres</span></h3>
+  <dl class="qa">
+    <dt>The question it answers</dt>
+    <dd>How high does this spot sit above the nearest place water naturally
+      flows to?</dd>
+    <dt>How it is computed</dt>
+    <dd>First trace the drainage network — the lines water would follow downhill
+      across the whole grid. Then, for every cell, follow its own downhill path
+      until it meets that network, and record the <em>height difference</em>
+      between the cell and the point where it joins. That difference is HAND.</dd>
+    <dt>Why it predicts ponding</dt>
+    <dd>It is drainage potential expressed as a single number. A street 12 m
+      above the nearest channel sheds water easily — gravity has somewhere to
+      take it. A street at <code>−2 m</code>, <em>below</em> the local drainage
+      line, has nowhere to send it.</dd>
+    <dt>The sign is the whole point</dt>
+    <dd><strong>Negative HAND means the ground sits below its own drainage
+      line.</strong> That is the condition the first mechanism rule tests for.</dd>
+  </dl>
+</div>
+
+<figure>
+<svg viewBox="0 0 720 210" role="img" aria-label="Cross-section showing HAND as the vertical distance from three points down to the nearest drainage channel.">
+  <path d="M30 40 L180 70 L300 128 L360 150 L420 128 L560 74 L690 44" fill="none"
+        stroke="#151a1f" stroke-width="2.4"/>
+  <rect x="320" y="150" width="80" height="9" fill="#2f8fbf" opacity=".5"/>
+  <text x="360" y="176" text-anchor="middle" font-family="IBM Plex Sans, sans-serif"
+        font-size="10" fill="#2f8fbf">nearest drainage</text>
+  <line x1="30" y1="150" x2="690" y2="150" stroke="#2f8fbf" stroke-width="1"
+        stroke-dasharray="4 4" opacity=".6"/>
+  <g stroke="#a2622a" stroke-width="1.3">
+    <line x1="180" y1="70" x2="180" y2="150"/>
+    <line x1="560" y1="74" x2="560" y2="150"/>
+  </g>
+  <circle cx="180" cy="70" r="4" fill="#a2622a"/>
+  <circle cx="560" cy="74" r="4" fill="#a2622a"/>
+  <circle cx="360" cy="150" r="4" fill="#2f8fbf"/>
+  <text x="188" y="140" font-family="IBM Plex Mono, monospace" font-size="10"
+        fill="#a2622a">HAND = +11.4 m</text>
+  <text x="552" y="140" text-anchor="end" font-family="IBM Plex Mono, monospace"
+        font-size="10" fill="#a2622a">HAND = +10.8 m</text>
+  <text x="412" y="147" font-family="IBM Plex Mono, monospace" font-size="10"
+        fill="#2f8fbf">HAND = 0</text>
+  <text x="30" y="200" font-family="IBM Plex Sans, sans-serif" font-size="10"
+        fill="#4a5560">Each point drops to the channel it drains into. HAND is
+    that vertical drop — high on the slopes, zero in the channel, negative in a
+    closed bowl.</text>
+</svg>
+<figcaption><b>Figure 2 — <code>hand</code>, the "height thing".</b> Not height
+  above sea level. Height above <em>the water's own destination</em>. This is why
+  a street at 619 m and a street at 640 m can have identical HAND — what matters
+  is the drop to the nearest channel, not the absolute altitude.</figcaption>
+</figure>
+
+<div class="feat">
+  <h3><code>slope</code> Steepness <span class="unit">degrees or %</span></h3>
+  <dl class="qa">
+    <dt>The question it answers</dt>
+    <dd>How steeply does the ground tilt here?</dd>
+    <dt>How it is computed</dt>
+    <dd>Compare each cell's height with its neighbours and take the steepest
+      rate of change.</dd>
+    <dt>Why it predicts ponding</dt>
+    <dd>Water leaves a slope and lingers on the flat. Slope is the brake: a
+      1° street sheds water slowly, a 6° street sheds it immediately.
+      <strong>Low slope is a necessary condition for standing water</strong> —
+      but nowhere near sufficient on its own, which is why it never acts alone.</dd>
+  </dl>
+</div>
+
+<div class="feat">
+  <h3><code>logacc</code> Flow accumulation <span class="unit">log of cell count</span></h3>
+  <dl class="qa">
+    <dt>The question it answers</dt>
+    <dd>How much upstream land drains <em>through</em> this spot?</dd>
+    <dt>How it is computed</dt>
+    <dd>Send one unit of water into every cell of the grid, let it all run
+      downhill, and count how many units pass through each cell. A ridge-top
+      cell accumulates 1. A wadi bed accumulates hundreds of thousands. Because
+      the range spans orders of magnitude, we take the logarithm.</dd>
+    <dt>Why it predicts ponding</dt>
+    <dd>It measures how much water <em>arrives</em>. Depth of hollow tells you
+      the container; flow accumulation tells you the supply filling it.</dd>
+  </dl>
+</div>
+
+<div class="feat">
+  <h3><code>twi</code> Topographic Wetness Index <span class="unit">dimensionless</span></h3>
+  <dl class="qa">
+    <dt>The question it answers</dt>
+    <dd>Combining supply and drainage, how wet does this spot tend to be?</dd>
+    <dt>How it is computed</dt>
+    <dd><code>TWI = ln( a / tan β )</code>, where <code>a</code> is the upslope
+      area draining through the point and <code>β</code> is the local slope.
+      It comes from Beven &amp; Kirkby's 1979 hydrology work and is one of the
+      most established indices in the field.</dd>
+    <dt>Why it predicts ponding</dt>
+    <dd>Read the formula as a ratio: <strong>a lot of water arriving</strong>
+      divided by <strong>how fast the ground lets it leave</strong>. Large
+      catchment over gentle slope gives a high number and a wet place. It
+      captures in one value what <code>logacc</code> and <code>slope</code> say
+      separately.</dd>
+  </dl>
+</div>
+
+<div class="feat">
+  <h3><code>relelev</code> Relative elevation <span class="unit">metres</span></h3>
+  <dl class="qa">
+    <dt>The question it answers</dt>
+    <dd>Is this spot lower or higher than its immediate surroundings?</dd>
+    <dt>How it is computed</dt>
+    <dd>Subtract the average height of a neighbourhood window from the cell's
+      own height. Negative means a local dip.</dd>
+    <dt>Why it predicts ponding</dt>
+    <dd>It complements <code>sink</code>. Depression depth requires a
+      <em>fully closed</em> bowl; relative elevation catches the shallow,
+      open-ended dip that still collects water but would fill and spill.</dd>
+  </dl>
+</div>
+
+<h2><span class="n">03</span>The three urban-form features</h2>
+
+<p>Terrain decides where water <em>can</em> collect. It says nothing about
+whether anyone is there to care. Three more features come from
+<strong>OpenStreetMap</strong> — the free, volunteer-built world map — and
+describe the built environment instead.</p>
+
+<div class="feat urban">
+  <h3><code>road_density</code> Road density</h3>
+  <dl class="qa">
+    <dt>What it is</dt><dd>How much road length packs into the area around this
+      segment.</dd>
+    <dt>Why it matters</dt><dd>A proxy for hard, sealed surface. Asphalt does not
+      absorb; every drop that lands on it has to go somewhere as runoff.</dd>
+  </dl>
+</div>
+<div class="feat urban">
+  <h3><code>major_frac</code> Major-road share</h3>
+  <dl class="qa">
+    <dt>What it is</dt><dd>What proportion of nearby roads are arterials rather
+      than residential streets.</dd>
+    <dt>Why it matters</dt><dd>Arterials are wider, more sealed, and carry
+      junctions and grade separations — the built forms most likely to sit
+      below their surroundings.</dd>
+  </dl>
+</div>
+<div class="feat urban">
+  <h3><code>load_per_road</code> Load per road</h3>
+  <dl class="qa">
+    <dt>What it is</dt><dd>How much drainage burden falls on each unit of road
+      in the area.</dd>
+    <dt>Why it matters</dt><dd>Distinguishes a dense grid sharing the load from
+      a single road carrying an entire catchment alone.</dd>
+  </dl>
+</div>
+
+<p><strong>Six terrain features plus three urban features gives nine numbers per
+street segment</strong> — the complete description every method downstream
+works from. Al Madinah's road network divides into
+<strong>30,337 segments</strong>, so the whole city is a table of 30,337 rows and
+nine columns.</p>
+
+<div class="pb"></div>
+<h2><span class="n">04</span>Path one: machine learning, and its obstacle</h2>
+
+<p>The obvious approach is supervised learning: show a model many streets that
+flooded and many that did not, and let it learn the pattern. This runs
+immediately into a wall.</p>
+
+<div class="note warn">
+  <span class="lbl">The label problem</span>
+  <p><strong>Al Madinah has no open register of flood reports with
+  coordinates.</strong> Machine learning needs labelled examples — "this street
+  flooded, that one did not". Without labels there is nothing to learn from.
+  This is not a gap in our effort; it is the reason the problem is unsolved.</p>
+</div>
+
+<h3>Borrowing labels from cities that have them</h3>
+<p>Four American cities publish exactly what Al Madinah lacks: citizen service
+requests, geocoded, categorised, spanning years. We used
+<strong>New York, Chicago, San Francisco and Dallas</strong> — together
+<strong>130,998 reports</strong> of the same physical phenomenon: water standing
+on a street after rain.</p>
+
+<p>The bet is that <em>the physics is portable even though the city is not</em>.
+A closed hollow below its drainage line holds water in Brooklyn for the same
+reason it does in <span class="ar">حي الملك فهد</span>. The nine features are
+deliberately chosen to describe only that physics — nothing about zoning,
+building codes or climate that would not carry across.</p>
+
+<h3>How we tested it honestly</h3>
+<p>Testing on data you trained on tells you nothing. We used
+<strong>leave-one-city-out</strong>: train on three cities, then predict the
+fourth — a city the model has never seen, with different terrain, different
+street layout, different rainfall.</p>
+
+<div class="note">
+  <span class="lbl">Reading the scores</span>
+  <p><strong>Recall</strong> — of the streets that really flooded, what
+  proportion did the model flag? Ours averages <strong>0.83</strong> across the
+  held-out cities. This is the number the pitch quotes.</p>
+  <p><strong>F1</strong> — the balance between catching real floods and not
+  crying wolf. <strong>0.84 in San Francisco</strong>; lower elsewhere, and we
+  name the city rather than quoting the best figure unqualified.</p>
+  <p><strong>Accuracy is deliberately not quoted.</strong> Flooded cells are
+  about 0.036% of the data. A model that says "nothing ever floods" scores
+  99.96% accuracy and is worthless. Any accuracy figure here would be
+  meaningless, so we do not use one.</p>
+</div>
+
+<table>
+  <thead><tr><th>Held-out city</th><th class="n">Recall</th></tr></thead>
+  <tbody>
+    <tr><td>San Francisco</td><td class="n">0.95</td></tr>
+    <tr><td>New York</td><td class="n">0.90</td></tr>
+    <tr><td>Chicago</td><td class="n">0.87</td></tr>
+    <tr><td>Dallas</td><td class="n">0.60</td></tr>
+    <tr class="win"><td>Mean</td><td class="n">0.83</td></tr>
+  </tbody>
+</table>
+
+<p>Fourteen model families were trained this way — gradient boosting (XGBoost,
+LightGBM, CatBoost, HistGB), bagging (random forest, extra trees), linear
+(logistic L1/L2), a neural network (MLP), and simple baselines for comparison.</p>
+
+<h2><span class="n">05</span>Path two: a hydrology ranking with no training at all</h2>
+
+<p>Alongside the models we built something deliberately primitive: a ranking
+computed straight from the physics, with <strong>no learned parameters and no
+labels</strong>.</p>
+
+<div class="formula">
+<span class="c"># every term is a percentile rank across the city, 0–1</span>
+rank_hydrology = pct(
+    pct(twi) <span class="k">+</span> pct(sink) <span class="k">−</span> pct(hand) <span class="k">−</span> pct(slope)
+)
+</div>
+
+<p>Read it in plain language: <strong>wetter is worse, deeper hollow is worse,
+higher above drainage is better, steeper is better.</strong> Four terms, equal
+weight, nothing fitted to anything. You can check it by hand.</p>
+
+<h2><span class="n">06</span>The real test: which one survives in Al Madinah?</h2>
+
+<p>Both paths now had to face the city itself. We assembled ground truth
+manually — official statements, news reports and resident accounts — reaching
+<strong>eleven distinct flood locations</strong> with dates and coordinates.
+Four of those coordinates are precise enough to trust completely.</p>
+
+<div class="note">
+  <span class="lbl">What AUC means with eleven points</span>
+  <p>With only positive examples and no verified dry streets, we use
+  <strong>AUC</strong> in its rank interpretation: <em>the average percentile
+  position of the known flood sites within the city-wide ranking.</em>
+  <code>0.5</code> is a coin flip — the sites land wherever chance puts them.
+  <code>0.685</code> means they consistently sit in the worse-ranked part of the
+  city. Nothing here is a probability of flooding.</p>
+</div>
+
+<table>
+  <thead><tr><th>Method</th><th class="n">AUC</th><th>What it is</th></tr></thead>
+  <tbody>
+    <tr class="win"><td>Hydrology ranking</td><td class="n">0.685</td>
+      <td>Four lines of physics, untrained</td></tr>
+    <tr><td>MLP</td><td class="n">0.674</td><td>Best of the trained models</td></tr>
+    <tr><td>LightGBM</td><td class="n">0.644</td><td>Gradient boosting</td></tr>
+    <tr><td>CatBoost</td><td class="n">0.642</td><td>Gradient boosting</td></tr>
+    <tr><td>XGBoost</td><td class="n">0.635</td><td>Gradient boosting</td></tr>
+    <tr><td>SVM-RBF</td><td class="n">0.488</td><td>Below chance</td></tr>
+    <tr><td>Naive Bayes</td><td class="n">0.431</td><td>Below chance</td></tr>
+  </tbody>
+</table>
+
+<p>On the four most trustworthy coordinates the hydrology ranking reaches
+<strong>0.874</strong>, with a <strong>0.3% probability</strong> of arising by
+chance. Across all eleven, <strong>1.6%</strong>.</p>
+
+<div class="note key">
+  <span class="lbl">Why the simpler method ships</span>
+  <p>Not because machine learning failed — it transfers respectably. Because
+  <strong>the simpler thing was truer</strong>, and it carries three practical
+  advantages the models cannot match: it needs <em>zero</em> labels from Al
+  Madinah, a municipal engineer can audit all four terms by eye, and there is no
+  training distribution to drift away from.</p>
+  <p>The trained models remain in the platform as a second opinion. They are
+  not what produces the ranking.</p>
+</div>
+
+<h2><span class="n">07</span>The output, and the three mechanisms</h2>
+
+<p>Ranking alone says <em>which</em> street is worst. It does not say
+<strong>why</strong> — and without why, there is no action. So the shortlist is
+classified by three explicit rules. These are conditions, not a trained model.</p>
+
+<table>
+  <thead><tr><th>Mechanism</th><th class="n">Segments</th><th>Rule</th><th>Remedy</th></tr></thead>
+  <tbody>
+    <tr><td><span class="ar">حفريات</span><br><span style="color:var(--soft)">closed depression</span></td>
+      <td class="n">533</td>
+      <td><code>sink &gt; 0.05 m</code> AND <code>hand &lt; 0</code></td>
+      <td>Drainage built inside the bowl — otherwise a tanker pumps it out every
+        season, forever</td></tr>
+    <tr><td><span class="ar">شارع انبساطي</span><br><span style="color:var(--soft)">convergence</span></td>
+      <td class="n">2,084</td>
+      <td><code>logacc ≥ p90</code> AND <code>slope &lt; 1°</code></td>
+      <td>Intercept the runoff upslope — no excavation, no capital project</td></tr>
+    <tr><td><span class="ar">شارع انشائي</span><br><span style="color:var(--soft)">underpass</span></td>
+      <td class="n">47</td>
+      <td><code>OSM tunnel=yes</code> OR <code>layer &lt; 0</code></td>
+      <td>A pump. There is no gravity outlet to build</td></tr>
+  </tbody>
+</table>
+
+<p>The third rule is the odd one out, and §1 explained why: the DEM measures the
+<em>deck over the road</em>, not the road. At these 47 segments the elevation
+model reads ordinary flat ground. Rule 1 would have caught only 9 of them, and
+the model puts 22 <em>above</em> the drainage line. <strong>38 of 47 are
+invisible to the terrain data</strong> — which is precisely why this class must
+be read from a map tag instead.</p>
+
+<figure>
+<svg viewBox="0 0 720 200" role="img" aria-label="Cross-section of an underpass showing the elevation model measuring the deck above while the road below is what floods.">
+  <line x1="40" y1="70" x2="680" y2="70" stroke="#2f8fbf" stroke-width="1.8"
+        stroke-dasharray="7 5"/>
+  <text x="44" y="62" font-family="IBM Plex Sans, sans-serif" font-size="10"
+        fill="#2f8fbf">what the elevation model measures — a continuous surface</text>
+  <path d="M40 70 L250 70 L250 148 L470 148 L470 70 L680 70" fill="none"
+        stroke="#151a1f" stroke-width="2.6"/>
+  <rect x="256" y="134" width="208" height="14" fill="#2f8fbf" opacity=".45"/>
+  <text x="360" y="172" text-anchor="middle" font-family="IBM Plex Sans, sans-serif"
+        font-size="10" fill="#151a1f">the actual road — this is what floods</text>
+  <g stroke="#a2622a" stroke-width="1.4"><line x1="200" y1="78" x2="200" y2="140"/></g>
+  <text x="120" y="112" font-family="IBM Plex Mono, monospace" font-size="10"
+        fill="#a2622a">6–9 m</text>
+  <text x="490" y="100" font-family="IBM Plex Mono, monospace" font-size="9.5"
+        fill="#4a5560">sink = 0.00 · hand &gt; 0</text>
+</svg>
+<figcaption><b>Figure 3 — why underpasses need a tag, not terrain.</b> The
+  satellite sees an unbroken surface across the top. Both <code>sink</code> and
+  <code>hand</code> therefore describe the wrong surface entirely, and report
+  "flat ground, safely above drainage".</figcaption>
+</figure>
+
+<h3>From city to work order</h3>
+<p>Of <strong>30,337</strong> segments, <strong>2,617</strong> — just
+<strong>8.6%</strong> — carry a mechanism and warrant inspection. The remaining
+27,720 still hold a rank; they simply match no rule. That reduction is the
+product: a crew can inspect 8.6% of a city before a season. It cannot inspect
+all of it.</p>
+
+<table>
+  <thead><tr><th>District</th><th class="n">Candidate segments</th></tr></thead>
+  <tbody>
+    <tr><td><span class="ar">الملك فهد</span></td><td class="n">160</td></tr>
+    <tr><td><span class="ar">الدفاع</span></td><td class="n">136</td></tr>
+    <tr><td><span class="ar">الخالدية</span></td><td class="n">83</td></tr>
+    <tr><td><span class="ar">الجامعة</span></td><td class="n">81</td></tr>
+    <tr><td><span class="ar">جماء أم خالد</span></td><td class="n">74</td></tr>
+  </tbody>
+</table>
+
+<h2><span class="n">08</span>What this system cannot do</h2>
+
+<p>Stating the limits is part of the method, not a caveat appended to it.</p>
+
+<ul>
+  <li><strong>It is not validated in Al Madinah.</strong> Eleven ground-truth
+    points is evidence, not proof. The honest claim is a consistent signal at
+    <em>p</em> = 0.016, not a measured accuracy.</li>
+  <li><strong>It predicts susceptibility, not events.</strong> The output is
+    "this street holds water when it rains", never "this street will flood on
+    Tuesday".</li>
+  <li><strong>30 m is the floor.</strong> A blocked drain, a bad kerb, a
+    construction diversion — none are visible at this resolution.</li>
+  <li><strong>The elevation data is from 2011–2015.</strong> Terrain changes
+    slowly, but a district built since then is described by the ground as it was
+    before it existed.</li>
+  <li><strong>Percentile, never probability.</strong> A segment ranked 0.98 is
+    in the worst 2% of this city. It is not "98% likely to flood".</li>
+  <li><strong>Street names are largely absent.</strong> OpenStreetMap names only
+    1.1% of Al Madinah's residential ways, so most segments are identified by
+    their nearest named road and a coordinate rather than a name.</li>
+</ul>
+
+<div class="note key">
+  <span class="lbl">The claim, stated exactly</span>
+  <p>We rank every street in Al Madinah by how likely it is to hold standing
+  water, using free public data and no sensors; we classify 2,617 of them into
+  three mechanisms with three different remedies; and we do it with a method
+  simple enough that a municipal engineer can check it by hand.</p>
+</div>
+
+</div>
+</body>
+</html>
