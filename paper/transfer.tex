@@ -127,6 +127,12 @@ variables that differ in a new city.
     (\S\ref{sec:pu}).
   \item A negative result for out-of-distribution distance as a predictor of
     transfer quality, with the confound identified (\S\ref{sec:ood}).
+  \item An evaluation in the label-poor target city itself, on \num{11} flood
+    locations assembled by hand from official and field sources, where an
+    untrained four-term hydrological composite proves \emph{indistinguishable}
+    from the best of the \num{14} transferred models --- a result we argue
+    settles the deployment question on parsimony rather than on accuracy
+    (\S\ref{sec:target}).
 \end{enumerate}
 
 \subsection{Structure}
@@ -137,8 +143,9 @@ hyperparameters, splits and metrics. \S\ref{sec:results} reports the benchmark
 and the ranking instability; \S\ref{sec:ablation} the feature ablation and the
 normalisation result; \S\ref{sec:pu} the presence-only analysis;
 \S\ref{sec:ood} the out-of-distribution analysis and the error analysis by city.
-\S\ref{sec:discussion} interprets, \S\ref{sec:limits} states limitations, and
-\S\ref{sec:conclusion} concludes.
+\S\ref{sec:target} carries every ranker to the target city and evaluates it on
+the eleven confirmed flood locations there. \S\ref{sec:discussion} interprets,
+\S\ref{sec:limits} states limitations, and \S\ref{sec:conclusion} concludes.
 
 % ══════════════════════════════════════════════════════════ RELATED
 \section{Background and related work}\label{sec:related}
@@ -644,22 +651,10 @@ city-wide median, and a sign test on how many of the eleven exceed that median.
 \begin{table}[t]
 \centering
 \small
-\begin{tabular}{lrrrcr}
-\toprule
-Ranker & AUC & AP & Lift & Above median & Trustworthy \\
-\midrule
-Hydrology (untrained) & \textbf{0.685} & 0.0032 & \textbf{1.37} & 8/11 & \textbf{4/4} \\
-LightGBM              & 0.644 & 0.0007 & 1.06 & 7/11 & 2/4 \\
-CatBoost              & 0.642 & 0.0006 & 1.04 & 8/11 & 3/4 \\
-HistGradientBoosting  & 0.640 & 0.0010 & 1.04 & 8/11 & 3/4 \\
-XGBoost               & 0.635 & 0.0007 & 1.07 & 7/11 & 3/4 \\
-Extremely Rand.\ Trees& 0.573 & 0.0009 & 1.06 & 7/11 & 3/4 \\
-Random Forest         & 0.537 & 0.0005 & 1.02 & 6/11 & 1/4 \\
-Decision tree         & 0.515 & 0.0004 & 0.99 & 1/11 & 0/4 \\
-Always-negative       & 0.500 & 0.0004 & --- & 0/11 & 0/4 \\
-Logistic (L1/L2)      & 0.478 & 0.0014 & 0.96 & 5/11 & 3/4 \\
-\bottomrule
-\end{tabular}
+% Emitted by make_target_table.py from the results file, so this table
+% cannot drift from the experiment it reports. Re-run the script after
+% any change to the results; --check fails if it is stale.
+\input{tab-target}
 \caption{Inference on eleven confirmed flood locations in Al~Madinah. Lift is
 the mean predicted probability on the eleven divided by the model's own
 city-wide median. ``Above median'' counts how many of the eleven exceed that
@@ -671,14 +666,28 @@ is $0.00036$.}
 
 Three findings, in decreasing order of confidence.
 
-\paragraph{The untrained hydrological composite wins.} A fixed formula over
-four terrain indices --- $\mathrm{pct}(\mathrm{TWI}) + \mathrm{pct}(\mathrm{sink})
+\paragraph{The untrained hydrological composite matches the best trained model.}
+A fixed formula over four terrain indices ---
+$\mathrm{pct}(\mathrm{TWI}) + \mathrm{pct}(\mathrm{sink})
 - \mathrm{pct}(\mathrm{HAND}) - \mathrm{pct}(\mathrm{slope})$, equal weights,
-nothing fitted --- reaches AUC $0.685$ and places all four trustworthy
-coordinates above its median, against $0.644$ for the best trained model. This
-is consistent with Sections~\ref{sec:ablation} and~\ref{sec:ood}: the learned
-models lean on road density, which is a proxy for \emph{reporting} in complaint
-data, and Madinah's ground truth was not assembled from complaints.
+nothing fitted --- reaches AUC $0.685$ against $0.674$ for the MLP, the strongest
+of the fourteen. We deliberately do not call this a win. The gap is $0.011$ at
+$n{=}11$; the MLP attains a \emph{higher} lift ($1.44$ against $1.37$); both place
+$8/11$ above their own median and all four trustworthy coordinates above it; and
+their permutation $p$-values ($0.016$ and $0.023$) are not distinguishable at this
+sample size. The defensible statement is that the two are indistinguishable here.
+
+That is the result worth reporting, because the two are not equally expensive.
+The MLP requires \num{131298} labelled complaints from four foreign cities, a
+training pipeline, and a frozen preprocessing contract; the composite requires
+four terrain rasters and a sign convention, can be recomputed by hand, and has no
+training distribution to drift away from. Where a supervised transfer merely
+\emph{matches} an untrained physical index, parsimony decides --- and a gradient
+boosting family that the same benchmark ranks first across US cities
+(\S\ref{sec:results}) trails both here, which is itself consistent with
+Sections~\ref{sec:ablation} and~\ref{sec:ood}: the learned models lean on road
+density, a proxy for \emph{reporting} in complaint data, and Madinah's ground
+truth was not assembled from complaints.
 
 \paragraph{Raw hit counts are misleading at this calibration.} Ten of eleven
 segments receive $p \ge 0.5$ from CatBoost, which sounds decisive until one
@@ -690,16 +699,16 @@ a threshold count.
 
 \paragraph{Nothing here is significant.} Eight of eleven above median is a
 one-sided binomial $p = 0.113$; the best permutation $p$ across all rankers is
-$0.016$ and survives no correction for the ten comparisons made. Restricting to
+$0.016$ and survives no correction for the fourteen comparisons made. Restricting to
 the four trustworthy coordinates raises hydrology's AUC to $0.874$ ($p=0.003$)
 but at $n=4$ that is an observation, not a result.
 
 \subsection{What eleven points can and cannot support}
 
 They can reject: a ranker scoring at or below chance on these locations is not
-usable in Al~Madinah, which excludes logistic regression, the decision tree and
-random forest. They cannot select: the spread among the four boosting variants
-($0.635$--$0.644$) is far narrower than what best-of-ten selection produces under
+usable in Al~Madinah, which excludes Naive Bayes ($0.431$), logistic regression
+($0.478$), SVM-RBF ($0.488$) and the decision tree ($0.515$). They cannot select: the spread among the four boosting variants
+($0.635$--$0.644$) is far narrower than what best-of-fourteen selection produces under
 a null at this sample size. And they cannot estimate precision at all, because
 an unreported street is not a dry street --- the same presence-only structure
 analysed in Section~\ref{sec:pu}, now with three orders of magnitude less data.
@@ -758,8 +767,13 @@ offers nothing to calibrate against.
   \item \textbf{$\SI{30}{\metre}$ elevation inside a dense city} resolves
     catchment topography, not kerb-level camber; the DEM is a surface model
     including buildings.
-  \item \textbf{Al Madinah is never validated.} Every number about it in
-    \S\ref{sec:ood} is a statement about feature distributions, not accuracy.
+  \item \textbf{Al Madinah is evaluated, but not validated.} The distributional
+    numbers in \S\ref{sec:ood} describe feature space, not accuracy. The eleven
+    locations in \S\ref{sec:target} are a genuine ground-truth test, but an
+    underpowered one: they are positives only, assembled retrospectively from
+    heterogeneous sources, and four of the eleven carry coordinates we would
+    defend without qualification. They can exclude a ranker; they cannot certify
+    one, and no accuracy figure for Al Madinah should be quoted from them.
 \end{enumerate}
 
 % ══════════════════════════════════════════════════════════ CONCLUSION
@@ -778,17 +792,61 @@ Presence-only corrections quantify a real and substantial reporting gap but
 cannot, by construction, improve a ranking. And distributional distance did not
 predict transfer quality in our hands.
 
+Carried to the target city and tested on eleven hand-assembled flood locations,
+the whole apparatus of transfer proved indistinguishable from four lines of
+hydrology with nothing fitted: AUC $0.685$ against $0.674$, with the transferred
+network ahead on lift. We report that as a tie rather than a defeat for
+transfer, because at $n{=}11$ nothing else is defensible. But a tie is decisive
+in practice. One side needs \num{131298} foreign labels, a training pipeline and
+a frozen preprocessing contract; the other needs four rasters and a sign
+convention, and can be audited by the engineer who has to act on it. The
+burden of proof belongs on the complicated method, and here it was not
+discharged.
+
 For a city with no flood records, the defensible protocol is: never train on it;
 report leave-one-city-out rather than within-city cross-validation; quote the
 held-out city that most resembles the target rather than the mean; normalise
 terrain within the target city; publish a coverage flag alongside every score;
-and output a rank, not a probability.
+output a rank, not a probability; and benchmark against an untrained physical
+index before accepting a transferred model, because it may not be earning its
+complexity.
 
 \paragraph{Reproducibility.} Feature construction, the model registry, all
 evaluation protocols and every results file are released with the manuscript.
 Library versions are pinned: an XGBoost minor-version change alone moved PR-AUC
 from $0.340$ to $0.342$ in our own pipeline, which is small but larger than
 several of the model gaps in Table~\ref{tab:board}.
+
+% ══════════════════════════════════════════════════════════ BACK MATTER
+\section*{Data and code availability}
+All inputs are public. The flood complaints come from the four cities' open-data
+portals (NYC 311, Chicago 311, SF~311 \texttt{vw6y-z8j6}, Dallas
+\texttt{d7e7-envw}); elevation from Copernicus DEM GLO-30 (ESA, free licence);
+street geometry from OpenStreetMap (ODbL); precipitation from the Open-Meteo
+archive and NASA POWER. The eleven Al~Madinah flood locations were assembled by
+the author from official statements, press reports and resident accounts; the
+register, including each coordinate's provenance and a quality grade, is released
+with the code so that the four \emph{trustworthy} points can be separated from
+the seven weaker ones by any reader.
+
+Feature construction, the model registry, all fourteen fitted models with their
+preprocessing contracts, every evaluation protocol and every results file are
+released. Library versions are pinned: an XGBoost minor-version change alone
+moved PR-AUC from $0.340$ to $0.342$ in our own pipeline.
+
+\section*{Declaration of competing interests}
+The author declares no competing financial or personal interests.
+
+\section*{Funding}
+This work received no external funding. It was developed for Barmajan
+Al~Munawwarah 2026, which provided no research funding and had no role in study
+design, analysis, or the decision to publish.
+
+\section*{Use of the target city's data}
+No personal data was processed. The Al~Madinah incident register contains street
+locations and dates drawn from published sources; individual reporters are not
+identified, and resident accounts are recorded at street granularity without
+attribution.
 
 \bibliographystyle{plainnat}
 \bibliography{refs}
